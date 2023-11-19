@@ -1,0 +1,812 @@
+#pragma once
+
+#include "target.h"
+#include "exceptions.h"
+
+#include <thread>
+
+namespace coro {
+
+template<typename T, coro_optional_allocator Alloc = void> class async;
+template<typename T> struct async_promise_base;
+template<typename T, coro_optional_allocator Alloc = void> struct async_promise_type;
+
+struct emplace_tag {};
+constexpr emplace_tag emplace;
+
+template<typename T>
+class future {
+
+    ///is true when T is void
+    static constexpr bool is_void = std::is_void_v<T>;
+    static constexpr bool is_rvalue_ref = !std::is_void_v<T> && std::is_rvalue_reference_v<T>;
+    static constexpr bool is_lvalue_ref = !std::is_void_v<T> && std::is_lvalue_reference_v<T>;
+
+public:
+
+    ///contains type
+    using value_type = std::decay_t<T>;
+
+    ///declaration of type which cannot be void, so void is replaced by bool
+    using VoidlessType = std::conditional_t<is_void, bool, value_type >;
+    ///declaration of return value - which is reference to type or void
+    using RetVal = std::conditional_t<is_rvalue_ref, T, std::add_lvalue_reference_t<T> >;
+
+    using StorageType = std::conditional_t<is_lvalue_ref, VoidlessType *, VoidlessType>;
+    using ConstructType = std::conditional_t<is_lvalue_ref, VoidlessType &, VoidlessType>;
+
+    using CastRetVal = std::conditional_t<is_void, bool, RetVal>;
+
+    ///Tags future<T> as valid return value for coroutines
+    using promise_type = async_promise_type<T>;
+
+    struct pending_notify_deleter {void operator()(future *ptr)noexcept{ptr->notify_resume();}};
+
+    ///Intermediate state of the future
+    /**
+     * This stores state of the future between setting the value and sending notification.
+     * In normal processing, by setting value through the promise causes immediately
+     * resumption. However, as result of setting a value you can retrieve pending_notify
+     * object, which allows to schedule notification.
+     *
+     * In this state, the future has already value, but it is not considered as
+     * resolved. You can still break the promise especially when you fail to
+     * deliver the notification.
+     *
+     * Note this object is not MT Safe
+     *
+     * If the object is ignored, standard destructor delivers the notification in
+     * current thread
+     */
+
+    class pending_notify: protected std::unique_ptr<future, pending_notify_deleter>  {
+    public:
+        using std::unique_ptr<future, pending_notify_deleter>::unique_ptr;
+        using std::unique_ptr<future, pending_notify_deleter>::release;
+        using std::unique_ptr<future, pending_notify_deleter>::operator bool;
+
+        ///causes that already resolved promise is dropped
+        /** This can be useful when resumption is scheduled, but scheduler
+         * failed to perform resumtion. The stored value is destroyed. Resumption
+         * is not performed now.
+         */
+        void drop() {
+            if (_ptr) {
+                _ptr->drop();
+
+            }
+        }
+        ///returns value which can be used as return value on await_suspend()
+        /**
+         * @return a valid coroutine handle. It assumes, that notification is
+         * finished by this operation.
+         *
+         * @note if the associated future is awaited by callback or synchronous wait,
+         * the notification is perfomed now and returned handle is noop_coroutine
+         */
+        std::coroutine_handle<> on_await_suspend() noexcept {
+            if (_ptr) {
+                auto r = _ptr->notify_targets();
+                _ptr = nullptr;
+                if (r) return r;
+            }
+            return std::noop_coroutine();
+        }
+
+    protected:
+        future *_ptr;
+    };
+
+    ///Promise type
+    /**Promise resolves pending Future.
+     * Promise is movable object. There can be only one Promise per Future.
+     * Promise acts as callback, which can accepts multiple argumens depend on
+     * constructor of the T
+     * Promise is one shot. Once it is fullfilled, it is detached from the Future
+     * Multiple threads can try to resolve promise simultaneously. this operation is
+     * MT safe. Only one thread can success, other are ignored
+     * Promise can rejected with exception. You can use reject() without arguments
+     * inside of catch block
+     * Destroying not-filled promse causes BrokenPromise
+     * You can break promise by function drop()
+     *
+     */
+    class promise {
+    public:
+        ///Construct unbound promise
+        promise() = default;
+        ///Construct bound promise to a future
+        promise(future *f) noexcept :_ptr(f) {}
+        ///Move promise
+        promise(promise &&other) noexcept:_ptr(other._ptr.exchange(nullptr, std::memory_order_relaxed)) {}
+        ///Copy is disabled
+        promise(const promise &other) = delete;
+        ///Destructor drops promise
+        ~promise() {
+            drop();
+        }
+
+        ///Move promise by assignment. It can drop original promise
+        promise &operator=(promise &&other) noexcept {
+            if (this != &other) {
+                auto x = other._ptr.exchange(nullptr, std::memory_order_relaxed);
+                if (*this) reject();
+                _ptr.store(x, std::memory_order_relaxed);
+            }
+            return *this;
+        }
+        promise &operator=(const promise &other) = delete;
+
+
+        ///Drop promise - so it becomes broken
+        /**
+         * @retval true  success
+         * @retval false promise is unbound
+         */
+        pending_notify drop() noexcept {
+            auto x = _ptr.exchange(nullptr, std::memory_order_relaxed);
+            if (x) x->drop();
+            return pending_notify(x);
+        }
+
+
+        ///resolve promise
+        /** Imitates a callback call
+         *
+         * @param args arguments to construct T
+         * @retval true success- resolved
+         * @retval false promise is unbound, object was not constructed
+         *
+         * */
+        template<typename ... Args>
+        pending_notify operator()(Args && ... args)  {
+            auto x = _ptr.exchange(nullptr, std::memory_order_relaxed);
+            if (x) {
+                x->set_value(std::forward<Args>(args)...);
+                return pending_notify(x);
+            }
+            return {};
+        }
+
+
+
+        ///reject promise with exception
+        /**
+         * @param except exception to construct
+         * @retval true success - resolved
+         * @retval false promise is unbound
+         */
+        template<typename Exception>
+        pending_notify reject(Exception && except) {
+            auto x = _ptr.exchange(nullptr, std::memory_order_relaxed);
+            if (x) {
+                x->set_exception(std::make_exception_ptr<Exception>(std::forward<Exception>(except)));
+                return pending_notify(x);
+            }
+            return {};
+        }
+
+        pending_notify reject(std::exception_ptr e) {
+            auto x = _ptr.exchange(nullptr, std::memory_order_relaxed);
+            if (x) {
+                x->set_exception(std::move(e));
+                return pending_notify(x);
+            }
+            return {};
+        }
+
+        ///Determines state of the promise
+        /**
+         * @retval true promise is bound to pending future
+         * @retval false promise is unbound
+         */
+        explicit operator bool() const {
+            return _ptr.load(std::memory_order_relaxed) != nullptr;
+        }
+
+        ///Reject under catch handler
+        /**
+         * If called outside of catch-handler it is equivalent to drop()
+         * @retval true success
+         * @retval false promise is unbound
+         */
+        auto reject() {
+            auto exp = std::current_exception();
+            if (exp) {
+                return reject(std::move(exp));
+            } else {
+                return drop();
+            }
+        }
+
+
+
+        ///Release internal pointer to the future
+        /** It can be useful to transfer the pointer through non-pointer type variable,
+         * for example if you use std::uintptr_t. You need construct Promise from this
+         * pointer to use it as promise
+         *
+         * @return pointer to pending future. The future is still pending.
+         *
+         * @note this instance looses the ability to resolve the future
+         *
+         */
+        future *release() {
+            return _ptr.exchange(nullptr, std::memory_order_relaxed);
+        }
+
+
+    protected:
+        std::atomic<future *> _ptr = {nullptr};
+    };
+
+    ///Specifies target in code where execution continues after future is resolved
+    /** This is maleable object which can be used to wakeup coroutines or
+     * call function when asynchronous operation is complete. It was intentionaly
+     * designed as non-function object to reduce heap allocations. Target can be
+     * declared statically, or can be instantiated as a member variable without
+     * need to allocate anything. If used along with coroutines, it is always
+     * created in coroutine frame which is already preallocated.
+     *
+     * Target is designed as POD, it has no constructor, no destructor and it
+     * can be put inside to union with other Targets if only one target
+     * can be charged
+     */
+    using target_type = target<future<T> *>;
+    using unique_target_type = unique_target<target_type>;
+
+    future():_state(nothing) {}
+
+    future(ConstructType v):_state(value),_value(from_construct_type(std::move(v))) {}
+
+    template<typename ... Args>
+    future(emplace_tag, Args && ... args):_state(value), _value(std::forward<Args>(args)...) {}
+
+    future(std::exception_ptr e):_state(exception), _exception(std::move(e)) {}
+
+    template<invocable_with_result<void, promise> Fn>
+    future(Fn &&fn) {fn(get_promise());}
+
+    template<invocable_with_result<future> Fn>
+    future(Fn &&fn) {
+        new(this) future(fn());
+    }
+
+    future(const future &) = delete;
+    future &operator=(const future &) = delete;
+
+    ~future() {
+        cleanup();
+    }
+
+
+    bool is_pending() const {
+        return _targets.load(std::memory_order_relaxed) != &disabled_target<target_type>;
+    }
+
+    promise get_promise() {
+        const target_type *need = &disabled_target<target_type>;
+        if (!_targets.compare_exchange_strong(need, nullptr, std::memory_order_relaxed)) {
+            throw already_pending_exception();
+        }
+        return promise(this);
+    }
+
+    ///synchronous wait
+    /**
+     * @note to perform asynchonous wait, use co_await on has_value()
+     */
+    void wait() noexcept {
+        sync_target<target_type> t;
+        if (register_target_async(t)) {
+            t.wait();
+        }
+    }
+
+    RetVal get() {
+        wait();
+        return get_internal();
+    }
+
+    operator CastRetVal() {
+        if constexpr(is_void) {
+            wait();
+            return _value;
+
+        } else {
+            return get();
+        }
+    }
+
+    bool register_target_async(target_type &t) {
+        return t.push_to(_targets);
+    }
+    bool register_target(target_type &t) {
+        if (register_target_async(t)) return true;
+        t.activate_resume(this);
+        return false;
+    }
+    bool register_target_async(unique_target_type t) {
+        auto ptr = t.release();
+        if (register_target_async(ptr)) return true;
+        delete ptr;
+        return false;
+    }
+    bool register_target(unique_target_type t) {
+        return register_target(t.release());
+    }
+
+    template<typename Fn>
+    bool operator >> (Fn &&fn) {
+        return register_target(target_callback<target_type>(std::forward<Fn>(fn)));
+    }
+
+
+    ///Initialize the future object from return value of a function
+    /**
+     * @param fn function which's return value is used to initialize the future.
+     * The future must be either dormant or resolved
+     *
+     * @code
+     * Future<T> f;
+     * f << [&]{return a_function_returning_future(arg1,arg2,arg3);};
+     * @endcode
+     */
+
+    template<invocable_with_result<future<T> > Fn>
+    void operator << (Fn &&fn) {
+        std::destroy_at(this);
+        try {
+            new(this) future(fn());
+        } catch (...) {
+            new(this) future(std::current_exception());
+        }
+    }
+
+    ///Retrieve exception pointer if the future has exception
+    /**
+     * @return exception pointer od nullptr if there is no exception recorded
+     */
+    std::exception_ptr get_exception_ptr() const noexcept {
+        return _state != exception?_exception:nullptr;
+    }
+
+    ///helps with awaiting on resolve()
+    template<bool expected>
+    class ready_state_awaiter {
+    public:
+        ready_state_awaiter(future &owner):_owner(owner) {};
+        ready_state_awaiter(const ready_state_awaiter &) = default;
+        ready_state_awaiter &operator=(const ready_state_awaiter &) = delete;
+
+        bool await_ready() const {
+            return !_owner.is_pending();
+        }
+        bool await_suspend(std::coroutine_handle<> h)  {
+            target_coroutine(_target, h);
+            return _owner.register_target_async(_target);
+        }
+        bool await_resume() const {
+            return _owner.has_value() == expected;
+        }
+        ready_state_awaiter<!expected> operator !() const {
+            return ready_state_awaiter<!expected>(_owner);
+        }
+        operator bool() const {
+            _owner.wait();
+            return (_owner._state != nothing) == expected;
+        }
+
+    protected:
+        future &_owner;
+        target_type _target;
+
+    };
+
+    ///Generic awaiter
+    class value_awaiter: public ready_state_awaiter<true> {
+    public:
+        using ready_state_awaiter<true>::ready_state_awaiter;
+        RetVal await_resume() const {
+            return this->_owner.get_internal();
+        }
+    };
+
+    ///Retrieves awaitable object which resumes a coroutine once the future is resolved
+    /**
+     * The awaitable object can't throw exception. It eventually returns has_value() state
+     *
+     * @code
+     * Future<T> f = [&](auto promise) {...}
+     * bool is_broken_promise = !co_await f.resolve();
+     * @endcode
+     *
+     * @retval true future is resolved by value or exception
+     * @retval false broken promise
+     */
+    auto has_value() {return ready_state_awaiter<true>(*this);}
+
+    auto operator!() const {return ready_state_awaiter<false>(*this);}
+
+
+    ///Retrieves awaitable object to await and retrieve a value (or exception)
+    /**
+     *
+     * @code
+     * Future<T> f = [&](auto promise) {...}
+     * T result = co_await f;
+     * @endcode
+     *
+     */
+    value_awaiter operator co_await() {
+        return value_awaiter(*this);
+    }
+
+
+    template<typename Fn>
+    auto visit(Fn fn) {
+        switch (_state) {
+            default: return fn(nullptr);break;
+            case value: return fn(_value);break;
+            case exception: return fn(_exception);break;
+        }
+    }
+
+    ///Forward value of the future to next promise
+    /**
+     * @param p promise to forward
+     * @return result of promise set operation
+     * @note doesn't throw exception. Any excep
+     */
+    template<typename X>
+    requires std::convertible_to<T, X>
+    auto forward(typename future<X>::promise &&p) noexcept {
+        return visit([&](auto x) {
+            if constexpr(std::is_null_pointer_v<decltype(x)>) {
+                return p.drop();
+            } else if constexpr(std::is_same_v<std::decay_t<decltype(x)>, std::exception_ptr>) {
+                return p.reject(x);
+            } else {
+                return p(std::forward<X>(x));
+            }
+        });
+    }
+
+
+protected:
+
+    enum StorageState {
+        nothing,
+        value,
+        exception
+    };
+
+    StorageState _state = nothing;
+    union {
+        StorageType _value;
+        std::exception_ptr _exception;
+    };
+    std::atomic<const target_type *> _targets = {&disabled_target<target_type>};
+
+    std::conditional_t<is_lvalue_ref, value_type *, StorageType &&> from_construct_type(ConstructType &&t) {
+        if constexpr(is_lvalue_ref) {
+            return &t;
+        } else {
+            return std::move(t);
+        }
+    }
+
+    ///clean future state, do not reset (ideal for destructor)
+    void cleanup() {
+        if (is_pending()) {
+            throw std::runtime_error("Destructor or cleanup() called on pending Future");
+        }
+        clear_storage();
+    }
+
+    ///reset state into initial state
+    void reset() {
+        cleanup();
+        _state = nothing;
+    }
+
+    ///clear stored value, but do not resolve the future
+    void drop() {
+        clear_storage();
+        _state = nothing;
+    }
+
+    template<typename ... Args>
+    void set_value(Args && ... args) {
+        _state = value;
+        if constexpr(is_lvalue_ref) {
+            static_assert(sizeof...(args) == 1, "Only one argument is allowed in reference mode");
+            static constexpr auto get_ptr  = [](auto &x) {
+                return &x;
+            };
+            std::construct_at(&_value, get_ptr(args...));
+        } else {
+            std::construct_at(&_value, std::forward<Args>(args)...);
+        }
+    }
+
+    void set_exception(std::exception_ptr e) {
+        _state = exception;
+        std::construct_at(&_exception, std::move(e));
+    }
+
+    std::coroutine_handle<> notify_targets() {
+        const target_type *list = _targets.exchange(&disabled_target<target_type>);
+        while (list) {
+            auto cor = list->activate(this);
+            if (cor) {
+                list = list->next;
+                while (list) {
+                    auto cor = list->activate(this);
+                    if (cor) cor.resume();
+                    list = list->next;
+                }
+            }
+            return cor;
+        }
+        return nullptr;
+    }
+
+    void notify_resume() {
+        auto x = notify_targets();
+        if (x) x.resume();
+    }
+
+    RetVal get_internal() {
+        switch (_state) {
+            default: throw broken_promise_exception();
+            case exception: std::rethrow_exception(_exception);
+            case value:
+                if constexpr(is_void) {
+                    return;
+                } else if constexpr(is_rvalue_ref) {
+                    return std::move(_value);
+                } else if constexpr(is_lvalue_ref) {
+                    return *_value;
+                } else {
+                    return _value;
+                }
+        }
+    }
+
+
+    void clear_storage() {
+        switch (_state) {
+            default:break;
+            case value: std::destroy_at(&_value);break;
+            case exception: std::destroy_at(&_exception);break;
+        }
+    }
+
+    friend class async<T>;
+    friend struct async_promise_base<T>;
+
+
+};
+
+template<typename T>
+class lazy_future: protected future<T> {
+public:
+
+    using promise =typename future<T>::promise;
+    using target_type = typename future<T>::target_type;
+    using unique_target_type = typename future<T>::unique_target_type;
+    using voidless_type = typename future<T>::VoidlessType;
+
+    using promise_target_type = target<promise &&>;
+    using unique_promise_target_type = unique_target<promise_target_type>;
+    using ret_type = typename future<T>::RetVal;
+    using cast_ret_type = typename future<T>::CastRetVal;
+
+    using promise_type = async_promise_type<T>;
+
+    lazy_future() = default;
+    lazy_future(promise_target_type &t):_lazy_target(&t) {};
+    lazy_future(unique_promise_target_type t):_lazy_target(t.release()) {}
+
+    template<invocable_with_result<void, promise> Fn>
+    lazy_future(Fn &&fn):_lazy_target(target_callback<promise_target_type>(std::forward<Fn>(fn))) {}
+
+    lazy_future(voidless_type val):future<T>(std::move(val)) {}
+    lazy_future(std::exception e):future<T>(std::move(e)) {}
+
+    lazy_future(lazy_future &&other):future<T>([&]{return move_if_not_pending(other);})
+                                , _lazy_target(other._lazy_target.exchange(nullptr, std::memory_order_relaxed)) {}
+    lazy_future &operator=(lazy_future &&other) {
+        if (this != &other) {
+            future<T>::operator <<([&]{return move_if_not_pending(other);});
+            _lazy_target.store(other._lazy_target.exchange(nullptr, std::memory_order_relaxed));
+        }
+        return *this;
+    }
+
+    ~lazy_future() {
+        const promise_target_type *v = _lazy_target.exchange(nullptr, std::memory_order_relaxed);
+        if (v) v->activate_resume(promise());
+    }
+    bool is_deferred() const {return _lazy_target.load(std::memory_order_relaxed) != nullptr;}
+    bool is_pending() const {return is_deferred() || future<T>::is_pending();}
+
+    promise get_promise() {return future<T>::get_promise();}
+    void wait() noexcept {
+        const promise_target_type *v = _lazy_target.exchange(nullptr, std::memory_order_relaxed);
+        if (v) {
+            v->activate_resume(get_promise());
+        }
+        future<T>::wait();
+    }
+    ret_type get() {
+        wait();
+        return future<T>::get_internal();
+    }
+
+    operator cast_ret_type() {
+        wait();
+        return future<T>::operator cast_ret_type();
+    }
+    operator future<T>() {
+        const promise_target_type *v = _lazy_target.exchange(nullptr, std::memory_order_relaxed);
+        if (v) {
+            return [&](auto promise) {
+                v->activate_resume(promise);
+            };
+        }
+    }
+
+    bool register_target_async(target_type &t) {
+        const promise_target_type *pt = _lazy_target.exchange(nullptr);
+        if (pt) {
+            auto prom = future<T>::get_promise();
+            future<T>::register_target_async(t);
+            pt->activate_resume(std::move(prom));
+            return true;
+        } else {
+            return future<T>::register_target_async(t);
+        }
+
+    }
+    bool register_target(target_type &t) {
+        if (register_target_async(t)) return true;
+        t.activate_resume(this);
+        return false;
+
+    }
+    bool register_target_async(unique_target_type t) {
+        auto ptr = t.release();
+        if (register_target_async(ptr)) return true;
+        delete ptr;
+        return false;
+    }
+    bool register_target(unique_target_type t) {
+        return register_target(t.release());
+    }
+
+    template<typename Fn>
+    bool operator >> (Fn &&fn) {
+        return register_target(target_callback<target_type>(std::forward<Fn>(fn)));
+    }
+
+    template<bool expected>
+    class ready_state_awaiter {
+    public:
+        ready_state_awaiter(lazy_future &owner):_owner(owner) {};
+        ready_state_awaiter(const ready_state_awaiter &) = default;
+        ready_state_awaiter &operator=(const ready_state_awaiter &) = delete;
+
+        bool await_ready() const {
+            return !_owner.is_pending();
+        }
+        std::coroutine_handle<> await_suspend(std::coroutine_handle<> h)  {
+            auto x = _owner.start_evaluation_coro();
+            target_coroutine(_target, h);
+            if (!_owner.future<T>::register_target_async(_target)) return h;
+            return x;
+        }
+        bool await_resume() const {
+            return _owner.future<T>::has_value() == expected;
+        }
+
+        auto operator!() const {return ready_state_awaiter<!expected>(_owner);}
+
+        operator bool() const {
+            _owner.wait();
+            return _owner.future<T>::has_value() == expected;
+        }
+
+    protected:
+        lazy_future &_owner;
+        target_type _target;
+    };
+
+
+    class value_awaiter: public ready_state_awaiter<true> {
+    public:
+        using ready_state_awaiter<true>::ready_state_awaiter;
+        ret_type await_resume() const {
+            return this->_owner._fut.visit([](auto v)->ret_type{
+                using V = std::decay_t<decltype(v)>;
+               if constexpr(std::is_same_v<V, T>) {
+                   return v;
+               } else if constexpr(std::is_same_v<V, std::exception_ptr>) {
+                   std::rethrow_exception(v);
+               } else {
+                   throw broken_promise_exception();
+               }
+            });
+        }
+    };
+
+    ///Retrieves awaitable object which resumes a coroutine once the future is resolved
+    /**
+     * The awaitable object can't throw exception. It eventually returns has_value() state
+     *
+     * @code
+     * Future<T> f = [&](auto promise) {...}
+     * bool is_broken_promise = !co_await f.resolve();
+     * @endcode
+     *
+     * @retval true future is resolved by value or exception
+     * @retval false broken promise
+     */
+    auto has_value() {return ready_state_awaiter<true>(*this);}
+
+
+    ///Retrieves awaitable object to await and retrieve a value (or exception)
+    /**
+     *
+     * @code
+     * Future<T> f = [&](auto promise) {...}
+     * T result = co_await f;
+     * @endcode
+     *
+     */
+    value_awaiter operator co_await() {
+        return value_awaiter(*this);
+    }
+
+    auto operator!(){return ready_state_awaiter<false>(*this);}
+
+    using future<T>::forward;
+
+private:
+
+    std::atomic<const promise_target_type *> _lazy_target = {};
+
+    static future<T> move_if_not_pending(future<T> &other) {
+        if (other.is_pending()) throw already_pending_exception();
+        else return other.visit([](auto val){
+           using Val = decltype(val);
+           if constexpr(std::is_null_pointer_v<Val>) {
+               return future<T>();
+           } else {
+               return future<T>(std::move(val));
+           }
+        });
+    }
+
+
+    std::coroutine_handle<> start_evaluation_coro() {
+        const promise_target_type *t = _lazy_target.exchange(nullptr);
+        if (t) {
+            return t->activate(future<T>::get_promise());
+        } else {
+            return std::noop_coroutine();
+        }
+    }
+};
+
+template<typename X>
+concept pending_notify = requires(X x) {
+    {x.drop()};
+    {X(x.release())};
+    {*x.release()};
+};
+
+}
+
+

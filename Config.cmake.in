@@ -1,0 +1,15 @@
+# Config.cmake.in
+@PACKAGE_INIT@
+
+# Set the install prefix
+set_and_check(LIBCORO_INSTALL_PREFIX "@CMAKE_INSTALL_PREFIX@")
+
+# Define the include directory
+set(LIBCORO_INCLUDE_DIR "${CORO_INSTALL_PREFIX}/include/libcoro")
+
+# Create the target to be used by the find_package command
+add_library(libcoro INTERFACE)
+target_include_directories(libcoro INTERFACE "$<INSTALL_INTERFACE:${CORO_INCLUDE_DIR}>")
+
+# Install the target
+install(TARGETS libcoro EXPORT libcoroTargets)
