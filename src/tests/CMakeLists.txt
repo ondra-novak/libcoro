@@ -3,7 +3,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/tests/)
 set(testFiles all_compile.cpp 
                 async_int.cpp 
                 async_void.cpp 
-                thread_pool.cpp
+                scheduler.cpp
                 mutex.cpp
                 cooperative_multitasking.cpp
                 )

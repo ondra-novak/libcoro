@@ -9,6 +9,6 @@
 #include "queue.h"
 #include "generator.h"
 #include "aggregator.h"
-#include "thread_pool.h"
+#include "scheduler.h"
 
 #endif

@@ -11,7 +11,7 @@ namespace coro {
 
 
 ///Implements basic pool of threads
-class thread_pool {
+class scheduler {
 public:
 
     ///construct and start thread pool
@@ -22,7 +22,7 @@ public:
      *
      * @note default value is 1, which is most common for dispatcher-like thread pools
      */
-    explicit thread_pool(unsigned int count = 1) {
+    explicit scheduler(unsigned int count = 1) {
         _thread_list.resize(count);
         std::atomic<unsigned int> remain = count;
 
@@ -45,7 +45,7 @@ public:
     /** It always stops all threads and all pending tasks are
      * canceled by breaking theirs promises.
      */
-    ~thread_pool() {
+    ~scheduler() {
         auto id = std::this_thread::get_id();
         current_instance = nullptr;
         {
@@ -121,14 +121,14 @@ public:
      *
      */
     template<typename X>
-    auto operator >> (X &&val) -> decltype(std::declval<thread_pool &>().schedule(std::forward<X>(val))) {
+    auto operator >> (X &&val) -> decltype(std::declval<scheduler &>().schedule(std::forward<X>(val))) {
         return schedule<X>(std::forward<X>(val));
     }
 
 
     ///Direct await on thread_pool
     struct awaiter { // @suppress("Miss copy constructor or assignment operator")
-        thread_pool *owner;
+        scheduler *owner;
         std::chrono::system_clock::time_point tp;
         const void *ident;
         std::coroutine_handle<> h = {};
@@ -137,7 +137,7 @@ public:
 
         void await_suspend(std::coroutine_handle<> h) {
             this->h = h;
-            thread_pool::target_type target{[](bool ok, void *fptr)noexcept {
+            scheduler::target_type target{[](bool ok, void *fptr)noexcept {
                 auto me = reinterpret_cast<awaiter *>(fptr);
                 me->err = !ok;
                 me->h.resume();
@@ -196,14 +196,14 @@ public:
     }
 
     ///retrieves reference to current thread pool
-    static thread_pool &current() {
-        thread_pool *x = current_instance;
+    static scheduler &current() {
+        scheduler *x = current_instance;
         if (!x) throw no_active_thread_pool();
         return *x;
     }
 
-    static thread_pool *current_ptr() {
-        thread_pool *x = current_instance;
+    static scheduler *current_ptr() {
+        scheduler *x = current_instance;
         return x;
     }
 
@@ -308,7 +308,7 @@ protected:
     std::vector<scheduled_target> _scheduled;
     bool _running = true;
 
-    static thread_local thread_pool *current_instance;
+    static thread_local scheduler *current_instance;
 
     template<pending_notify NTF>
     static target_type make_target(NTF &&ntf) {
@@ -450,8 +450,7 @@ protected:
 };
 
 
-inline thread_local thread_pool *thread_pool::current_instance = nullptr;
+inline thread_local scheduler *scheduler::current_instance = nullptr;
 
-using scheduler = thread_pool;
 
 }

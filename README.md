@@ -32,10 +32,6 @@ Because the library is **header only** you can just an include everywhere you ne
 #include <coro.h>
 ```
 
-If you develop in some IDE, you can use `#include <coro_commented.h>` to see comments on functions exported by this library
-
-
-
 # Getting started
 
 ## Writing asynchronous coroutines

@@ -1,7 +1,7 @@
 #include <iostream>
 #include "../coro/future.h"
 #include "../coro/async.h"
-#include "../coro/thread_pool.h"
+#include "../coro/scheduler.h"
 #include "check.h"
 
 std::vector<int> results = {

@@ -2,10 +2,10 @@
 #include <iostream>
 #include "../coro/async.h"
 #include "../coro/future.h"
-#include "../coro/thread_pool.h"
+#include "../coro/scheduler.h"
 
 
-coro::future<int> co_test(coro::thread_pool &pool) {
+coro::future<int> co_test(coro::scheduler &pool) {
 
     std::thread::id id1, id2, id3, id4, id5;
     auto example_fn = [&]() {
@@ -48,14 +48,14 @@ coro::async<std::thread::id> get_id_coro() {
     co_return std::this_thread::get_id();
 }
 
-coro::async<void> cancel_coro(coro::thread_pool &pool, void *id) {
+coro::async<void> cancel_coro(coro::scheduler &pool, void *id) {
     co_await pool.sleep_for(std::chrono::seconds(2), id);
 }
 
 int main(int, char **) {
     coro::future<void> ff;
     {
-        coro::thread_pool pool(5);
+        coro::scheduler pool(5);
         int r = co_test(pool).get();
         CHECK_EQUAL(r,42);
 
