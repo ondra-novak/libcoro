@@ -14,6 +14,8 @@ template<typename T>
 class aggregator {
 public:
 
+    using value_type = T;
+
     template<int n>
     aggregator(generator<T> (&&arr)[n]) {
         init(std::begin(arr), std::end(arr));
@@ -40,6 +42,12 @@ public:
         return is_done();
     }
 
+    auto begin() {
+        return generator_iterator<aggregator &>::begin(*this);
+    }
+    auto end() {
+        return generator_iterator<aggregator &>::end(*this);
+    }
 
     ~aggregator() {
         //mark stop - ignores any generator's output
@@ -141,6 +149,26 @@ protected:
         //this is done, we will be called again on generate
     }
 
+    //this is called when caller requests a result
+    /* @param prom contains output promise
+     */
+    void on_first_call(typename lazy_future<T>::promise &&prom) noexcept {
+        //lazy future destroyed prematurely
+        if (!prom) return;
+        //store output promise
+        _output_promise = std::move(prom);
+
+        if (_stop) return;
+
+        ++_dead; //ok all items are up
+
+        for (auto &x: _slots) {
+            x.charge(_gen_target);
+        }
+
+        target_member_fn_activation<&aggregator::on_call>(_lazy_promise, this);
+        on_call_trailer();
+    }
 
     //this is called when caller requests a result
     /* @param prom contains output promise
@@ -150,24 +178,19 @@ protected:
         if (!prom) return;
         //store output promise
         _output_promise = std::move(prom);
-        //if dead == -1, we need to charge all
-        if (_dead < 0) {
-
-            if (_stop) return;
-
-            ++_dead; //ok all items are up
-
-            for (auto &x: _slots) {
-                x.charge(_gen_target);
-            }
-        //if we have _last slot, charge last slot
-        } else if (!_stop && _last_slot) {
+        
+        //we need recharge some slot
+        if (!_stop && _last_slot) {
             //charge - if not done
             if (!_last_slot->charge(_gen_target)) {
                 //if done, increase counter
                 ++_dead;
             }
         }
+        on_call_trailer();
+    }
+
+    void on_call_trailer() {
         //if no slots are available
         if (is_done()) {
             //last dead, drop promise
@@ -186,7 +209,11 @@ protected:
 
     void init_targets() {
         //initialize targets - now object can no longer move
-        target_member_fn_activation<&aggregator::on_call>(_lazy_promise, this);
+        if (_dead < 0) {
+            target_member_fn_activation<&aggregator::on_first_call>(_lazy_promise, this);
+        } else {
+            target_member_fn_activation<&aggregator::on_call>(_lazy_promise, this);
+        }
         target_member_fn_activation<&aggregator::on_queue>(_queue_target, this);
         target_member_fn_activation<&aggregator::on_generate>(_gen_target, this);
 

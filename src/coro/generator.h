@@ -5,6 +5,59 @@
 
 namespace coro {
 
+template<typename Src>
+class generator_iterator {
+public:
+
+
+    using storage_type = std::invoke_result_t<Src>;
+
+    using iterator_category = std::input_iterator_tag;
+    using value_type = typename std::decay_t<Src>::value_type;
+    using reference = std::add_lvalue_reference_t<value_type>;
+    using difference_type = std::ptrdiff_t;
+    using pointer = std::add_pointer_t<value_type>;
+
+    reference operator*() const {
+        return _stor;
+    }    
+
+    pointer operator->() const {
+        reference &r = _stor;
+        return &r;
+    }
+
+    generator_iterator &operator++() {
+        _stor = _src();
+        _is_end = !_stor;
+        return *this;
+    }
+
+    bool operator==(const generator_iterator &other) const {
+        return _is_end == other._is_end;
+    }
+
+    static generator_iterator begin(Src src) {
+        generator_iterator ret(src, false);
+        ++ret;
+        return ret;
+    }
+
+    static generator_iterator end(Src src) {
+        return generator_iterator(src, true);
+    }
+
+protected:
+    Src _src;
+    bool _is_end;
+    mutable storage_type _stor;
+
+    generator_iterator(Src src, bool is_end):_src(src), _is_end(is_end) {
+        
+    }
+
+};
+
 template<typename T, coro_optional_allocator Alloc = void>
 class generator;
 
@@ -96,6 +149,13 @@ public:
     generator() = default;
     generator(generator &&x):_prom(std::move(x._prom)) {}
 
+
+    auto begin() {
+        return generator_iterator<generator &>::begin(*this);
+    }
+    auto end() {
+        return generator_iterator<generator &>::end(*this);
+    }
 
 protected:
 

@@ -43,7 +43,7 @@ public:
         target_type _t;
     public:
         awaiter(mutex &owner):_owner(&owner) {};
-        awaiter(const awaiter &) = default;
+        awaiter(const awaiter &x):_owner(x._owner),_t(x._t) {}
         awaiter &operator=(const awaiter &) = delete;
         ~awaiter() {
             //no cleanup on ownership as it should be cleaned by await_resume()

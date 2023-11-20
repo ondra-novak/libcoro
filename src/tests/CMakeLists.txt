@@ -6,6 +6,7 @@ set(testFiles all_compile.cpp
                 scheduler.cpp
                 mutex.cpp
                 cooperative_multitasking.cpp
+                generator.cpp
                 )
 foreach (testFile ${testFiles})
     string(REGEX MATCH "([^\/]+$)" filename ${testFile})

@@ -71,8 +71,8 @@ public:
          * is not performed now.
          */
         void drop() {
-            if (_ptr) {
-                _ptr->drop();
+            if (*this) {
+                (*this)->drop();
 
             }
         }
@@ -85,16 +85,14 @@ public:
          * the notification is perfomed now and returned handle is noop_coroutine
          */
         std::coroutine_handle<> on_await_suspend() noexcept {
-            if (_ptr) {
-                auto r = _ptr->notify_targets();
-                _ptr = nullptr;
+            auto ptr = this->release();
+            if (ptr) {
+                auto r = ptr->notify_targets();
                 if (r) return r;
             }
             return std::noop_coroutine();
         }
 
-    protected:
-        future *_ptr;
     };
 
     ///Promise type
@@ -443,6 +441,10 @@ public:
     }
 
 
+    /// visit function
+    /**
+     * @param fn lambda function (template). The type depends on state: T for value, std::exception_ptr for exception, and nullptr_t for no-value
+    */
     template<typename Fn>
     auto visit(Fn fn) {
         switch (_state) {
@@ -456,10 +458,9 @@ public:
     /**
      * @param p promise to forward
      * @return result of promise set operation
-     * @note doesn't throw exception. Any excep
+     * @note doesn't throw exception. Possible exception is forwarded to the promise
      */
-    template<typename X>
-    requires std::convertible_to<T, X>
+    template<std::convertible_to<T> X>
     auto forward(typename future<X>::promise &&p) noexcept {
         return visit([&](auto x) {
             if constexpr(std::is_null_pointer_v<decltype(x)>) {
@@ -471,7 +472,6 @@ public:
             }
         });
     }
-
 
 protected:
 
