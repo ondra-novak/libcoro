@@ -198,7 +198,7 @@ public:
     ///retrieves reference to current thread pool
     static scheduler &current() {
         scheduler *x = current_instance;
-        if (!x) throw no_active_thread_pool();
+        if (!x) throw no_active_scheduler();
         return *x;
     }
 

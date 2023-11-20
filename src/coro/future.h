@@ -255,7 +255,7 @@ public:
 
     future():_state(nothing) {}
 
-    future(ConstructType v):_state(value),_value(from_construct_type(std::move(v))) {}
+    future(ConstructType v):_state(value),_value(from_construct_type(std::forward<ConstructType>(v))) {}
 
     template<typename ... Args>
     future(emplace_tag, Args && ... args):_state(value), _value(std::forward<Args>(args)...) {}
@@ -449,11 +449,18 @@ public:
     auto visit(Fn fn) {
         switch (_state) {
             default: return fn(nullptr);break;
-            case value: return fn(_value);break;
+            case value:
+                if constexpr(is_rvalue_ref) {
+                    return fn(std::move(_value));
+                } else if constexpr(is_lvalue_ref) {
+                    return fn(*_value);
+                } else {
+                    return fn(_value);
+                }
+                break;
             case exception: return fn(_exception);break;
         }
     }
-
     ///Forward value of the future to next promise
     /**
      * @param p promise to forward
@@ -728,16 +735,7 @@ public:
     public:
         using ready_state_awaiter<true>::ready_state_awaiter;
         ret_type await_resume() const {
-            return this->_owner._fut.visit([](auto v)->ret_type{
-                using V = std::decay_t<decltype(v)>;
-               if constexpr(std::is_same_v<V, T>) {
-                   return v;
-               } else if constexpr(std::is_same_v<V, std::exception_ptr>) {
-                   std::rethrow_exception(v);
-               } else {
-                   throw broken_promise_exception();
-               }
-            });
+            return this->_owner.get_internal();
         }
     };
 
@@ -773,18 +771,18 @@ public:
 
     using future<T>::forward;
 
-private:
+protected:
 
     std::atomic<const promise_target_type *> _lazy_target = {};
 
     static future<T> move_if_not_pending(future<T> &other) {
         if (other.is_pending()) throw already_pending_exception();
-        else return other.visit([](auto val){
+        else return other.visit([](auto &&val){
            using Val = decltype(val);
            if constexpr(std::is_null_pointer_v<Val>) {
                return future<T>();
            } else {
-               return future<T>(std::move(val));
+               return future<T>(std::forward<Val>(val));
            }
         });
     }
@@ -798,6 +796,8 @@ private:
             return std::noop_coroutine();
         }
     }
+
+    using future<T>::get_internal;
 };
 
 template<typename X>

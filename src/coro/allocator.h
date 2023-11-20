@@ -14,7 +14,7 @@ struct promise_type_alloc_support {
     }
 
     template<typename This, typename ... Args>
-    void *operator new(std::size_t sz, This &, Alloc &alloc, Args && ...) {
+    void *operator new(std::size_t sz, This &&, Alloc &alloc, Args && ...) {
         return alloc.allocate(sz);
     }
 
