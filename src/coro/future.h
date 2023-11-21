@@ -14,31 +14,29 @@ template<typename T, coro_optional_allocator Alloc = void> struct async_promise_
 struct emplace_tag {};
 constexpr emplace_tag emplace;
 
+template<typename T> class future;
+
+///Promise type
+/**Promise resolves pending Future.
+ * Promise is movable object. There can be only one Promise per Future.
+ * Promise acts as callback, which can accepts multiple argumens depend on
+ * constructor of the T
+ * Promise is one shot. Once it is fullfilled, it is detached from the Future
+ * Multiple threads can try to resolve promise simultaneously. this operation is
+ * MT safe. Only one thread can success, other are ignored
+ * Promise can rejected with exception. You can use reject() without arguments
+ * inside of catch block
+ * Destroying not-filled promse causes BrokenPromise
+ * You can break promise by function drop()
+ *
+ */
 template<typename T>
-class future {
-
-    ///is true when T is void
-    static constexpr bool is_void = std::is_void_v<T>;
-    static constexpr bool is_rvalue_ref = !std::is_void_v<T> && std::is_rvalue_reference_v<T>;
-    static constexpr bool is_lvalue_ref = !std::is_void_v<T> && std::is_lvalue_reference_v<T>;
-
+class promise {
 public:
 
-    ///contains type
-    using value_type = std::decay_t<T>;
+    using future = ::coro::future<T>;
 
-    ///declaration of type which cannot be void, so void is replaced by bool
-    using voidless_type = std::conditional_t<is_void, bool, value_type >;
-    ///declaration of return value - which is reference to type or void
-    using ret_type = std::conditional_t<is_rvalue_ref, T, std::add_lvalue_reference_t<T> >;
 
-    using StorageType = std::conditional_t<is_lvalue_ref, voidless_type *, voidless_type>;
-    using construct_type = std::conditional_t<is_lvalue_ref, voidless_type &, voidless_type>;
-
-    using cast_ret_type = std::conditional_t<is_void, bool, ret_type>;
-
-    ///Tags future<T> as valid return value for coroutines
-    using promise_type = async_promise_type<T>;
 
     struct pending_notify_deleter {void operator()(future *ptr)noexcept{ptr->notify_resume();}};
 
@@ -58,6 +56,8 @@ public:
      * If the object is ignored, standard destructor delivers the notification in
      * current thread
      */
+
+
 
     class pending_notify: protected std::unique_ptr<future, pending_notify_deleter>  {
     public:
@@ -95,148 +95,162 @@ public:
 
     };
 
-    ///Promise type
-    /**Promise resolves pending Future.
-     * Promise is movable object. There can be only one Promise per Future.
-     * Promise acts as callback, which can accepts multiple argumens depend on
-     * constructor of the T
-     * Promise is one shot. Once it is fullfilled, it is detached from the Future
-     * Multiple threads can try to resolve promise simultaneously. this operation is
-     * MT safe. Only one thread can success, other are ignored
-     * Promise can rejected with exception. You can use reject() without arguments
-     * inside of catch block
-     * Destroying not-filled promse causes BrokenPromise
-     * You can break promise by function drop()
-     *
+
+
+    ///Construct unbound promise
+    promise() = default;
+    ///Construct bound promise to a future
+    promise(future *f) noexcept :_ptr(f) {}
+    ///Move promise
+    promise(promise &&other) noexcept:_ptr(other._ptr.exchange(nullptr, std::memory_order_relaxed)) {}
+    ///Copy is disabled
+    promise(const promise &other) = delete;
+    ///Destructor drops promise
+    ~promise() {
+        drop();
+    }
+
+    ///Move promise by assignment. It can drop original promise
+    promise &operator=(promise &&other) noexcept {
+        if (this != &other) {
+            auto x = other._ptr.exchange(nullptr, std::memory_order_relaxed);
+            if (*this) reject();
+            _ptr.store(x, std::memory_order_relaxed);
+        }
+        return *this;
+    }
+    promise &operator=(const promise &other) = delete;
+
+
+    ///Drop promise - so it becomes broken
+    /**
+     * @retval true  success
+     * @retval false promise is unbound
      */
-    class promise {
-    public:
-        ///Construct unbound promise
-        promise() = default;
-        ///Construct bound promise to a future
-        promise(future *f) noexcept :_ptr(f) {}
-        ///Move promise
-        promise(promise &&other) noexcept:_ptr(other._ptr.exchange(nullptr, std::memory_order_relaxed)) {}
-        ///Copy is disabled
-        promise(const promise &other) = delete;
-        ///Destructor drops promise
-        ~promise() {
-            drop();
-        }
-
-        ///Move promise by assignment. It can drop original promise
-        promise &operator=(promise &&other) noexcept {
-            if (this != &other) {
-                auto x = other._ptr.exchange(nullptr, std::memory_order_relaxed);
-                if (*this) reject();
-                _ptr.store(x, std::memory_order_relaxed);
-            }
-            return *this;
-        }
-        promise &operator=(const promise &other) = delete;
+    pending_notify drop() noexcept {
+        auto x = _ptr.exchange(nullptr, std::memory_order_relaxed);
+        if (x) x->drop();
+        return pending_notify(x);
+    }
 
 
-        ///Drop promise - so it becomes broken
-        /**
-         * @retval true  success
-         * @retval false promise is unbound
-         */
-        pending_notify drop() noexcept {
-            auto x = _ptr.exchange(nullptr, std::memory_order_relaxed);
-            if (x) x->drop();
+    ///resolve promise
+    /** Imitates a callback call
+     *
+     * @param args arguments to construct T
+     * @retval true success- resolved
+     * @retval false promise is unbound, object was not constructed
+     *
+     * */
+    template<typename ... Args>
+    pending_notify operator()(Args && ... args)  {
+        auto x = _ptr.exchange(nullptr, std::memory_order_relaxed);
+        if (x) {
+            x->set_value(std::forward<Args>(args)...);
             return pending_notify(x);
         }
+        return {};
+    }
 
 
-        ///resolve promise
-        /** Imitates a callback call
-         *
-         * @param args arguments to construct T
-         * @retval true success- resolved
-         * @retval false promise is unbound, object was not constructed
-         *
-         * */
-        template<typename ... Args>
-        pending_notify operator()(Args && ... args)  {
-            auto x = _ptr.exchange(nullptr, std::memory_order_relaxed);
-            if (x) {
-                x->set_value(std::forward<Args>(args)...);
-                return pending_notify(x);
-            }
-            return {};
+
+    ///reject promise with exception
+    /**
+     * @param except exception to construct
+     * @retval true success - resolved
+     * @retval false promise is unbound
+     */
+    template<typename Exception>
+    pending_notify reject(Exception && except) {
+        auto x = _ptr.exchange(nullptr, std::memory_order_relaxed);
+        if (x) {
+            x->set_exception(std::make_exception_ptr<Exception>(std::forward<Exception>(except)));
+            return pending_notify(x);
         }
+        return {};
+    }
 
-
-
-        ///reject promise with exception
-        /**
-         * @param except exception to construct
-         * @retval true success - resolved
-         * @retval false promise is unbound
-         */
-        template<typename Exception>
-        pending_notify reject(Exception && except) {
-            auto x = _ptr.exchange(nullptr, std::memory_order_relaxed);
-            if (x) {
-                x->set_exception(std::make_exception_ptr<Exception>(std::forward<Exception>(except)));
-                return pending_notify(x);
-            }
-            return {};
+    pending_notify reject(std::exception_ptr e) {
+        auto x = _ptr.exchange(nullptr, std::memory_order_relaxed);
+        if (x) {
+            x->set_exception(std::move(e));
+            return pending_notify(x);
         }
+        return {};
+    }
 
-        pending_notify reject(std::exception_ptr e) {
-            auto x = _ptr.exchange(nullptr, std::memory_order_relaxed);
-            if (x) {
-                x->set_exception(std::move(e));
-                return pending_notify(x);
-            }
-            return {};
+    ///Determines state of the promise
+    /**
+     * @retval true promise is bound to pending future
+     * @retval false promise is unbound
+     */
+    explicit operator bool() const {
+        return _ptr.load(std::memory_order_relaxed) != nullptr;
+    }
+
+    ///Reject under catch handler
+    /**
+     * If called outside of catch-handler it is equivalent to drop()
+     * @retval true success
+     * @retval false promise is unbound
+     */
+    auto reject() {
+        auto exp = std::current_exception();
+        if (exp) {
+            return reject(std::move(exp));
+        } else {
+            return drop();
         }
-
-        ///Determines state of the promise
-        /**
-         * @retval true promise is bound to pending future
-         * @retval false promise is unbound
-         */
-        explicit operator bool() const {
-            return _ptr.load(std::memory_order_relaxed) != nullptr;
-        }
-
-        ///Reject under catch handler
-        /**
-         * If called outside of catch-handler it is equivalent to drop()
-         * @retval true success
-         * @retval false promise is unbound
-         */
-        auto reject() {
-            auto exp = std::current_exception();
-            if (exp) {
-                return reject(std::move(exp));
-            } else {
-                return drop();
-            }
-        }
+    }
 
 
 
-        ///Release internal pointer to the future
-        /** It can be useful to transfer the pointer through non-pointer type variable,
-         * for example if you use std::uintptr_t. You need construct Promise from this
-         * pointer to use it as promise
-         *
-         * @return pointer to pending future. The future is still pending.
-         *
-         * @note this instance looses the ability to resolve the future
-         *
-         */
-        future *release() {
-            return _ptr.exchange(nullptr, std::memory_order_relaxed);
-        }
+    ///Release internal pointer to the future
+    /** It can be useful to transfer the pointer through non-pointer type variable,
+     * for example if you use std::uintptr_t. You need construct Promise from this
+     * pointer to use it as promise
+     *
+     * @return pointer to pending future. The future is still pending.
+     *
+     * @note this instance looses the ability to resolve the future
+     *
+     */
+    future *release() {
+        return _ptr.exchange(nullptr, std::memory_order_relaxed);
+    }
 
 
-    protected:
-        std::atomic<future *> _ptr = {nullptr};
-    };
+protected:
+    std::atomic<future *> _ptr = {nullptr};
+};
+
+
+template<typename T>
+class future {
+
+    ///is true when T is void
+    static constexpr bool is_void = std::is_void_v<T>;
+    static constexpr bool is_rvalue_ref = !std::is_void_v<T> && std::is_rvalue_reference_v<T>;
+    static constexpr bool is_lvalue_ref = !std::is_void_v<T> && std::is_lvalue_reference_v<T>;
+
+public:
+
+    ///contains type
+    using value_type = std::decay_t<T>;
+
+    ///declaration of type which cannot be void, so void is replaced by bool
+    using voidless_type = std::conditional_t<is_void, bool, value_type >;
+    ///declaration of return value - which is reference to type or void
+    using ret_type = std::conditional_t<is_rvalue_ref, T, std::add_lvalue_reference_t<T> >;
+
+    using StorageType = std::conditional_t<is_lvalue_ref, voidless_type *, voidless_type>;
+    using construct_type = std::conditional_t<is_lvalue_ref, voidless_type &, voidless_type>;
+
+    using cast_ret_type = std::conditional_t<is_void, bool, ret_type>;
+
+    ///Tags future<T> as valid return value for coroutines
+    using promise_type = async_promise_type<T>;
+
 
     ///Specifies target in code where execution continues after future is resolved
     /** This is maleable object which can be used to wakeup coroutines or
@@ -252,6 +266,8 @@ public:
      */
     using target_type = target<future<T> *>;
     using unique_target_type = unique_target<target_type>;
+    using promise = ::coro::promise<T>;
+    using pending_notify = typename promise::pending_notify;
 
     future():_state(nothing) {}
 
@@ -595,7 +611,7 @@ protected:
         }
     }
 
-    friend class async<T>;
+    friend class ::coro::promise<T>;
     friend struct async_promise_base<T>;
 
 
