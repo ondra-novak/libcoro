@@ -10,5 +10,7 @@
 #include "generator.h"
 #include "aggregator.h"
 #include "scheduler.h"
+#include "distributor.h"
+#include "shared_future.h"
 
 #endif

@@ -60,6 +60,12 @@ concept is_linked_list = requires(T val) {
 };
 
 
+struct nolock {
+    constexpr void lock() {};
+    constexpr void unlock() {}
+    constexpr bool try_lock() {return true;}
+};
+
 }
 
 

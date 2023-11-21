@@ -24,13 +24,31 @@ set(LIBCORO_SUBMODULE_PATH "src/libcoro")
 include(${LIBCORO_SUBMODULE_PATH}/library.cmake)
 ```
 
-## Use the library
+## Using the library
 
 Because the library is **header only** you can just an include everywhere you need to use the library
 
 ```
 #include <coro.h>
 ```
+
+## Brief list of classes
+
+* **async<T>** - asynchronous coroutine 
+* **future<T>** - awaitable variable which can receive value asynchronously 
+* **lazy_futre<T>** - lazy/deferred future 
+* **shared_future<T>** - future<T> which can be shared and awaited from multiple places
+* **shared_lazy_future<T>** - lazy_future<T> but shared
+* **generator<T>** - generator type coroutine (can be also asynchronous)
+* **aggregator<T>** - aggregator of generators
+* **scheduler** - helps to control execution of coroutines, scheduling them to threads
+* **mutex** - mutex which can be used inside of coroutines and generators
+* **queue** - standard queue with awaitable pop() operation
+* **distributor** - simple implementation of publisher-subscriber (awaitable subscribe)
+* **allocator** + **standard_allocator** - control of allocation coroutine frames
+* **reusable_allocator** - reusable space for coroutine space to avoid repeatedly allocation and deallocation
+* **target** + **unique_target** - tools to write handlers of future<T> without coroutines
+
 
 # Getting started
 

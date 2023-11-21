@@ -28,14 +28,14 @@ public:
     using value_type = std::decay_t<T>;
 
     ///declaration of type which cannot be void, so void is replaced by bool
-    using VoidlessType = std::conditional_t<is_void, bool, value_type >;
+    using voidless_type = std::conditional_t<is_void, bool, value_type >;
     ///declaration of return value - which is reference to type or void
-    using RetVal = std::conditional_t<is_rvalue_ref, T, std::add_lvalue_reference_t<T> >;
+    using ret_type = std::conditional_t<is_rvalue_ref, T, std::add_lvalue_reference_t<T> >;
 
-    using StorageType = std::conditional_t<is_lvalue_ref, VoidlessType *, VoidlessType>;
-    using ConstructType = std::conditional_t<is_lvalue_ref, VoidlessType &, VoidlessType>;
+    using StorageType = std::conditional_t<is_lvalue_ref, voidless_type *, voidless_type>;
+    using construct_type = std::conditional_t<is_lvalue_ref, voidless_type &, voidless_type>;
 
-    using CastRetVal = std::conditional_t<is_void, bool, RetVal>;
+    using cast_ret_type = std::conditional_t<is_void, bool, ret_type>;
 
     ///Tags future<T> as valid return value for coroutines
     using promise_type = async_promise_type<T>;
@@ -255,7 +255,7 @@ public:
 
     future():_state(nothing) {}
 
-    future(ConstructType v):_state(value),_value(from_construct_type(std::forward<ConstructType>(v))) {}
+    future(construct_type v):_state(value),_value(from_construct_type(std::forward<construct_type>(v))) {}
 
     template<typename ... Args>
     future(emplace_tag, Args && ... args):_state(value), _value(std::forward<Args>(args)...) {}
@@ -301,12 +301,12 @@ public:
         }
     }
 
-    RetVal get() {
+    ret_type get() {
         wait();
         return get_internal();
     }
 
-    operator CastRetVal() {
+    operator cast_ret_type() {
         if constexpr(is_void) {
             wait();
             return _value;
@@ -405,7 +405,7 @@ public:
     class value_awaiter: public ready_state_awaiter<true> {
     public:
         using ready_state_awaiter<true>::ready_state_awaiter;
-        RetVal await_resume() const {
+        ret_type await_resume() const {
             return this->_owner.get_internal();
         }
     };
@@ -495,7 +495,7 @@ protected:
     };
     std::atomic<const target_type *> _targets = {&disabled_target<target_type>};
 
-    std::conditional_t<is_lvalue_ref, value_type *, StorageType &&> from_construct_type(ConstructType &&t) {
+    std::conditional_t<is_lvalue_ref, value_type *, StorageType &&> from_construct_type(construct_type &&t) {
         if constexpr(is_lvalue_ref) {
             return &t;
         } else {
@@ -543,20 +543,25 @@ protected:
     }
 
     std::coroutine_handle<> notify_targets() {
-        const target_type *list = _targets.exchange(&disabled_target<target_type>);
-        while (list) {
-            auto cor = list->activate(this);
-            if (cor) {
-                list = list->next;
-                while (list) {
-                    auto cor = list->activate(this);
-                    if (cor) cor.resume();
-                    list = list->next;
+        auto n = _targets.exchange(&disabled_target<target_type>);
+        return n?notify_targets(n, this):nullptr;
+    }
+
+    static std::coroutine_handle<> notify_targets(const target_type *list, future *f) {
+        if (list->next) {
+            auto c1 = notify_targets(list->next, f);
+            auto c2 = list->activate(f);
+            if (c1) {
+                if (c2) {
+                    c1.resume();
+                    return c2;
                 }
+                return c1;
             }
-            return cor;
+            return c2;
+        } else {
+            return list->activate(f);
         }
-        return nullptr;
     }
 
     void notify_resume() {
@@ -564,7 +569,7 @@ protected:
         if (x) x.resume();
     }
 
-    RetVal get_internal() {
+    ret_type get_internal() {
         switch (_state) {
             default: throw broken_promise_exception();
             case exception: std::rethrow_exception(_exception);
@@ -603,12 +608,13 @@ public:
     using promise =typename future<T>::promise;
     using target_type = typename future<T>::target_type;
     using unique_target_type = typename future<T>::unique_target_type;
-    using voidless_type = typename future<T>::VoidlessType;
+    using voidless_type = typename future<T>::voidless_type;
+    using construct_type = typename future<T>::construct_type;
 
     using promise_target_type = target<promise &&>;
     using unique_promise_target_type = unique_target<promise_target_type>;
-    using ret_type = typename future<T>::RetVal;
-    using cast_ret_type = typename future<T>::CastRetVal;
+    using ret_type = typename future<T>::ret_type;
+    using cast_ret_type = typename future<T>::cast_ret_type;
 
     using promise_type = async_promise_type<T>;
 
@@ -618,6 +624,8 @@ public:
 
     template<invocable_with_result<void, promise> Fn>
     lazy_future(Fn &&fn):_lazy_target(target_callback<promise_target_type>(std::forward<Fn>(fn))) {}
+    template<invocable_with_result<lazy_future> Fn>
+    lazy_future(Fn &&fn):lazy_future(fn()) {}
 
     lazy_future(voidless_type val):future<T>(std::move(val)) {}
     lazy_future(std::exception e):future<T>(std::move(e)) {}

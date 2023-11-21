@@ -3,8 +3,10 @@
 #include "future.h"
 #include "allocator.h"
 
+#include <queue>
 #include <utility>
 namespace coro {
+
 
 
 ///helper struct which is part of coroutine promise
@@ -48,17 +50,7 @@ struct async_promise_type<T, void>: async_promise_base<T> {
 
     using promise = typename future<T>::promise;
 
-    static std::coroutine_handle<> bootstrap(promise &&p, void *address) noexcept {
-        auto h = std::coroutine_handle<async_promise_type>::from_address(address);
-        auto &coro = h.promise();
-        if (p) {
-            coro.fut = p.release();
-            return h;
-        } else {
-            h.destroy();
-            return {};
-        }
-    }
+
 };
 
 ///Coroutine future proxy
@@ -124,12 +116,21 @@ public:
      */
     lazy_future<T> lazy_start() {
         promise_type &p = _h.promise();
-        target_simple_call(p._lazy_target, _h.address(), &promise_type::bootstrap);
+        target_simple_activation(p._lazy_target, [h = _h](typename lazy_future<T>::promise &&prom) {
+            auto &coro = h.promise();
+            if (prom) {
+                coro.fut = prom.release();
+                return h;
+            } else {
+                h.destroy();
+                return std::coroutine_handle<promise_type>();
+            }
+        });
         _h = {};
         return p._lazy_target;
     }
 
-    typename future<T>::RetVal join() {
+    auto join() {
         return start().get();
     }
 
@@ -227,6 +228,8 @@ struct async_promise_type: async_promise_type<T, void>
     async<T, Alloc> get_return_object() {return {this};}
 
 };
+
+
 
 
 }

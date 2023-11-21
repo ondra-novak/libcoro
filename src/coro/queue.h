@@ -20,6 +20,9 @@ template<typename T, typename QueueImpl = std::queue<T> >
 class queue {
 public:
 
+    using value_type = T;
+    using behavior = QueueImpl;
+
     ///Construct default queue
     queue() = default;
     ///The queue is not copyable
@@ -90,7 +93,10 @@ public:
     typename future<T>::pending_notify pop(typename future<T>::promise &&prom) {
         std::unique_lock lk(_mx);
         if (_item_queue.empty()) {
-            if (_closed) return prom.drop(); //breaks promise
+            if (_closed) {
+                if (_exception) return prom.reject(_exception);
+                else return prom.drop(); //breaks promise
+            }
             _awaiters.push(std::move(prom)); //remember promise
             return nullptr;
         }
@@ -106,7 +112,10 @@ public:
      */
     std::optional<T> try_pop() {
         std::unique_lock lk(_mx);
-        if (_item_queue.empty()) return {};
+        if (_item_queue.empty()) {
+            if (_exception) std::rethrow_exception(_exception);
+            return {};
+        }
         std::optional<T> out (std::move(_item_queue.front()));
         _item_queue.pop();
         return out;
@@ -142,27 +151,40 @@ public:
      * pop() also recives BrokenPromise when the queue is empty.
      * In thi state, it is still possible to push and pop items
      * but without blocking.
+     *
+     * @param e exception - you can set exception, which causes that
+     * any attempt to pop value throws this exception. With default
+     * value the queue only break promises
      */
-    void close() {
+    void close(std::exception_ptr e = nullptr) {
         std::unique_lock lk(_mx);
+        if (_closed) return;
+        _exception = e;
         auto z = std::move(_awaiters);
         _closed = true;
         lk.unlock();
-        while (!z.empty()) z.pop(); //break all promises
+        if (e) {
+            while (!z.empty()) {
+                z.front().reject(e);
+                z.pop();
+            }
+        } else {
+            while (!z.empty()) z.pop(); //break all promises
+        }
     }
 
     ///Reactivates the queue
     void reopen() {
         std::lock_guard _(_mx);
         _closed = false;
+        _exception = nullptr;
     }
-
-
 protected:
     mutable std::mutex _mx;
     QueueImpl _item_queue;
     std::queue<typename future<T>::promise> _awaiters;
     bool _closed = false;
+    std::exception_ptr _exception;
 };
 
 }
