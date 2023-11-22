@@ -440,7 +440,7 @@ public:
      */
     auto has_value() {return ready_state_awaiter<true>(*this);}
 
-    auto operator!() const {return ready_state_awaiter<false>(*this);}
+    auto operator!() {return ready_state_awaiter<false>(*this);}
 
 
     ///Retrieves awaitable object to await and retrieve a value (or exception)

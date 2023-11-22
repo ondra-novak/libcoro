@@ -22,7 +22,7 @@ struct destruct {
 
 coro::async<int> int_coro2(std::unique_ptr<int, destruct> x) {
     co_return *x;
-};
+}
 
 int main() {
     void_coro(1).detach();

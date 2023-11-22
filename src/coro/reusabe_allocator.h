@@ -35,6 +35,8 @@ public:
 
     reusabe_allocator &operator=(const reusabe_allocator &) = delete;
 
+    std::size_t get_alloc_size() const {return buffer_size;}
+
 protected:
     void *buffer = nullptr;
     std::size_t buffer_size = 0;

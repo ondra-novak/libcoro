@@ -20,7 +20,7 @@ namespace _details {
     using extract_object_type_t = typename extract_object_type<X>::type;
 
 
-};
+}
 
 template<typename T, typename R, typename ... Args>
 concept invocable_with_result = std::is_same_v<std::invoke_result_t<T, Args...>, R>;
@@ -32,11 +32,13 @@ concept member_function = requires(A a, B b, Args ... args) {
 };
 
 template<typename Alloc>
-concept coro_allocator = requires(Alloc alloc, void *ptr, std::size_t sz) {
+concept coro_allocator_base = requires(Alloc alloc, void *ptr, std::size_t sz) {
     {alloc.allocate(sz)} -> std::same_as<void *>;
-    {Alloc::deallocate(ptr, sz)}->std::same_as<void>;
+    {std::decay_t<Alloc>::deallocate(ptr, sz)}->std::same_as<void>;
 };
 
+template<typename Alloc>
+concept coro_allocator = coro_allocator_base<std::remove_pointer_t<Alloc> >;
 template<typename Alloc>
 concept coro_optional_allocator = coro_allocator<Alloc> || std::is_void_v<Alloc>;
 

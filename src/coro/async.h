@@ -66,6 +66,9 @@ struct async_promise_type<T, void>: async_promise_base<T> {
  * (so return value is thrown out)
  *
  * @tparam T type of return value
+ * @tparam Alloc allocator - this can be either direct type, reference to type or pointer to type. You
+ * probably use pointer to refer existing instance of allocator, or direct value if you need
+ * to make a copy of the allocator's instance
  */
 template<typename T, coro_optional_allocator Alloc>
 class [[nodiscard]] async {

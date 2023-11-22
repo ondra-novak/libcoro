@@ -5,7 +5,7 @@
 
 
 struct State {
-    std::unordered_set<std::filesystem::path> processedFiles;
+    std::unordered_set<std::string> processedFiles;
     std::unordered_set<std::string> unkownHeaders;
 };
 

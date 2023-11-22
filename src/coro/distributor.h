@@ -7,6 +7,9 @@
 
 namespace coro {
 
+template<typename T, typename Filter, typename QueueImpl>
+class distributor_queue;
+
 ///Distributes single event to multiple coroutines (subscribbers)
 /**
  * To use this object, a consument must subscribe itself at this object by calling
@@ -121,16 +124,46 @@ public:
      */
 
 
-    template<invocable_with_result<bool, const T &> Filter, typename QueueImpl>
-    class queue_impl : public queue<T, QueueImpl> {
+    template<typename Filter = EmptyFilter, typename QueueImpl = typename queue<T>::behavior>
+    using queue = distributor_queue<T, Filter, QueueImpl>;
+
+protected:
+    [[no_unique_address]] Lock _mx;
+    std::vector<std::pair<promise, ID> > _subscribers;
+
+    template<typename Fn>
+    void for_all(Fn && fn) {
+        pending_notify *buff;
+        std::size_t sz;
+        {
+            std::lock_guard _(_mx);
+            sz = _subscribers.size();
+            buff = reinterpret_cast<pending_notify *>(alloca(sizeof(pending_notify)*_subscribers.size()));
+            for (std::size_t i = 0; i < sz; ++i) {
+                try {
+                    std::construct_at(buff+i, fn(_subscribers[i].first));
+                } catch (...) {
+                    std::construct_at(buff+1, _subscribers[i].first.reject());
+                }
+            }
+            _subscribers.clear();
+        }
+        for (std::size_t i = 0; i < sz; ++i) {
+            std::destroy_at(buff+i);
+        }
+    }
+};
+
+template<typename T, typename Filter, typename QueueImpl>
+class distributor_queue: public queue<T, QueueImpl> {
     public:
 
-        queue_impl() = default;
-        queue_impl(distributor &dist) {subscribe(dist);}
-        queue_impl(Filter flt):_filter(std::move(flt)) {}
-        queue_impl(Filter flt, distributor &dist):_filter(std::move(flt)) {subscribe(dist);}
-        queue_impl(const queue_impl &) = delete;
-        queue_impl &operator=(const queue_impl &) = delete;
+    distributor_queue() = default;
+    distributor_queue(distributor<T> &dist) {subscribe(dist);}
+    distributor_queue(Filter flt):_filter(std::move(flt)) {}
+    distributor_queue(Filter flt, distributor<T> &dist):_filter(std::move(flt)) {subscribe(dist);}
+    distributor_queue(const distributor_queue &) = delete;
+    distributor_queue &operator=(const distributor_queue &) = delete;
 
         ///Subscribes to distributor
         /**
@@ -142,7 +175,7 @@ public:
          * can process results asynchronously without loosing any distributed event
          *
          */
-        void subscribe(distributor &dist) {
+        void subscribe(distributor<T> &dist) {
             _connection = &dist;
 
             target_simple_activation(_target, [&](auto) {
@@ -191,7 +224,7 @@ public:
         }
 
 
-        ~queue_impl() {
+        ~distributor_queue() {
             unsubscribe();
         }
 
@@ -199,44 +232,13 @@ public:
         future<T> _dist_value;
         Filter _filter;
         typename future<T>::target_type _target;
-        distributor *_connection = nullptr;
+        distributor<T> *_connection = nullptr;
         void charge() {
             auto prom = _dist_value.get_promise();
             _dist_value.register_target(_target);
             _connection->subscribe(std::move(prom), this);
         }
-
-
-
     };
-    template<typename Filter = EmptyFilter, typename QueueImpl = typename queue<T>::behavior>
-    using queue = queue_impl<Filter, QueueImpl>;
 
-protected:
-    [[no_unique_address]] Lock _mx;
-    std::vector<std::pair<promise, ID> > _subscribers;
-
-    template<typename Fn>
-    void for_all(Fn && fn) {
-        pending_notify *buff;
-        std::size_t sz;
-        {
-            std::lock_guard _(_mx);
-            sz = _subscribers.size();
-            buff = reinterpret_cast<pending_notify *>(alloca(sizeof(pending_notify)*_subscribers.size()));
-            for (std::size_t i = 0; i < sz; ++i) {
-                try {
-                    std::construct_at(buff+i, fn(_subscribers[i].first));
-                } catch (...) {
-                    std::construct_at(buff+1, _subscribers[i].first.reject());
-                }
-            }
-            _subscribers.clear();
-        }
-        for (std::size_t i = 0; i < sz; ++i) {
-            std::destroy_at(buff+i);
-        }
-    }
-};
 
 }

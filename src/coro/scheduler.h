@@ -24,12 +24,12 @@ public:
      */
     explicit scheduler(unsigned int count = 1) {
         _thread_list.resize(count);
-        std::atomic<unsigned int> remain = count;
+        waitable_atomic<unsigned int> remain = count;
 
         for (auto &x: _thread_list) {
             x = std::thread([&]{
                 current_instance = this;
-                if (remain.fetch_sub(1, std::memory_order_relaxed) <= 1) remain.notify_one();
+                if (remain.fetch_sub(1, std::memory_order_relaxed) <= 1) remain.notify_all();
                 worker([&]{return _running;});
             });
         }

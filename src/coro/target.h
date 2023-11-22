@@ -2,6 +2,8 @@
 
 #include "types.h"
 
+#include "waitable_atomic.h"
+
 #include <algorithm>
 #include <memory>
 #include <coroutine>
@@ -259,7 +261,7 @@ void target_coroutine(Target &t, std::coroutine_handle<> h, typename Target::sub
  */
 template<target_type Target>
 class sync_target: public target<typename Target::subject_type> {
-    std::atomic<bool> flag = {false};
+    waitable_atomic<bool> flag = {false};
 public:
     using Subject = typename Target::subject_type;
     std::optional<std::decay_t<Subject> > subject;

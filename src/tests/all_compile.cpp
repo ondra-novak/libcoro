@@ -9,6 +9,8 @@ union test_union {
     coro::target<std::unique_ptr<int> > t3;
 };
 
+template class coro::stackful<>;
+
 int main() {
 
 }
