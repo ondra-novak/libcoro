@@ -212,6 +212,7 @@ public:
         return generator_iterator<generator &>::end(*this);
     }
 
+
 protected:
 
     generator(promise_type *p):_prom(p) {}

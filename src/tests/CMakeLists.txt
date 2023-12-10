@@ -11,6 +11,7 @@ set(testFiles all_compile.cpp
                 shared_future.cpp
                 allocator.cpp
                 stackful.cpp
+                aggregator.cpp
                 )
 foreach (testFile ${testFiles})
     string(REGEX MATCH "([^\/]+$)" filename ${testFile})

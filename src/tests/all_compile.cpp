@@ -1,7 +1,6 @@
 #include "../coro/coro_single.h"
 
 template class coro::queue<int>;
-template class coro::aggregator<int>;
 
 union test_union {
     coro::target<int> t1;
