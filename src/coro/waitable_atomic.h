@@ -3,11 +3,12 @@
 //Waitable atomic polyfil for GCC 10
 
 #include <atomic>
+#include <mutex>
+#include <condition_variable>
 
 
  #if defined(__GNUC__) && (__GNUC__ < 11)
 
-#include <condition_variable>
 
 template<typename T>
 class waitable_atomic: public std::atomic<T> {

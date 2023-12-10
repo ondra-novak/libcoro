@@ -15,8 +15,8 @@ add_custom_command(
 )
 
 # Vytvoření cíle pro spuštění vlastního příkazu
-add_custom_target(single_header ALL DEPENDS "${CMAKE_HEADER_OUTPUT_DIRECTORY}/coro.h")
-add_dependencies(single_header to_single_header)
+add_custom_target(libcoro_single_header ALL DEPENDS "${CMAKE_HEADER_OUTPUT_DIRECTORY}/coro.h")
+add_dependencies(libcoro_single_header to_single_header)
 
 
 

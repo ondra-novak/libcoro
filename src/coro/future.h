@@ -831,6 +831,37 @@ concept pending_notify = requires(X x) {
     {*x.release()};
 };
 
+template<auto defval>
+class promise_with_default: public promise<std::decay_t<decltype(defval) > > {
+public:
+    using super = promise<std::decay_t<decltype(defval) > >;
+    using promise<std::decay_t<decltype(defval) > >::promise;
+
+    ~promise_with_default() {
+        if (*this) {
+            (*this)(defval);
+        }
+    }
+};
+
+///construct awaiter as combination future and its awaiter
+/**
+ * @tparam Future source future
+ *
+ * It is useful to return this as result of operator co_await
+ */
+template<typename Future>
+class awaiter: public Future, public Future::value_awaiter {
+public:
+
+    template<typename ... Args>
+    requires(std::constructible_from<Future, Args...>)
+    awaiter(Args && ... args)
+        :Future(std::forward<Args>(args)...)
+        ,Future::value_awaiter(*this) {}
+
+};
+
 }
 
 
