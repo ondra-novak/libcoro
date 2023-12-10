@@ -58,7 +58,7 @@ concept target_activation_function = target_type<Target>
 
 template<typename T>
 concept is_linked_list = requires(T val) {
-    {val.next}->std::convertible_to<T *>;
+    requires std::convertible_to<T *, decltype(val.next)>;
 };
 
 

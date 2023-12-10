@@ -181,6 +181,8 @@ void target_simple_activation(Target &t, Fn fn) {
     }
 }
 
+static_assert(is_linked_list<target<int> >);
+
 ///Initialize a target by member function callback
 /**
  *
