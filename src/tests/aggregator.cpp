@@ -5,6 +5,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <set>
 
 coro::generator<int> fibo(int count) {
     int a = 1;
@@ -26,7 +27,7 @@ coro::generator<int> async_fibo(coro::scheduler &sch, int count, int sleep) {
 
     for (int i = 0; i < count; ++i) {
         co_await sch.sleep_for(std::chrono::milliseconds(sleep));
-        co_yield a;
+        co_yield a*sleep;
         int c = a+b;
         a = b;
         b = c;
@@ -35,16 +36,22 @@ coro::generator<int> async_fibo(coro::scheduler &sch, int count, int sleep) {
 }
 
 coro::future<void> test_async_fibo(coro::scheduler &sch) {
-    auto aggr = coro::aggregator(async_fibo(sch, 8, 5), async_fibo(sch,12,7), async_fibo(sch,3,11));
+    auto aggr = coro::aggregator(async_fibo(sch, 8, 5), async_fibo(sch,12,6), async_fibo(sch,3,7));
     std::ostringstream sout;
+    std::set<int> res;
     auto r = aggr();
     while (co_await !!r) {
         int x = r;
-        sout << x << ',';
+        res.emplace(x);
         r = aggr();
     }
-    CHECK_EQUAL(sout.str(), "1,1,1,1,1,2,3,2,1,5,3,8,2,5,13,21,8,13,21,34,55,89,144,");
+    auto values = {5,6,7,10,12,15,14,18,25,30,40,65,48,105,78,126,204,330,534,864};
+    for (int c:values ) {
+        CHECK_PRINT(res.find(c) != res.end(),c);
+    }
+
 }
+
 
 int main() {
 
@@ -60,6 +67,7 @@ int main() {
     CHECK_EQUAL(sout.str(), "1,1,1,1,1,1,2,2,2,3,3,5,5,8,8,13,13,21,21,34,55,89,144,");
 
     sch.await(test_async_fibo(sch));
+
 
 
     return 0;

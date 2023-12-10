@@ -14,6 +14,15 @@
     }\
 }while(false)
 
+#define CHECK_PRINT(x,v) do { \
+    if(!(x)) {  \
+        std::cerr << "FAILED: " << #x << ": " << (v)<< REPORT_LOCATION << std::endl; \
+        exit(1);\
+    } else {\
+        std::cout << "Passed: " << #x << ": " << (v) <<  std::endl;\
+    }\
+}while(false)
+
 #define CHECK_BINARY_OP(a,op,b) do { \
     if((a) op (b)) {  \
         std::cout << "Passed: " << #a << #op << #b << ": " << (a) << #op << (b) << std::endl;\

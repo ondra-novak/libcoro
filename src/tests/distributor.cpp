@@ -26,7 +26,7 @@ coro::async<void> test_coro2(int id, coro::distributor<int> &dist, std::queue<st
 
 coro::async<void> test_coro_queued(int id, coro::distributor<int> &dist, std::queue<std::pair<int,int > > &r) {
 
-    coro::distributor<int>::queue q(dist);
+    coro::distributor<int>::queue<> q(dist);
 
     while(1) {
         coro::future<int> f = q.pop();
