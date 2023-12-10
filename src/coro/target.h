@@ -129,7 +129,7 @@ struct target_allocated: target<typename Target::subject_type> {
 
 ///This constant marks linked list as disabled
 template<target_type Target>
-constexpr target<typename Target::subject_type> disabled_target = {};
+inline constexpr target<typename Target::subject_type> disabled_target = {};
 
 
 template<typename Subject>
