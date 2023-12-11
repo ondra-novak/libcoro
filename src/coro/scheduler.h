@@ -49,43 +49,22 @@ public:
         auto id = std::this_thread::get_id();
         current_instance = nullptr;
         {
-            std::lock_guard _(_mx);
+            std::unique_lock lk(_mx);
             _running = false;
+            notify_all(lk);
         }
-        _cond.notify_all();
         for (auto &x: _thread_list) {
             if (x.get_id() == id) x.detach(); else x.join();
         }
         drop_all();
     }
 
-    ///schedule pending notification inside of thread pool
-    /**
-     * @param ntf return value of set value operation on the promise. This causes
-     * that associated future is notified in context of thread owned by this
-     * thread pool.
-     */
-    template<pending_notify NTF>
-    void schedule(NTF &&ntf) {
-        push(make_target(std::forward<NTF>(ntf)));
-    }
 
     ///schedule a function call
     template<std::invocable<> Fn>
     void schedule(Fn &&fn) {
         push(make_target(std::forward<Fn>(fn)));
     }
-    ///schedule pending notification at given time
-    /**
-     * @param tp time point
-     * @param ntf pending notification
-     * @param id identifier, allows to cancel operation
-     */
-    template<pending_notify NTF>
-    void schedule_at(std::chrono::system_clock::time_point tp, NTF &&ntf, const void *id = nullptr) {
-        push_at_time({make_target(std::forward<NTF>(ntf)),tp,id});
-    }
-
     ///schedule a function call at given time
     /**
      * @param tp time point
@@ -96,11 +75,7 @@ public:
     void schedule_at(std::chrono::system_clock::time_point tp, Fn &&fn, const void *id = nullptr) {
         push_at_time({make_target(std::forward<Fn>(fn)), tp, id});
     }
-    template<pending_notify NTF, typename Dur>
-    void schedule_after(Dur &&dur, NTF &&ntf, const void *id = nullptr) {
-        auto now = std::chrono::system_clock::now();
-        push_at_time({make_target(std::forward<NTF>(ntf)),now+dur,id});
-    }
+
     template<std::invocable<> Fn, typename Dur>
     void schedule_after(Dur &&dur, Fn &&fn, const void *id = nullptr) {
         auto now = std::chrono::system_clock::now();
@@ -218,7 +193,8 @@ public:
         typename future<X>::target_type t;
         target_simple_activation(t, [&](future<X> *){
             done.store(true, std::memory_order_release);
-            _cond.notify_all();
+            std::unique_lock lk(_mx);
+            notify_all(lk);
         });
         if (!fut.register_target_async(t)) return;
         current_instance = this;
@@ -260,16 +236,24 @@ public:
      */
     bool is_idle() const {
         std::lock_guard _(_mx);
-        return _queue.empty();
+        return _queue.empty() || _idle_threads>0;
     }
 
     ///Retrives time of first scheduled event
     /**
+     * This function can be important when the worker is being blocked.
+     * Returned value contains time point when the blocking should end
+     *
      * @return time point when the first event is scheduled. If the
      * object is not idle, returns now()
+     *
+     *
      */
     auto get_idle_interval() -> std::chrono::system_clock::time_point {
         std::lock_guard _(_mx);
+        if (_idle_threads>0) {
+            return std::chrono::system_clock::time_point::max();
+        }
         if (_queue.empty()) {
             if (_scheduled.empty()) {
                 return std::chrono::system_clock::time_point::max();
@@ -279,6 +263,46 @@ public:
         } else {
             return std::chrono::system_clock::now();
         }
+    }
+
+    ///Definition of unblock target
+    /**
+     * This target is important if there is a function in a worker, which
+     * can block the thread for unspecified time. It can receive a notification
+     * that its thread should be unblocked. It is made by activating this target.
+     * The target is activated just once.
+     */
+    using unblock_target = target<scheduler *>;
+
+    ///Register unblock target
+    /**
+     * @param t target which is activated, when scheduler exhausted all threads and
+     * need to unblock by user blocked thread. This target is activated only once, but
+     * it can be reactivated in reaction to activation
+     *
+     * Note the reference must stay valid until the target is activated or until is
+     * unregistered.
+     *
+     */
+    auto register_unblock(unblock_target &t) {
+        std::lock_guard _(_mx);
+        _unblocks.push_back(&t);
+    }
+
+    ///Unregister unblock target
+    /**
+     * @param t target reference to target to unregister
+     * @retval true success
+     * @retval false no longer valid, probably already activated
+     */
+    bool unregister_unblock(unblock_target &t) {
+        std::lock_guard _(_mx);
+        auto iter = std::find(_unblocks.begin(), _unblocks.end(), &t);
+        if (iter != _unblocks.end()) {
+            _unblocks.erase(iter);
+            return true;
+        }
+        return false;
     }
 
 protected:
@@ -306,25 +330,23 @@ protected:
     std::condition_variable _cond;
     std::queue<target_type> _queue;
     std::vector<scheduled_target> _scheduled;
+    std::deque<unblock_target *> _unblocks;
+    unsigned int _idle_threads = 0;
     bool _running = true;
 
     static thread_local scheduler *current_instance;
 
-    template<pending_notify NTF>
-    static target_type make_target(NTF &&ntf) {
-        using future_ptr = decltype(ntf.release());
-        auto f = ntf.release();
-        return target_type{[](bool ok, void *fptr) noexcept {
-            NTF ntf(reinterpret_cast<future_ptr>(fptr));
-            if (ok) return; //destructor handles execution
-            ntf.drop();
-            //destructor handles execution
-        }, f};
-    }
-
     template<std::invocable<> Fn>
     static target_type make_target(Fn &&fn) {
-        if constexpr(sizeof(Fn) <= sizeof(void *)
+        if constexpr(pending_notify<Fn>) {
+            using future_ptr = decltype(fn.release());
+            auto f = fn.release();
+            return target_type{[](bool ok, void *fptr) noexcept {
+                Fn ntf(reinterpret_cast<future_ptr>(fptr));
+                if (!ok) ntf.drop();
+                //destructor handles execution
+            }, f};
+        } else if constexpr(sizeof(Fn) <= sizeof(void *)
                 && std::is_trivially_copy_constructible_v<Fn>
                 && std::is_trivially_destructible_v<Fn>) {
             target_type t;
@@ -358,11 +380,9 @@ protected:
 
 
     void push(target_type t) {
-        {
-            std::lock_guard _(_mx);
-            _queue.push(t);
-        }
-        _cond.notify_one();
+        std::unique_lock lk(_mx);
+        _queue.push(t);
+        notify_one(lk);
     }
 
     static bool scheduled_cmp(const scheduled_target &a, const scheduled_target &b) {
@@ -370,12 +390,10 @@ protected:
     }
 
     void push_at_time(scheduled_target t) {
-        {
-            std::lock_guard _(_mx);
-            _scheduled.push_back(t);
-            std::push_heap(_scheduled.begin(), _scheduled.end(), scheduled_cmp);
-        }
-        _cond.notify_one();
+        std::unique_lock lk(_mx);
+        _scheduled.push_back(t);
+        std::push_heap(_scheduled.begin(), _scheduled.end(), scheduled_cmp);
+        notify_one(lk);
     }
 
     bool cancel_scheduled(const void *id) {
@@ -415,19 +433,23 @@ protected:
     template<typename Predicate>
     void worker(Predicate &&pred) {
         std::unique_lock lk(_mx);
+        ++_idle_threads;
         while (pred()) {
             if (_queue.empty()) {
                 wait(lk);
             } else {
                 auto x = _queue.front();
                 _queue.pop();
+               --_idle_threads;
                lk.unlock();
                x.activate(true);
                if (current_instance != this) return;
                lk.lock();
+               ++_idle_threads;
             }
             handle_expired();
         }
+        --_idle_threads;
     }
 
     void handle_expired() {
@@ -444,6 +466,29 @@ protected:
             _cond.wait(lk);
         } else {
             _cond.wait_until(lk, _scheduled.front().tp);
+        }
+    }
+
+    void notify_one(std::unique_lock<std::mutex> &lk) {
+        if (_idle_threads) {
+            lk.unlock();
+            _cond.notify_one();
+        }
+        else if (!_unblocks.empty() && current_instance != this) {
+            auto t = _unblocks.front();
+            _unblocks.pop_front();
+            lk.unlock();
+            t->activate(this);
+        } else {
+            lk.unlock();
+        }
+    }
+    void notify_all(std::unique_lock<std::mutex> &lk) {
+        auto q = std::move(_unblocks);
+        lk.unlock();
+        _cond.notify_all();
+        for (const auto &t: q) {
+            t->activate(this);
         }
     }
 

@@ -93,6 +93,10 @@ public:
             return std::noop_coroutine();
         }
 
+        void operator()() {
+            this->reset();
+        }
+
     };
 
 
