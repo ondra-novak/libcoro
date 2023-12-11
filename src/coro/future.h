@@ -279,7 +279,9 @@ public:
     future(std::exception_ptr e):_state(exception), _exception(std::move(e)) {}
 
     template<invocable_with_result<void, promise> Fn>
-    future(Fn &&fn) {fn(get_promise());}
+    future(Fn &&fn):_state(nothing),_targets(nullptr) {
+        fn(promise(this));
+    }
 
     template<invocable_with_result<future> Fn>
     future(Fn &&fn) {
