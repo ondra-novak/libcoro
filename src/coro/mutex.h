@@ -62,11 +62,12 @@ public:
             //init target
             target_coroutine(_t, h, &_ownership);
             //try to register
-            if (_owner->register_target_async(_t) == false) {
-                //if failed to register, we already have a ownership
-                //store it temporarily
-                std::construct_at(&_ownership,_owner);
-                //stop suspend now (wake up)
+            auto own = _owner->register_target_async(_t);
+            if (own) {
+                //retrieved ownership immediately
+                //move it
+                std::construct_at(&_ownership, std::move(own));
+                //cancel suspend
                 return false;
             }
             //continue suspend
@@ -91,11 +92,11 @@ public:
      *  to lock with custom target
      *
      * @param t reference to target
-     * @retval true target registered and will be activated once the ownership is gained
-     * @retval false you gained ownership immediatelly. To retrieve Ownership object, just
-     * construct Ownership with pointer to mutex
+     * @return if ownership is gained immediately, it is returned. Otherwise the
+     * function returns nullptr. In this case, the target is registered and
+     * ownership will be passed to the target once it is gained.
      */
-    bool register_target_async(target_type &t) noexcept {
+    ownership register_target_async(target_type &t) noexcept {
         //push target to _requests
         t.push_to(_requests);
         //check, whether there is "next" target
@@ -103,11 +104,11 @@ public:
             //if there is nullptr, the mutex was not owned!
             //however we need to put lock_tag and build queue (even empty)
             build_queue(t);
-            //target was not registered, return false
-            return false;
+            //target was not registered, return ownerhip
+            return ownership(this);
         } else {
-            //target is registered, return true
-            return true;
+            //target is registered, return nullptr
+            return {};
         }
     }
 
@@ -121,9 +122,13 @@ public:
      * @retval false target activated synchronously
      */
     bool register_target(target_type &t) noexcept {
-        if (register_target_async(t)) return true;
-        t.activate_resume(ownership(this));
-        return false;
+        auto own = register_target_async(t);
+        if (own) {
+            t.activate_resume(std::move(own));
+            return false;
+        } else {
+            return true;
+        }
     }
 
     bool register_target(unique_target<target_type> t) {

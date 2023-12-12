@@ -332,6 +332,13 @@ public:
         return *reinterpret_cast<const Target *>(_space);
     }
 
+    template<target_type Target, target_activation_function<Target, typename Target::subject_type> Fn>
+    Target &on_activate(Fn &&fn) {
+        auto &t = as<Target>();
+        coro::target_simple_activation(t, std::forward<Fn>(fn));
+        return t;
+    }
+
 protected:
     char _space[sizeof(target_template)];
 

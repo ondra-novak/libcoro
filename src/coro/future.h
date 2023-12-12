@@ -821,7 +821,9 @@ protected:
     std::coroutine_handle<> start_evaluation_coro() {
         const promise_target_type *t = _lazy_target.exchange(nullptr);
         if (t) {
-            return t->activate(future<T>::get_promise());
+            auto r = t->activate(future<T>::get_promise());
+            if (!r) r = std::noop_coroutine();
+            return r;
         } else {
             return std::noop_coroutine();
         }
