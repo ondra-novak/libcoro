@@ -870,6 +870,50 @@ public:
 
 };
 
+class any_promise {
+public:
+    any_promise() = default;
+    any_promise(const any_promise &) = delete;
+    any_promise &operator=(const any_promise &) = delete;
+
+    template<typename T>
+    static void deleter_fn(void *ptr) {
+        auto *p = reinterpret_cast<promise<T> *>(ptr);
+        std::destroy_at(p);
+    }
+
+    template<typename T>
+    any_promise &operator=(promise<T> &&prom) {
+        if (deleter) deleter(_space);
+        static_assert(sizeof(promise<T>) <= sizeof(_space));
+        std::construct_at(reinterpret_cast<promise<T> *>(_space), std::move(prom));
+        deleter = &deleter_fn<T>;
+        return *this;
+    }
+
+    template<typename T>
+    promise<T> &get() & {
+        if (&deleter_fn<T> != deleter) throw std::logic_error("coro::any_promise - type missmatch");
+        auto *p = reinterpret_cast<promise<T> *>(_space);
+        return *p;
+    }
+
+    template<typename T>
+    promise<T> get() && {
+        if (&deleter_fn<T> != deleter) return promise<T>();
+        auto *p = reinterpret_cast<promise<T> *>(_space);
+        return std::move(*p);
+    }
+
+
+protected:
+    char _space[sizeof(coro::promise<int>)];
+    void (*deleter)(void *ptr) = nullptr;
+
+
+
+};
+
 }
 
 
