@@ -13,6 +13,15 @@
 
 namespace coro {
 
+template<target_type Target> struct target_allocated;
+
+///Defines unique pointer to dynamically allocated targets
+/**
+ * This class simplifies the handling of dynamically allocated targets before they are registered for activation.
+ */
+template<target_type Target>
+using unique_target = std::unique_ptr<target_allocated<Target> >;
+
 ///Declaration of notification target
 /** Notification target (in short 'target') is special purpose object, which
  * handles notification between varous parts of the library. For example, a notification
@@ -111,6 +120,26 @@ struct target {
      * @return non-atomic version of linked list ready to be processed (in current thread).
      */
     static const target *retrieve_and_disable(std::atomic<const target *> &list);
+
+    ///Create and initialize target with activation function (simple)
+    /**
+     * @param fn activation function. The function can have a small closure (two pointers),
+     * the closure must be trivially destructible and trivialy copyable
+     * @return target
+     */
+    template<target_activation_function<target, typename target::subject_type> Fn>
+    static target create(Fn &&fn);
+
+    ///Create and initialize target with coroutine activation
+    /**
+     * @param h handle of coroutine to be resumed once the target is activated
+     * @param store_subject (optional) pointer to memory, where the subject will be constructed. The
+     * memory must be unitialized (std::construct_at is used). If this pointer is nullptr, subject
+     * is not constructed
+     * @return target
+     */
+    static target create(std::coroutine_handle<> h, typename target::subject_ptr store_subject = nullptr);
+
 };
 
 ///Tags a target as dynamically allocated
@@ -146,12 +175,6 @@ const target<Subject> *target<Subject>::retrieve_and_disable(std::atomic<const t
     return list.exchange(&disabled_target<target>);
 }
 
-///Defines unique pointer to dynamically allocated targets
-/**
- * This class simplifies the handling of dynamically allocated targets before they are registered for activation.
- */
-template<target_type Target>
-using unique_target = std::unique_ptr<target_allocated<Target> >;
 
 ///Initializes a target by simple callback function
 /**
@@ -333,16 +356,89 @@ public:
     }
 
     template<target_type Target, target_activation_function<Target, typename Target::subject_type> Fn>
-    Target &on_activate(Fn &&fn) {
+    Target &init_as(Fn &&fn) {
         auto &t = as<Target>();
         coro::target_simple_activation(t, std::forward<Fn>(fn));
         return t;
     }
+
+
+    template<target_type Target>
+    Target &init_as(std::coroutine_handle<> h, typename Target::subject_ptr store_subject = nullptr) {
+        auto &t = as<Target>();
+        coro::target_coroutine(t, h, store_subject);
+        return t;
+    }
+
+    any_target &operator=(const any_target &x) = default;
+
+    template<target_type Target>
+    Target &operator=(const Target &x) {
+        Target &out = as<Target>();
+        out = x;
+        return out;
+    }
+
+    template<target_type Target>
+    Target &operator=(Target &&x) {
+        Target &out = as<Target>();
+        out = std::move(x);
+        return out;
+    }
+
+    template<target_type Target>
+    operator Target &() {
+        return as<Target>();
+    }
+
+
+    template<typename Fn>
+    class DeduceHelperFn {
+    public:
+        DeduceHelperFn(any_target &owner, Fn &&fn):_owner(owner), _fn(std::move(fn)) {}
+        template<target_type Target>
+        operator Target &() {
+            auto &t = _owner.as<Target>();
+            coro::target_simple_activation(t, std::move(_fn));
+            return t;
+        }
+
+    private:
+        any_target &_owner;
+        Fn _fn;
+    };
+
+    ///Prepare call to be set on a target
+    /**
+     * @param fn callback with trivially constructible closure
+     * @return object, which can be casted a required target. You can pass this
+     * object as register_target on a future.
+     */
+    template<typename Fn>
+    auto call(Fn fn) {
+        return DeduceHelperFn<std::decay_t<Fn> >(*this, std::move(fn));
+    }
+
 
 protected:
     char _space[sizeof(target_template)];
 
 };
 
+template<typename Subject>
+template<target_activation_function<target<Subject>, typename target<Subject>::subject_type> Fn>
+inline target<Subject> target<Subject>::create(Fn &&fn) {
+    target<Subject> t;
+    target_simple_activation(t, std::forward<Fn>(fn));
+    return t;
 }
 
+template<typename Subject>
+inline target<Subject> target<Subject>::create(std::coroutine_handle<> h,
+        typename target<Subject>::subject_ptr store_subject) {
+    target<Subject> t;
+    target_coroutine(t, h, store_subject);
+    return t;
+}
+
+}

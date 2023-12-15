@@ -4,6 +4,7 @@
 #include "exceptions.h"
 
 #include <thread>
+#include <variant>
 
 namespace coro {
 
@@ -229,8 +230,12 @@ protected:
 };
 
 
+class future_tag {
+
+};
+
 template<typename T>
-class future {
+class future: public future_tag {
 
     ///is true when T is void
     static constexpr bool is_void = std::is_void_v<T>;
@@ -892,14 +897,14 @@ public:
     }
 
     template<typename T>
-    promise<T> &get() & {
+    promise<T> &as() & {
         if (&deleter_fn<T> != deleter) throw std::logic_error("coro::any_promise - type missmatch");
         auto *p = reinterpret_cast<promise<T> *>(_space);
         return *p;
     }
 
     template<typename T>
-    promise<T> get() && {
+    promise<T> as() && {
         if (&deleter_fn<T> != deleter) return promise<T>();
         auto *p = reinterpret_cast<promise<T> *>(_space);
         return std::move(*p);
@@ -909,11 +914,37 @@ public:
 protected:
     char _space[sizeof(coro::promise<int>)];
     void (*deleter)(void *ptr) = nullptr;
-
-
-
 };
 
+template<typename ... Args>
+class variant_future: public std::variant<future<Args>...> {
+public:
+
+    template<typename T>
+    future<T> &as() {
+        if (!std::holds_alternative<future<T> >(*this)) {
+            this->template emplace<future<T> >();
+        }
+        return std::get<future<T> >(*this);
+    }
+};
+template<typename ... Args>
+class variant_lazy_future: public std::variant<lazy_future<Args>...> {
+public:
+
+    template<typename T>
+    future<T> &as() {
+        if (!std::holds_alternative<lazy_future<T> >(*this)) {
+            this->template emplace<lazy_future<T> >();
+        }
+        return std::get<lazy_future<T> >(*this);
+    }
+    template<typename T>
+    operator future<T> &() {
+        return as<T>();
+    }
+};
+
+
+
 }
-
-
