@@ -25,6 +25,9 @@ public:
 
     ///Construct default queue
     queue() = default;
+    ///Construct queue - initialize internal queue object
+    template<std::convertible_to<QueueImpl> Q>
+    explicit queue(Q &&qimpl):_item_queue(std::forward<Q>(qimpl)) {}
     ///The queue is not copyable
     queue(const queue &other) = delete;
     ///The queue is movable

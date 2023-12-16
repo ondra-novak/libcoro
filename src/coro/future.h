@@ -314,6 +314,7 @@ public:
         if (!_targets.compare_exchange_strong(need, nullptr, std::memory_order_relaxed)) {
             throw already_pending_exception();
         }
+        drop();
         return promise(this);
     }
 
@@ -871,7 +872,7 @@ public:
     requires(std::constructible_from<Future, Args...>)
     awaiter(Args && ... args)
         :Future(std::forward<Args>(args)...)
-        ,Future::value_awaiter(*this) {}
+        ,Future::value_awaiter(*static_cast<Future *>(this)) {}
 
 };
 
