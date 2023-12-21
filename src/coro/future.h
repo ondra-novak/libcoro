@@ -11,6 +11,7 @@ namespace coro {
 template<typename T, coro_optional_allocator Alloc = void> class async;
 template<typename T> struct async_promise_base;
 template<typename T, coro_optional_allocator Alloc = void> struct async_promise_type;
+template<typename T> class lazy_future;
 
 struct emplace_tag {};
 constexpr emplace_tag emplace;
@@ -362,6 +363,29 @@ public:
         return register_target(t.release());
     }
 
+    ///Replace target(s)
+    /**
+     * Purpose of this function is to nulify targets by replacing them with a safe target.
+     * You need to somehow process old targets.
+     * @param t pointer which holds new target. It receives old target(s) when function
+     * successes.
+     *
+     * @retval true success
+     * @retval false future is already resolved, no targets can be replaced
+     *
+     * @note function is MT Safe
+     */
+    bool replace_target(const target_type  *  &t) {
+        const target_type *need = _targets.load(std::memory_order_relaxed);
+        while (need != t && need != &disabled_target<target_type>) {
+            if (_targets.compare_exchange_weak(need, t)) {
+                t = need;
+                return true;
+            }
+        }
+        return false;
+    }
+
     template<typename Fn>
     bool operator >> (Fn &&fn) {
         return register_target(target_callback<target_type>(std::forward<Fn>(fn)));
@@ -508,6 +532,7 @@ public:
         });
     }
 
+
 protected:
 
     enum StorageState {
@@ -625,12 +650,13 @@ protected:
 
     friend class ::coro::promise<T>;
     friend struct async_promise_base<T>;
+    friend class lazy_future<T>;
 
 
 };
 
 template<typename T>
-class lazy_future: protected future<T> {
+class lazy_future {
 public:
 
     using promise =typename future<T>::promise;
@@ -658,11 +684,11 @@ public:
     lazy_future(voidless_type val):future<T>(std::move(val)) {}
     lazy_future(std::exception e):future<T>(std::move(e)) {}
 
-    lazy_future(lazy_future &&other):future<T>([&]{return move_if_not_pending(other);})
+    lazy_future(lazy_future &&other):_base([&]{return move_if_not_pending(other);})
                                 , _lazy_target(other._lazy_target.exchange(nullptr, std::memory_order_relaxed)) {}
     lazy_future &operator=(lazy_future &&other) {
         if (this != &other) {
-            future<T>::operator <<([&]{return move_if_not_pending(other);});
+            _base<<([&]{return move_if_not_pending(other);});
             _lazy_target.store(other._lazy_target.exchange(nullptr, std::memory_order_relaxed));
         }
         return *this;
@@ -673,26 +699,33 @@ public:
         if (v) v->activate_resume(promise());
     }
     bool is_deferred() const {return _lazy_target.load(std::memory_order_relaxed) != nullptr;}
-    bool is_pending() const {return is_deferred() || future<T>::is_pending();}
+    bool is_pending() const {return is_deferred() || _base.is_pending();}
 
-    promise get_promise() {return future<T>::get_promise();}
-    void wait() noexcept {
+    promise get_promise() {return _base.get_promise();}
+
+    bool evaluate() {
         const promise_target_type *v = _lazy_target.exchange(nullptr, std::memory_order_relaxed);
         if (v) {
             v->activate_resume(get_promise());
+            return true;
         }
-        future<T>::wait();
+        return false;
+
+    }
+    void wait() noexcept {
+        evaluate();
+        _base.wait();
     }
     ret_type get() {
-        wait();
-        return future<T>::get_internal();
+        evaluate();
+        return _base.get();
     }
 
     operator cast_ret_type() {
-        wait();
-        return future<T>::operator cast_ret_type();
+        evaluate();
+        return _base.operator cast_ret_type();
     }
-    operator future<T>() {
+    operator future<T>() && {
         const promise_target_type *v = _lazy_target.exchange(nullptr, std::memory_order_relaxed);
         if (v) {
             return [&](auto promise) {
@@ -700,22 +733,29 @@ public:
             };
         }
     }
+    operator future<T> & () & {
+        const promise_target_type *v = _lazy_target.exchange(nullptr, std::memory_order_relaxed);
+        if (v) {
+            v->activate_resume(get_promise());
+        }
+        return _base;
+    }
 
     bool register_target_async(target_type &t) {
         const promise_target_type *pt = _lazy_target.exchange(nullptr);
         if (pt) {
-            auto prom = future<T>::get_promise();
-            future<T>::register_target_async(t);
+            auto prom = _base.get_promise();
+            _base.register_target_async(t);
             pt->activate_resume(std::move(prom));
             return true;
         } else {
-            return future<T>::register_target_async(t);
+            return _base.register_target_async(t);
         }
 
     }
     bool register_target(target_type &t) {
         if (register_target_async(t)) return true;
-        t.activate_resume(this);
+        t.activate_resume(&_base);
         return false;
 
     }
@@ -747,18 +787,18 @@ public:
         std::coroutine_handle<> await_suspend(std::coroutine_handle<> h)  {
             auto x = _owner.start_evaluation_coro();
             target_coroutine(_target, h);
-            if (!_owner.future<T>::register_target_async(_target)) return h;
+            if (!_owner._base.register_target_async(_target)) return h;
             return x;
         }
         bool await_resume() const {
-            return _owner.future<T>::has_value() == expected;
+            return _owner._base.has_value() == expected;
         }
 
         auto operator!() const {return ready_state_awaiter<!expected>(_owner);}
 
         operator bool() const {
             _owner.wait();
-            return _owner.future<T>::has_value() == expected;
+            return _owner._base.has_value() == expected;
         }
 
     protected:
@@ -771,7 +811,7 @@ public:
     public:
         using ready_state_awaiter<true>::ready_state_awaiter;
         ret_type await_resume() const {
-            return this->_owner.get_internal();
+            return this->_owner._base.get_internal();
         }
     };
 
@@ -805,17 +845,46 @@ public:
 
     auto operator!(){return ready_state_awaiter<false>(*this);}
 
-    using future<T>::forward;
+    /// visit function
+    /**
+     * @param fn lambda function (template). The type depends on state: T for value, std::exception_ptr for exception, and nullptr_t for no-value
+    */
+    template<typename Fn>
+    auto visit(Fn &&fn) {
+        return _base.visit(std::forward<Fn>(fn));
+    }
+
+
+    template<std::convertible_to<T> X>
+    auto forward(typename future<X>::promise &&p) noexcept {
+        return _base.forward(p);
+    }
+
+    ///Converts pointer on future to pointer to lazy_future
+    /**
+     * Only way how to get pointer to lazy_future from future (as there is no
+     * direct inheritance). Targets used by lazy_future are receiving future, so
+     * you need to call this function to retrieve pointer to lazy_future
+     *
+     * @param fut pointer to future<> object which is result of resolution of lazy_future<>
+     * @return pointer to associated lazy_future<>
+     */
+    static lazy_future *from_future(future<T> *fut) {
+        return reinterpret_cast<lazy_future *>(
+                reinterpret_cast<char *>(fut) - offsetof(lazy_future, _base));
+    }
 
 protected:
 
+    future<T> _base;
     std::atomic<const promise_target_type *> _lazy_target = {};
 
-    static future<T> move_if_not_pending(future<T> &other) {
-        if (other.is_pending()) throw already_pending_exception();
+    static future<T> move_if_not_pending(lazy_future<T> &other) {
+        if (other._base.is_pending()) throw already_pending_exception();
         else return other.visit([](auto &&val){
            using Val = decltype(val);
-           if constexpr(std::is_null_pointer_v<Val>) {
+           using DecayVal = std::decay_t<Val>;
+           if constexpr(std::is_null_pointer_v<DecayVal>) {
                return future<T>();
            } else {
                return future<T>(std::forward<Val>(val));
@@ -827,7 +896,7 @@ protected:
     std::coroutine_handle<> start_evaluation_coro() {
         const promise_target_type *t = _lazy_target.exchange(nullptr);
         if (t) {
-            auto r = t->activate(future<T>::get_promise());
+            auto r = t->activate(_base.get_promise());
             if (!r) r = std::noop_coroutine();
             return r;
         } else {
@@ -835,7 +904,7 @@ protected:
         }
     }
 
-    using future<T>::get_internal;
+
 };
 
 template<typename X>

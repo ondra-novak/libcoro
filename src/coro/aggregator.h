@@ -38,24 +38,7 @@ public:
 
         //cast future to slot
         static slot *cast(future<T> *x) {
-            return static_cast<slot *>(x);
-        }
-        ///replaces target of future
-        /**this is HACK. We can replace target atomicaly, so different
-         * target is activated when done. This is needed, because current target
-         * is being destroyed
-         *
-         * @param t new target pointer
-         * @retval true success, different target will be activated
-         * @retval false failure, future is no longer pending (generator made it in time)
-         */
-        bool replace_target(typename lazy_future<T>::target_type *t) {
-            const typename lazy_future<T>::target_type *out = this->_targets.exchange(t);
-            if (out == &disabled_target<typename lazy_future<T>::target_type>) {
-                this->_targets.store(out);
-                return false;
-            }
-            return true;
+            return static_cast<slot *>(lazy_future<T>::from_future(x));
         }
     };
 
@@ -115,7 +98,9 @@ public:
             for (auto &f: pt->slots) {
                 if (f.is_pending()) {
                     ++pt->ref_count;
-                    if (f.replace_target(pt) == false) --pt->ref_count;
+                    const target<future<T> *> *rpt = pt;
+                    future<T> &ff = f;
+                    if (ff.replace_target(rpt) == false) --pt->ref_count;
                 }
             }
             //there is always +1 pending to prevent deallocation during initialization
