@@ -231,10 +231,6 @@ protected:
 };
 
 
-class future_tag {
-
-};
-
 template<typename T>
 class future: public future_tag {
 
@@ -656,7 +652,7 @@ protected:
 };
 
 template<typename T>
-class lazy_future {
+class lazy_future: public future_tag {
 public:
 
     using promise =typename future<T>::promise;
@@ -681,8 +677,8 @@ public:
     template<invocable_with_result<lazy_future> Fn>
     lazy_future(Fn &&fn):lazy_future(fn()) {}
 
-    lazy_future(voidless_type val):future<T>(std::move(val)) {}
-    lazy_future(std::exception e):future<T>(std::move(e)) {}
+    lazy_future(voidless_type val):_base(std::move(val)) {}
+    lazy_future(std::exception e):_base(std::move(e)) {}
 
     lazy_future(lazy_future &&other):_base([&]{return move_if_not_pending(other);})
                                 , _lazy_target(other._lazy_target.exchange(nullptr, std::memory_order_relaxed)) {}

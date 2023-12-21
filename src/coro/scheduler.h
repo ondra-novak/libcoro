@@ -182,16 +182,18 @@ public:
         return x;
     }
 
+
     ///performs synchronous await while making thread free to process other operations
     /**
      * @param fut future which you want to await on.
      */
-    template<typename X>
-    void await_until_ready(future<X> &fut) {
+    template<future_type X>
+    void await_until_ready(X &&fut) {
+        using Fut = std::decay_t<X>;
         auto c = current_instance;
         std::atomic<bool> done = false;
-        typename future<X>::target_type t;
-        target_simple_activation(t, [&](future<X> *){
+        typename Fut::target_type t;
+        target_simple_activation(t, [&](auto){
             done.store(true, std::memory_order_release);
             std::unique_lock lk(_mx);
             notify_all(lk);
@@ -209,24 +211,12 @@ public:
      * @note while awaiting, the current thread is used to process any events
      * passed to the queue
      */
-    template<typename X>
-    auto await(future<X> &fut) {
+    template<future_type X>
+    auto await(X &&fut) {
         await_until_ready(fut);
         return fut.get();
     }
 
-    ///performs synchronous await while making thread free to process other operations
-    /**
-     * @param fut future which you want to await on.
-     * @return value of the future
-     * @note while awaiting, the current thread is used to process any events
-     * passed to the queue
-     */
-    template<typename X>
-    auto await(future<X> &&fut) {
-        await_until_ready(fut);
-        return fut.get();
-    }
 
     ///Determines, whether object is idle
     /**

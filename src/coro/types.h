@@ -68,6 +68,15 @@ struct nolock {
     constexpr bool try_lock() {return true;}
 };
 
+
+class future_tag {
+
+};
+
+template<typename T>
+concept future_type = std::derived_from<std::remove_reference_t<T>, future_tag>;
+
+
 }
 
 
