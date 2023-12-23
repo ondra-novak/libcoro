@@ -51,35 +51,39 @@ public:
     ///Push the item to the queue (emplace)
     /**
      * @param args arguments needed to construct the item.
+     * @return pending notify of resolved promise (if applicable)
      * @note function can cause resumption of awaiting coroutine.
+     *
      */
     template<typename ... Args>
-    void emplace(Args &&... args) {
+    typename promise<T>::pending_notify emplace(Args &&... args) {
         std::unique_lock lk(_mx);
         if (_awaiters.empty()) { //no awaiters? push to the queue
             _item_queue.emplace(std::forward<Args>(args)...);
-            return;
+            return {};
         }
         //pick first awaiter
         auto prom = std::move(_awaiters.front());
         _awaiters.pop();
         lk.unlock();
         //construct the item directly to the awaiter
-        prom(std::forward<Args>(args)...);
+        return prom(std::forward<Args>(args)...);
     }
 
     ///Push item to the queue
     /**
      * @param x item to push
+     * @return pending notify of resolved promise (if applicable)
      * @note function can cause resumption of awaiting coroutine.
      */
-    void push(const T &x) {emplace(x);}
+    auto push(const T &x) {return emplace(x);}
     ///Push item to the queue
     /**
      * @param x item to push
+     * @return pending notify of resolved promise (if applicable)
      * @note function can cause resumption of awaiting coroutine.
      */
-    void push(T &&x) {emplace(std::move(x));}
+    auto push(T &&x) {return emplace(std::move(x));}
 
     ///Pop the items
     /**

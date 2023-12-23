@@ -516,7 +516,7 @@ public:
      * @note doesn't throw exception. Possible exception is forwarded to the promise
      */
     template<std::convertible_to<T> X>
-    auto forward(typename future<X>::promise &&p) noexcept {
+    auto forward(::coro::promise<X> &&p) noexcept {
         return visit([&](auto x) {
             if constexpr(std::is_null_pointer_v<decltype(x)>) {
                 return p.drop();
@@ -721,13 +721,14 @@ public:
         evaluate();
         return _base.operator cast_ret_type();
     }
-    operator future<T>() && {
+    operator future<T>() {
         const promise_target_type *v = _lazy_target.exchange(nullptr, std::memory_order_relaxed);
         if (v) {
             return [&](auto promise) {
-                v->activate_resume(promise);
+                v->activate_resume(std::move(promise));
             };
         }
+        return future<T>();
     }
     operator future<T> & () & {
         const promise_target_type *v = _lazy_target.exchange(nullptr, std::memory_order_relaxed);
