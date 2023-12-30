@@ -94,6 +94,9 @@ template<typename T, std::uintptr_t alignment = 32>
 class pool_alloc: public pool_alloc_sz<sizeof(T), alignment> {
 public:
 
+    static pool_alloc &instance() {
+        return static_cast<pool_alloc &>(pool_alloc_sz<sizeof(T), alignment>::instance);
+    }
 
     template<typename ... Args>
     T *construct(Args &&... args) {return new(pool_alloc_sz<sizeof(T), alignment>::alloc()) T(std::forward<Args>(args)...);}
