@@ -9,6 +9,8 @@
 
 namespace coro {
 
+template<typename T>
+concept scheduler_invocable = std::invocable<T> || std::invocable<T, bool>;
 
 ///Implements basic pool of threads
 class scheduler {
@@ -61,7 +63,7 @@ public:
 
 
     ///schedule a function call
-    template<std::invocable<> Fn>
+    template<scheduler_invocable Fn>
     void schedule(Fn &&fn) {
         push(make_target(std::forward<Fn>(fn)));
     }
@@ -71,12 +73,12 @@ public:
      * @param fn function
      * @param id identifier, allows to cancel operation
      */
-    template<std::invocable<> Fn>
+    template<scheduler_invocable Fn>
     void schedule_at(std::chrono::system_clock::time_point tp, Fn &&fn, const void *id = nullptr) {
         push_at_time({make_target(std::forward<Fn>(fn)), tp, id});
     }
 
-    template<std::invocable<> Fn, typename Dur>
+    template<scheduler_invocable Fn, typename Dur>
     void schedule_after(Dur &&dur, Fn &&fn, const void *id = nullptr) {
         auto now = std::chrono::system_clock::now();
         push_at_time({make_target(std::forward<Fn>(fn)), now+dur, id});
@@ -295,6 +297,7 @@ public:
         return false;
     }
 
+
 protected:
 
     struct target_type { // @suppress("Miss copy constructor or assignment operator")
@@ -326,7 +329,7 @@ protected:
 
     static thread_local scheduler *current_instance;
 
-    template<std::invocable<> Fn>
+    template<scheduler_invocable Fn>
     static target_type make_target(Fn &&fn) {
         if constexpr(pending_notify<Fn>) {
             using future_ptr = decltype(fn.release());
@@ -343,8 +346,12 @@ protected:
             new(&t.user_ptr) Fn(std::forward<Fn>(fn));
             t.fn = [](bool ok, void *fptr) noexcept {
                 Fn *fn = reinterpret_cast<Fn *>(&fptr);
-                if (ok) {
-                    (*fn)();
+                if constexpr(std::invocable<Fn>) {
+                    if (ok) {
+                        (*fn)();
+                    }
+                } else {
+                    (*fn)(ok);
                 }
             };
             return t;
@@ -352,7 +359,13 @@ protected:
             auto fptr = new Fn(std::forward<Fn>(fn));
             return target_type{[](bool ok, void *fptr) noexcept {
                 auto fnptr = reinterpret_cast<Fn *>(fptr);
-                if (ok) (*fnptr)();
+                if constexpr(std::invocable<Fn>) {
+                    if (ok) {
+                        (*fnptr)();
+                    }
+                } else {
+                    (*fnptr)(ok);
+                }
                 delete fnptr;
             }, fptr};
         }
