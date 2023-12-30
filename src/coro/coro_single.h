@@ -13,5 +13,6 @@
 #include "distributor.h"
 #include "shared_future.h"
 #include "stackful.h"
+#include "pool_alloc.h"
 
 #endif
