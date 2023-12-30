@@ -13,6 +13,7 @@ set(testFiles all_compile.cpp
                 stackful.cpp
                 aggregator.cpp
                 signals.cpp
+                pool_alloc.cpp
                 )
 foreach (testFile ${testFiles})
     string(REGEX MATCH "([^\/]+$)" filename ${testFile})

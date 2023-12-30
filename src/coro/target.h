@@ -121,24 +121,6 @@ struct target {
      */
     static const target *retrieve_and_disable(std::atomic<const target *> &list);
 
-    ///Create and initialize target with activation function (simple)
-    /**
-     * @param fn activation function. The function can have a small closure (two pointers),
-     * the closure must be trivially destructible and trivialy copyable
-     * @return target
-     */
-    template<target_activation_function<target, typename target::subject_type> Fn>
-    static target create(Fn &&fn);
-
-    ///Create and initialize target with coroutine activation
-    /**
-     * @param h handle of coroutine to be resumed once the target is activated
-     * @param store_subject (optional) pointer to memory, where the subject will be constructed. The
-     * memory must be unitialized (std::construct_at is used). If this pointer is nullptr, subject
-     * is not constructed
-     * @return target
-     */
-    static target create(std::coroutine_handle<> h, typename target::subject_ptr store_subject = nullptr);
 
 };
 
@@ -425,20 +407,5 @@ protected:
 
 };
 
-template<typename Subject>
-template<target_activation_function<target<Subject>, typename target<Subject>::subject_type> Fn>
-inline target<Subject> target<Subject>::create(Fn &&fn) {
-    target<Subject> t;
-    target_simple_activation(t, std::forward<Fn>(fn));
-    return t;
-}
-
-template<typename Subject>
-inline target<Subject> target<Subject>::create(std::coroutine_handle<> h,
-        typename target<Subject>::subject_ptr store_subject) {
-    target<Subject> t;
-    target_coroutine(t, h, store_subject);
-    return t;
-}
 
 }
