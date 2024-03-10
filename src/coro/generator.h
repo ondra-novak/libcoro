@@ -14,23 +14,23 @@ public:
     using storage_type = std::invoke_result_t<Src>;
 
     using iterator_category = std::input_iterator_tag;
-    using value_type = typename std::decay_t<Src>::value_type;
+    using value_type = std::add_const_t<typename std::decay_t<Src>::value_type>;
     using reference = std::add_lvalue_reference_t<value_type>;
     using difference_type = std::ptrdiff_t;
     using pointer = std::add_pointer_t<value_type>;
 
-    reference operator*() const {
+    reference operator*() {
         return _stor;
     }
 
-    pointer operator->() const {
+    pointer operator->() {
         reference &r = _stor;
         return &r;
     }
 
     generator_iterator &operator++() {
         _stor = _src();
-        _is_end = !_stor;
+        _is_end = !_stor.has_value();
         return *this;
     }
 
@@ -101,7 +101,7 @@ public:
             static constexpr bool await_ready() noexcept {return false;}
             static constexpr void await_resume() noexcept {}
 
-            std::coroutine_handle<> await_suspend(std::coroutine_handle<promise_type> h) {
+            std::coroutine_handle<> await_suspend(std::coroutine_handle<promise_type> h) noexcept {
                 promise_type &self = h.promise();
                 return self.set_resolved();
             }

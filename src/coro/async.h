@@ -54,6 +54,11 @@ public:
         };
     }
 
+    void start(promise<T> prom) {
+        _promise_ptr->attach(prom);
+        detach();
+    }
+
     deferred_future<T> defer_start() {
         return [me = std::move(*this)](auto promise) mutable {
             me._promise_ptr->attach(promise);
@@ -82,6 +87,10 @@ public:
 
     operator shared_future<T>() {
         return shared_start();
+    }
+
+    operator auto() {
+        return start().get();
     }
 
     auto run() {

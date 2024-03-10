@@ -203,6 +203,7 @@ protected:
     }
 
     void worker() {
+        current = this;
         std::unique_lock lk(_mx);
         while (!_stop) {
             if (_que.empty()) {
@@ -228,6 +229,10 @@ protected:
         std::lock_guard lk(_mx);
         if (_stop) {
             x->unblock(false);
+            return;
+        }
+        if (_waiting == 0 && !_que.empty()) {
+            x->unblock(true);
             return;
         }
         _unblk.push_back(x);

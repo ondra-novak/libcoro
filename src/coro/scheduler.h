@@ -50,7 +50,7 @@ public:
     future<void> sleep_until(std::chrono::system_clock::time_point tp, ident_t ident = nullptr) {
         return [&](auto promise) {
             std::unique_lock lk(_mx);
-            if (_stop|| std::find(_blk.begin(), _blk.end(), ident) != _blk.end()) return false;
+            if (_stop|| std::find(_blk.begin(), _blk.end(), ident) != _blk.end()) return ;
             _items.push_back({std::move(promise), tp, ident});
             std::push_heap(_items.begin(), _items.end(), compare_items);
             notify();
@@ -200,25 +200,38 @@ protected:
             if (tpool) {
                 bool unblk = false;
                 {
+                    lk.unlock();
                     auto blk = tpool->set_unblock_callback([&](bool running){
-                        unblk = running;
-                        _stop = !running;
+                        {
+                            std::lock_guard _(_mx);
+                            unblk = true;
+                            _stop = !running;
+                        }
                         _cond.notify_one();
                     });
-                    if (!_stop) _cond.wait(lk);
+                    lk.lock();
+                    if (!unblk) wait_next(lk);
                 }
                 if (unblk) {
                     tpool->enqueue([this]{worker();});
                     return;
                 }
             } else {
-                _cond.wait(lk);
+                wait_next(lk);
             }
         }
 
         _worker_active.store(false, std::memory_order_relaxed);
         _worker_active.notify_all();
 
+    }
+
+    void wait_next(std::unique_lock<std::mutex> &lk) {
+        if (!_items.empty()) {
+            _cond.wait_until(lk, _items.front()._tp);
+        } else {
+            _cond.wait(lk);
+        }
     }
 
     promise<void>::notify cancel_lk(ident_t ident) {

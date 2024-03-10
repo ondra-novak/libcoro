@@ -2,6 +2,8 @@
 #ifndef SRC_CORO_ALLOCATOR_H_
 #define SRC_CORO_ALLOCATOR_H_
 
+#include <concepts>
+
 
 namespace coro {
 

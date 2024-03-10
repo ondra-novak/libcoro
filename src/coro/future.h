@@ -37,6 +37,8 @@ namespace _details {
 template<typename T> class coro_promise_base;
 };
 
+template<typename T, typename ... Args>
+concept avoid_same_kind = sizeof...(Args) != 1 || !std::is_same_v<T, std::decay_t<Args>...>;
 
 template<typename T>
 class promise {
@@ -245,7 +247,7 @@ public:
 
     ///Construct future already resolved with a value
     template<typename ... Args>
-    requires std::constructible_from<value_store_type, Args ...>
+    requires (std::constructible_from<value_store_type, Args ...> && avoid_same_kind<future, Args...>)
     future(Args && ... args):_result(Result::value), _value(std::forward<Args>(args)...) {}
 
 
@@ -455,7 +457,7 @@ public:
     }
 
     ///Retrieves value, performs synchronous wait
-    operator cast_return() & {
+    operator const cast_return &() & {
         wait();
         return getInternal();
     }
@@ -706,7 +708,11 @@ protected:
     template<typename ... Args>
     void set_value(Args && ... args) {
         clearStorage();
-        std::construct_at(&_value, std::forward<Args>(args)...);
+        if constexpr(std::is_reference_v<T>) {
+            std::construct_at(&_value, &args...);
+        } else {
+            std::construct_at(&_value, std::forward<Args>(args)...);
+        }
         _result = Result::value;
     }
 
@@ -920,14 +926,15 @@ public:
     using value_store_type = typename future<T>::value_store_type;
     using awaiter_cb = function<std::coroutine_handle<>(future<T> &)>;
 
-    shared_future() = default;
+    shared_future() {}
     template<typename ... Args>
-    requires std::is_constructible_v<future<T>, Args...>
+    requires (std::constructible_from<future<T>, Args ...> && avoid_same_kind<shared_future, Args...>)
     shared_future(Args && ...args) {
         _shared_future = std::make_shared<Shared>(std::forward<Args>(args)...);
         if (_shared_future->is_pending()) _shared_future->init_callback(_shared_future);
     }
 
+    shared_future(shared_future &other):_shared_future(other._shared_future) {}
     shared_future(const shared_future &other):_shared_future(other._shared_future) {}
     shared_future &operator=(const shared_future &other) {
         this->_shared_future = other._shared_future;
@@ -1111,7 +1118,9 @@ public:
     }
 
 
-
+    void reset() {
+        _shared_future.reset();
+    }
 
 protected:
 
