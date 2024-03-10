@@ -1,8 +1,10 @@
-#include "check.h"
+#include "../coro.old/scheduler.h"
+
+#include <../coro.old/async.h>
+#include <../coro.old/future.h>
+#include <../tests.old/check.h>
+
 #include <iostream>
-#include "../coro/async.h"
-#include "../coro/future.h"
-#include "../coro/scheduler.h"
 
 
 coro::future<int> co_test(coro::scheduler &pool) {

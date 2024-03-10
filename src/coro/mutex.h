@@ -1,222 +1,356 @@
-#pragma once
+#ifndef SRC_CORO_MUTEX_H_
+#define SRC_CORO_MUTEX_H_
+#include "prepared_coro.h"
 
-#include "target.h"
+#include <atomic>
+
 
 namespace coro {
 
-///Mutex handle locking inside of coroutine
+///Mutex which allows locking across co_await and co_yield suspend points.
+/**
+ * This object can be used to hold exclusive access to a resource while the
+ * coroutine is suspended on co_await on co_yield. Standard mutex can't support
+ * such feature. This mutex is also co_awaitable.
+ *
+ * The object suports lock and try_lock. However the lock protocol is different. When
+ * lock success, you receive an ownership object, which must be held to
+ * keep exclusive access. Once the ownership is released, the mutex is unlocked.
+ * The ownership object uses RAII to track to mutex ownership. So there is no
+ * explicit unlock() function.
+ *
+ * The mutex object support co_await, lock_sync() and lock_callback(). The third
+ * function allows to call a callback when lock is acquired.
+ *
+ */
 class mutex {
 public:
 
-    ///Ownership is implemented as std::unique_ptr with custom deleter. This is the deleter
-    struct ownership_deleter {
-        void operator()(mutex *m) noexcept {
-            auto x =m->unlock();
-            if (x) x.resume();
-        }
-    };
-
-    ///Ownership declaration
-    using ownership = std::unique_ptr<mutex, ownership_deleter>;
-    ///Target declaration
-    using target_type = target<ownership &&>;
-
-    ///Tries to lock the mutex without waiting
-    /**
-     *
-     * @return ownership, which is nullptr if lock failed.
-     */
-    ownership try_lock() {
-        return try_lock_internal()?ownership(this):ownership(nullptr);
-    }
-
-    ///Implements co_await on the mutex
-    class awaiter {
-        union {
-            //_owner is needed only for await_ready and await_suspend
-            mutex *_owner;
-            //_ownership is result object is needed by await_resume
-            // so we can save a space to store both objects
-            ownership _ownership;
-        };
-        //contains target
-        target_type _t;
+    ///tracks ownership
+    class ownership {
     public:
-        awaiter(mutex &owner):_owner(&owner) {};
-        awaiter(const awaiter &x):_owner(x._owner),_t(x._t) {}
-        awaiter &operator=(const awaiter &) = delete;
-        ~awaiter() {
-            //no cleanup on ownership as it should be cleaned by await_resume()
-        }
-
-        bool await_ready() noexcept {
-            if (_owner->try_lock_internal()) {
-                //succesfully locked, store ownership
-                std::construct_at(&_ownership,_owner);
-                return true;
+        ///ownership can be default constructed
+        ownership() = default;
+        ///ownership can be moved
+        ownership(ownership &&x):_inst(x._inst) {x._inst = nullptr;}
+        ///ownership can be assigned by move
+        ownership &operator=(ownership &&x) {
+            if (this != &x) {
+                release();
+                _inst = x._inst;
+                x._inst = nullptr;
             }
-            //still waiting
-            return false;
+            return *this;
         }
-        bool await_suspend(std::coroutine_handle<> h) noexcept {
-            //init target
-            target_coroutine(_t, h, &_ownership);
-            //try to register
-            auto own = _owner->register_target_async(_t);
-            if (own) {
-                //retrieved ownership immediately
-                //move it
-                std::construct_at(&_ownership, std::move(own));
-                //cancel suspend
-                return false;
-            }
-            //continue suspend
-            return true;
+        ///dtor releases ownership
+        ~ownership() {release();}
+        ///releases ownership exlicitly (unlock)
+        void release() {
+            if (_inst) _inst->unlock();
         }
+        ///test whether ownership is held
+        /**
+         * The existence of the object doesn't always means, that ownership is held.
+         * For example if ownership has been released, or when try_lock() was not
+         * successed. You can use this operator to test, whether ownership is held
+         */
+        operator bool() const {return _inst != nullptr;}
 
-        ownership await_resume() noexcept {
-            //_ownership must be always initialized
-            //move it to return value
-            auto r = std::move(_ownership);
-           //destroy the original storage
-            std::destroy_at(&_ownership);
-            //return ownership
-            return r;
-        }
 
+    protected:
+        mutex *_inst = nullptr;
+
+        friend class mutex;
+
+        ownership(mutex *inst):_inst(inst) {}
     };
 
-    ///Register target for locking
+    ///awaiter is object used in most of cases by coroutines, however it is building block of this class
     /**
-     * @note this follows rule about targets, don't use for locking unless you need
-     *  to lock with custom target
-     *
-     * @param t reference to target
-     * @return if ownership is gained immediately, it is returned. Otherwise the
-     * function returns nullptr. In this case, the target is registered and
-     * ownership will be passed to the target once it is gained.
+     * The awaiter must be constructed to acquire the lock. The awaiter
+     * can be configured to resume coroutine, send a signal to blocked thread or
+     * to call a callback.
      */
-    ownership register_target_async(target_type &t) noexcept {
-        //push target to _requests
-        t.push_to(_requests);
-        //check, whether there is "next" target
-        if (t.next == nullptr) [[likely]] {
-            //if there is nullptr, the mutex was not owned!
-            //however we need to put lock_tag and build queue (even empty)
-            build_queue(t);
-            //target was not registered, return ownerhip
-            return ownership(this);
-        } else {
-            //target is registered, return nullptr
+    class awaiter {
+    public:
+
+        enum Mode {
+            //not configures (should not be used to waiting)
+            none,
+            //resume coroutine
+            coroutine,
+            //synchronize
+            sync,
+            //call a callback
+            callback
+        };
+
+        ///awaiter is copyable, however it must not be copied while it is waiting
+        awaiter(const awaiter &other):_owner(other._owner) {}
+        ///awaiter is not assignable
+        awaiter &operator=(const awaiter &other) = delete;
+
+        ///dtor
+        ~awaiter() {
+            switch (_mode) {
+                default: break;
+                case coroutine: std::destroy_at(&_coro);
+                case sync: std::destroy_at(&_sync);
+                case callback: std::destroy_at(&_resume_cb);
+            }
+        }
+
+        ///coroutine - try to acquire lock
+        bool await_ready() const noexcept {return _owner.try_acquire();}
+        ///coroutine - request the lock and suspend
+        bool await_suspend(std::coroutine_handle<> h) noexcept {
+            _mode = coroutine;
+            std::construct_at(&_coro,h);
+            return _owner.do_lock(this);
+        }
+        ///coroutine - retrieve ownership
+        ownership await_resume() const noexcept {
+            return _owner.make_ownership();
+        }
+
+        ///perform synchronou wait on lock
+        /**
+         * @return ownership
+         */
+        ownership wait() {
+            if (!await_ready()) {
+                _mode = sync;
+                std::construct_at(&_sync, false);
+                if (_owner.do_lock(this)) {
+                    _sync.wait(false);
+                }
+            }
+            return await_resume();
+        }
+
+    protected:
+        mutex &_owner;
+        awaiter *_next = nullptr;
+        Mode _mode = none;
+        union {
+            std::coroutine_handle<> _coro;
+            std::atomic<bool> _sync;
+            void (*_resume_cb)(awaiter *);
+        };
+
+        awaiter(mutex &owner):_owner(owner) {}
+
+        prepared_coro resume() {
+            switch (_mode) {
+                default: break;
+                case coroutine: return _coro;
+                case sync:
+                    _sync.store(true, std::memory_order_release);
+                    _sync.notify_all();
+                    break;
+                case callback:
+                    _resume_cb(this);
+                    break;
+            }
             return {};
         }
-    }
 
-    ///Register target for locking
-    /**
-     * @note this follows rule about targets, don't use for locking unless you need
-     *  to lock with custom target
-     *
-     * @param t reference to target
-     * @retval true target registered and will be activated once the ownership is gained
-     * @retval false target activated synchronously
-     */
-    bool register_target(target_type &t) noexcept {
-        auto own = register_target_async(t);
-        if (own) {
-            t.activate_resume(std::move(own));
-            return false;
-        } else {
-            return true;
+        void init_cb(void (*cb)(awaiter *)) {
+            _mode = callback;
+            _resume_cb = cb;
         }
+
+        friend class mutex;
+    };
+
+    ///awaiter with a callback function
+    /**
+     * This object is never used directly
+     *
+     * @tparam Fn callback function
+     * @tparam static_buffer set true, if the awaiter is constructed in static buffer
+     */
+    template<typename Fn, bool static_buffer>
+    class awaiter_cb: public awaiter {
+    public:
+
+        awaiter_cb(mutex &owner, Fn &&fn):awaiter(owner), _fn(std::forward<Fn>(fn)) {
+            init_cb(&cb_entry);
+        }
+        awaiter_cb(const awaiter_cb &) = delete;
+
+        void resume() noexcept {
+            _fn(_owner.make_ownership());
+            if constexpr (static_buffer) {
+                std::destroy_at(this);
+            } else {
+                delete this;
+            }
+        }
+
+    protected:
+
+        Fn _fn;
+
+        static void cb_entry(awaiter *me) {
+            auto self = static_cast<awaiter_cb *>(me);
+
+        }
+    };
+
+    ///contains required size of static buffer to hold awaiter for given function
+    /**
+     * @tparam Fn callback function type
+     */
+    template<typename Fn>
+    static constexpr std::size_t lock_callback_buffer_size = sizeof(awaiter_cb<Fn, true>);
+
+    ///try to lock
+    /**
+     * @return ownership. If the function fails, the ownership is not given. You need
+     * to convert ownership to bool and test it.
+     */
+    ownership try_lock() {
+        return ownership(try_acquire()?this:nullptr);
     }
 
-    bool register_target(unique_target<target_type> t) {
-        target_type *tx = t.release();
-        return register_target(*tx);
-    }
-
-    ///implement co_await
-    awaiter operator co_await() noexcept {return *this;}
+    ///co_await support
+    awaiter operator co_await() {return *this;}
 
     ///lock synchronously
-    ownership lock_sync() noexcept {
-        if (!try_lock_internal()) {
-            sync_target<target_type> sync;
-            register_target(sync);
-            return std::move(sync.wait());
-        }
-        return ownership(this);
+    ownership lock_sync() {
+        awaiter awt(*this);
+        return awt.wait();
+    }
+
+    ///lock and call a function when access is granted
+    /**
+     * @param fn function to call. The function accepts an ownership. The function must
+     * not throw any exception
+     *
+     * @note this function allocates an awaiter on the heap, it is automatically released
+     * after call is done.
+     */
+    template<std::invocable<ownership> Fn>
+    void lock_callback(Fn &&fn) noexcept {
+        auto a = new awaiter_cb<Fn, false>(*this, std::forward<Fn>(fn));
+        if (do_lock(a)) return;
+        a->resume();
+    }
+
+    ///lock and call a function when access is granted
+    /**
+     * The awaiter is allocated in static buffer. Size of the static buffer
+     * can be determined by a constant lock_callback_buffer_size
+     *
+     * @param fn instance of function to call
+     * @param buffer reserved space of sufficient size, where the awaiter is
+     * temporary allocated. The buffer must stay valid until the callback
+     * is called
+     *
+     * @note doesn't allocate on heap
+     */
+    template<std::invocable<ownership> Fn, std::size_t sz>
+    void lock_callback(Fn &&fn, char (&buffer)[sz]) {
+        static_assert(sz <= lock_callback_buffer_size<Fn>, "Buffer is too small");
+        auto a = new(buffer) awaiter_cb<Fn, true>(*this, std::forward<Fn>(fn));
+        if (do_lock(a)) return;
+        a->resume();
     }
 
 
 protected:
-    ///Reserved target which marks busy mutex (mutex is owned)
-    static constexpr target_type locked_tag = {};
-    ///List of requests
-    /**
-     * If mutex is owned, there is always non-null value. This make queue
-     * of targets requesting the ownership. The queue is reversed (lifo)
-     *
-     * Adding new item to the queue is lock-free atomic
-     **/
-    std::atomic<const target_type *> _requests = {nullptr};
-    ///Internal queue ordered in correct order
-    /**
-     * This queue is managed by owner only, so no locking is needed. It contains
-     * list of next-owners. When unlock, next target is popped and activated
-     */
-    const target_type *_queue= nullptr;
 
-    ///try_lock internally (without creating ownership)
-    bool try_lock_internal() noexcept {
-        //to lock, we need nullptr
-        const target_type *need = nullptr;
-        //returns true, if locked_tag was exchanged - so mutex is owned
-        return _requests.compare_exchange_strong(need, &locked_tag);
+    ///generates special pointer, which is used as locked flag (value 0x00000001)
+    static awaiter *locked() {return reinterpret_cast<awaiter *>(0x1);}
+    /**
+     * contains stack of requests, or nullptr when lock is unlocked,
+     * or 0x00000001 when lock is locked with no requests
+     */
+    std::atomic<awaiter *> _req = {nullptr};
+    ///contains queue of requests already registered by the lock
+    /** the queue is always managed by an owner  */
+    awaiter * _que = nullptr;
+
+
+    ///tries to acquire
+    /**
+     * attempts to set _req to locked() if it has nullptr
+     * @retval true success, acquired
+     * @retval false failed, lock is owned
+     */
+    bool try_acquire() {
+        awaiter *need = nullptr;
+        return _req.compare_exchange_strong(need,locked(), std::memory_order_acquire);
     }
 
-    ///builds queue from _request to _queue
-    /** Atomically picks all requests and builds _queue, in reverse order
-     * This is perfomed by the owner.
+    ///initiate lock operation
+    /**
+     * registers the awaiter as a new request. If it is first request, the
+     * lock has been acquired, builds queue of requests and returns false. Otherwise
+     * keeps awaiter registered and returns true
      *
-     * @param stop specified target where operation stops, this is the Target object
-     * of current owner.
+     * @param awt awaiter
+     * @retval false can't registrer, we acquired ownership, so continue
+     * @retval true registered, we can wait
      */
-    void build_queue(const target_type &stop) noexcept {
-        //atomically move requests from public space into private space
-        const target_type *req = _requests.exchange(&locked_tag);
-        //reverse order of the queue and build it to _queue
-        while (req && req != &stop) {
-            auto x = req;
-            req = req->next;
-            x->next = _queue;
-            _queue = x;
+    bool do_lock(awaiter *awt) {
+        while (!_req.compare_exchange_strong(awt->_next, awt, std::memory_order_relaxed));
+        if (awt->_next == nullptr) {
+            build_queue(_req.exchange(locked(), std::memory_order_acquire), awt);
+            return false;
+        }
+        return true;
+    }
+
+    ///builds internal queue
+    /**
+     * Picks are requests and reorder them in reverse order so stack is converted to
+     * queue. This is done by the owner.
+     *
+     * @param r pointer request stack (linked list)
+     * @param stop pointer to item, which is used as stop item (which is often first
+     * awaiter or locked flag)
+     */
+    void build_queue(awaiter *r, awaiter *stop) {
+        while (r != stop) {
+            auto n = r->_next;
+            r->_next = _que;
+            _que = r;
+            r = n;
         }
     }
 
-    std::coroutine_handle<> unlock() noexcept {
-        //current owner is returning ownership, (but it is still owner)
-        //check queue in private space.
-        if (!_queue) [[likely]] {
-            const target_type *need = &locked_tag;
-            //if queue is empty, try to remove locked_tag from the _requests
-            if (_requests.compare_exchange_strong(need, nullptr)) {
-                //success, mutex is no longer owned
-                return nullptr;
-            }
-            //failure? process new requests, build new queue
-            build_queue(locked_tag);
+    ///unlock the lock
+    /**
+     * if queue is empty, tries to swap locked() to nullptr, however if this fails,
+     * it builds queue and continues with the queue
+     *
+     * if queue is not empty, retrieves the first awaiter, removes it from the queue
+     * and resumes it, which transfers ownership to the new owner.
+     */
+    prepared_coro unlock() {
+        if (!_que) {
+            auto lk = locked();
+            auto need = lk;
+            if (_req.compare_exchange_strong(need, nullptr, std::memory_order_release)) return {};
+            build_queue(_req.exchange(lk, std::memory_order_relaxed), lk);
         }
-        //pick first target from queue
-        const target_type *first = _queue;
-        //remove this target from queue
-        _queue = _queue->next;
-        //active the target, transfer ownership
-        //awaiting coroutine is resumed here
-        return first->activate(ownership(this));
+        auto x = _que;
+        _que = _que->_next;
+        return x->resume();
     }
+
+
+    ///creates ownership object
+    ownership make_ownership() {return this;}
 };
 
 
+
 }
+
+
+
+
+#endif /* SRC_CORO_MUTEX_H_ */

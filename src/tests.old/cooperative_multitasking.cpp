@@ -1,8 +1,8 @@
 #include <iostream>
-#include "../coro/future.h"
-#include "../coro/async.h"
-#include "../coro/scheduler.h"
-#include "check.h"
+#include <../coro.old/async.h>
+#include <../coro.old/future.h>
+#include <../coro.old/scheduler.h>
+#include <../tests.old/check.h>
 
 std::vector<int> results = {
     0,10,20,30,40,

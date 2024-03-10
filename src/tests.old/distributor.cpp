@@ -1,5 +1,5 @@
-#include "check.h"
-#include "../coro/coro_single.h"
+#include <../coro.old/coro_single.h>
+#include <../tests.old/check.h>
 
 coro::async<void> test_coro(int id, coro::distributor<int> &dist, std::queue<std::pair<int,int > > &r) {
 

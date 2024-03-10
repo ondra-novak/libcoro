@@ -1,5 +1,5 @@
-#include "../coro/coro_single.h"
-#include "check.h"
+#include <../coro.old/coro_single.h>
+#include <../tests.old/check.h>
 
 using my_stack = coro::stackful<>;
 

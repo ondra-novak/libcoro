@@ -1,5 +1,6 @@
-#include "../coro/pool_alloc.h"
-#include "check.h"
+#include "../coro.old/pool_alloc.h"
+
+#include <../tests.old/check.h>
 
 #include <memory>
 struct Test {

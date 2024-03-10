@@ -1,5 +1,5 @@
-#include "../coro/coro_linux.h"
-#include "check.h"
+#include <../coro.old/coro_linux.h>
+#include <../tests.old/check.h>
 
 coro::async<void> test1(int sig, const void *ident = nullptr) {
     co_await coro::signal_control::listen({sig}, ident);

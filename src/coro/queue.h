@@ -3,6 +3,7 @@
 #include "future.h"
 
 #include <mutex>
+#include <optional>
 #include <queue>
 
 namespace coro {
@@ -56,7 +57,7 @@ public:
      *
      */
     template<typename ... Args>
-    typename promise<T>::pending_notify emplace(Args &&... args) {
+    typename promise<T>::notify emplace(Args &&... args) {
         std::unique_lock lk(_mx);
         if (_awaiters.empty()) { //no awaiters? push to the queue
             _item_queue.emplace(std::forward<Args>(args)...);
@@ -92,20 +93,20 @@ public:
      */
     future<T> pop() {
         return [&](auto prom) {
-            pop(std::move(prom));
+            pop(prom);
         };
     }
 
     ///Pop item into a promise
-    typename future<T>::pending_notify pop(typename future<T>::promise &&prom) {
+    typename promise<T>::notify pop(promise<T> &prom) {
         std::unique_lock lk(_mx);
         if (_item_queue.empty()) {
             if (_closed) {
                 if (_exception) return prom.reject(_exception);
-                else return prom.drop(); //breaks promise
+                else return prom.cancel(); //breaks promise
             }
             _awaiters.push(std::move(prom)); //remember promise
-            return nullptr;
+            return {};
         }
         auto ntf = prom(std::move(_item_queue.front())); //resolve promise
         _item_queue.pop();
@@ -189,9 +190,9 @@ public:
 protected:
     mutable std::mutex _mx;
     QueueImpl _item_queue;
-    std::queue<typename future<T>::promise> _awaiters;
-    bool _closed = false;
+    std::queue<promise<T> > _awaiters;
     std::exception_ptr _exception;
+    bool _closed = false;
 };
 
 }

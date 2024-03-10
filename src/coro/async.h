@@ -1,239 +1,136 @@
 #pragma once
+#ifndef SRC_CORO_ASYNC_H_
+#define SRC_CORO_ASYNC_H_
 
-#include "future.h"
+#include "common.h"
 #include "allocator.h"
+#include "future.h"
 
-#include <queue>
-#include <utility>
 namespace coro {
 
-
-
-///helper struct which is part of coroutine promise
-/** it contains different content for T = void */
-template<typename T>
-struct async_promise_base { // @suppress("Miss copy constructor or assignment operator")
-    future<T> *fut = nullptr;
-    template<typename ... Args>
-    void return_value(Args &&... args) {
-        if (fut) fut->set_value(std::forward<Args>(args)...);
-    }
-    static auto notify_targets(future<T> *f) {
-        return f->notify_targets();
-    }
-    void unhandled_exception() {
-        if (fut) fut->set_exception(std::current_exception());
-    }
-};
-
-
-template<typename T>
-struct async_promise_type<T, void>: async_promise_base<T> {
-    using lazy_target = typename lazy_future<T>::promise_target_type;
-    lazy_target _lazy_target;
-    struct FinalSuspender {
-        bool await_ready() const noexcept {
-            return _fut == nullptr;
-        }
-        std::coroutine_handle<> await_suspend(std::coroutine_handle<> me)  noexcept {
-            auto h = async_promise_base<T>::notify_targets(_fut);
-            me.destroy();
-            return h?h:std::noop_coroutine();
-        }
-        constexpr void await_resume() const noexcept {}
-        future<T> *_fut;
-    };
-
-    constexpr std::suspend_always initial_suspend() const noexcept {return {};}
-    FinalSuspender final_suspend() const noexcept {return {this->fut};}
-    async<T> get_return_object() {return {this};}
-
-    using promise = typename future<T>::promise;
-
-
-};
-
-///Coroutine future proxy
-/**
- * The coroutine can use future<T> or Async<T>. While future<T> represents already
- * running coroutine (while the future is pending), Async<T> represents prepared
- * coroutine, which is already initialized, but it is suspended at the beginning
- *
- * When you declare future<T> coroutine, your coroutine is started immediatelly once
- * it is called. In contrast, by declaring Async<T>, you receive this object which
- * allows you to schedule the start of the coroutine. The coroutine is started once
- * it is converted to future<T>. The object Async<T> allows you to start coroutine detached
- * (so return value is thrown out)
- *
- * @tparam T type of return value
- * @tparam Alloc allocator - this can be either direct type, reference to type or pointer to type. You
- * probably use pointer to refer existing instance of allocator, or direct value if you need
- * to make a copy of the allocator's instance
- */
-template<typename T, coro_optional_allocator Alloc>
-class [[nodiscard]] async {
+template<typename T, CoroAllocator Alloc = StdAllocator>
+class async {
 public:
 
-    ///You can declare an empty variable
+    class promise_type: public _details::coro_promise<T>, public coro_allocator_helper<Alloc> {
+    public:
+
+        struct final_awaiter {
+            bool detached;
+            bool await_ready() const noexcept {return detached;}
+            std::coroutine_handle<>  await_suspend(std::coroutine_handle<promise_type> h) const noexcept {
+                promise_type &self = h.promise();
+                std::coroutine_handle<> retval = self.set_resolved();
+                h.destroy();
+                return retval;
+            }
+
+            void await_resume() const noexcept {}
+        };
+
+        std::suspend_always initial_suspend() const noexcept {return {};}
+        final_awaiter final_suspend() const noexcept {return {this->fut == nullptr};}
+        async get_return_object() {return {this};}
+
+        void attach(promise<T> &prom) {this->fut = prom.release();}
+
+    };
+
     async() = default;
-    ///You can move the Async object
-    async(async &&other):_h(other._h) {other._h = {};}
-    ///Allows to destroy suspended coroutine
-    ~async() {if (_h) _h.destroy();}
-    ///You can assign from one object to other
-    async &operator=(async &&other) {
-        if (this != &other) {
-            if (_h) _h.destroy();
-            _h = other._h;
-            other._h = {};
-        }
-        return *this;
+
+    template<typename A>
+    async(async<T, A> &&other):_promise_ptr(cast_promise(other._promise_ptr.release())) {}
+
+    void detach() {
+        auto p = _promise_ptr.release();
+        auto h = std::coroutine_handle<promise_type>::from_promise(*p);
+        h.resume();
     }
 
-
-    using promise_type = async_promise_type<T, Alloc>;
-
-
-    ///Starts the coroutine
-    /**
-     * @return Returns future of this coroutine.
-     * @note once the coroutine is started, this instance of Async<T> no longer refers
-     * to the coroutine.
-      */
     future<T> start() {
-        return [&](auto promise){
-            auto &p = _h.promise();
-            p.fut = promise.release();
-            auto h = std::exchange(_h, {});
-            h.resume();
+        return [&](auto promise) {
+            _promise_ptr->attach(promise);
+            detach();
         };
     }
 
-    ///Starts the coroutine in lazy mode
-    /**
-     * Coroutine started in lazy mode is stays suspended, until its value is needed
-     *
-     * @return Returns future of this coroutine.
-     * @note once the coroutine is started, this instance of Async<T> no longer refers
-     * to the coroutine.
-     */
-    lazy_future<T> lazy_start() {
-        promise_type &p = _h.promise();
-        target_simple_activation(p._lazy_target, [h = _h](typename lazy_future<T>::promise &&prom) {
-            auto &coro = h.promise();
-            if (prom) {
-                coro.fut = prom.release();
-                return h;
-            } else {
-                h.destroy();
-                return std::coroutine_handle<promise_type>();
-            }
-        });
-        _h = {};
-        return p._lazy_target;
+    deferred_future<T> defer_start() {
+        return [me = std::move(*this)](auto promise) mutable {
+            me._promise_ptr->attach(promise);
+            me.detach();
+        };
     }
 
-    auto join() {
-        return start().get();
+    shared_future<T> shared_start() {
+        return [me = std::move(*this)](auto promise) mutable {
+            me._promise_ptr->attach(promise);
+            me.detach();
+        };
     }
 
-    void start(typename future<T>::promise &&promise) {
-        auto &p = _h.promise();
-        p.fut = promise.release();
-        auto h = std::exchange(_h, {});
-        h.resume();
+    deferred_future<T> operator co_await() {
+        return defer_start();
     }
 
-
-    ///Starts coroutine detached
-    /**
-     * @note any returned value is thrown out
-     */
-    void detach() {
-        auto h = std::exchange(_h, {});
-        h.resume();
-    }
-
-    ///Allows to convert Async<T> to future<T>
     operator future<T>() {
         return start();
     }
 
-    operator lazy_future<T>() {
-        return lazy_start();
+    operator deferred_future<T>() {
+        return defer_start();
     }
 
-    explicit operator bool() const {return _h != nullptr;}
-
-    class StartAwaiter {
-        std::coroutine_handle<promise_type> _h;
-        future<T> _storage;
-        typename future<T>::target_type _target;
-    public:
-
-        StartAwaiter(std::coroutine_handle<promise_type> h):_h(h) {}
-        bool await_ready() const {
-            return _h == nullptr;
-        }
-        std::coroutine_handle<> await_suspend(std::coroutine_handle<> h) {
-            auto &p = _h.promise();
-            p.fut = _storage.get_promise().release();
-            target_coroutine(_target, h);
-            _storage.register_target(_target);
-            return std::exchange(_h, nullptr);
-        }
-        decltype(auto) await_resume() {
-            return _storage.get();
-        }
-    };
-
-
-    ///Allows directly co_await to Async object
-    /**
-     * this is equivalent to co_await coroutine().start()
-     * @return awaiter
-     */
-    StartAwaiter operator co_await() {
-        return StartAwaiter(std::exchange(_h, nullptr));
+    operator shared_future<T>() {
+        return shared_start();
     }
 
+    auto run() {
+        return start().get();
+    }
 
 protected:
 
-    friend struct async_promise_type<T, Alloc>;
-    async(promise_type *ptr):_h(std::coroutine_handle<promise_type>::from_promise(*ptr)) {}
+    struct Deleter {
+        void operator()(promise_type *p) {
+            auto h = std::coroutine_handle<promise_type>::from_promise(*p);
+            h.destroy();
+        }
+    };
 
+    async(promise_type *p): _promise_ptr(p) {}
 
-    std::coroutine_handle<promise_type> _h;
-};
+    std::unique_ptr<promise_type, Deleter> _promise_ptr;
 
-
-template<>
-struct async_promise_base<void> {
-    future<void> *fut = nullptr;
-    void return_void() {
-        if (fut) fut->set_value();
+    template<typename X>
+    static promise_type *cast_promise(X *other) {
+        return static_cast<promise_type *>(static_cast<_details::coro_promise<T> *>(other));
     }
-    static auto notify_targets(future<void> *f) {
-        return f->notify_targets();
-    }
-    void unhandled_exception() {
-        if (fut) fut->set_exception(std::current_exception());
-    }
-};
 
-template<typename T, coro_optional_allocator Alloc>
-struct async_promise_type: async_promise_type<T, void>
-                         , promise_type_alloc_support<Alloc> {
-
-
-
-    async<T, Alloc> get_return_object() {return {this};}
 
 };
-
-
 
 
 }
 
+
+template<typename T, typename ... Args>
+struct std::coroutine_traits<coro::future<T>, Args...> {
+    using promise_type = typename coro::async<T>::promise_type;
+
+};
+
+template<typename T, typename ... Args>
+struct std::coroutine_traits<coro::deferred_future<T>, Args...> {
+    using promise_type = typename coro::async<T>::promise_type;
+
+};
+
+template<typename T, typename ... Args>
+struct std::coroutine_traits<coro::shared_future<T>, Args...> {
+    using promise_type = typename coro::async<T>::promise_type;
+
+};
+
+
+
+#endif /* SRC_CORO_ASYNC_H_ */

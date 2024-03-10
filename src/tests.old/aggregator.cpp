@@ -1,7 +1,8 @@
-#include "check.h"
-#include "../coro/aggregator.h"
-#include "../coro/scheduler.h"
-#include "../coro/async.h"
+#include "../coro.old/aggregator.h"
+
+#include <../coro.old/async.h>
+#include <../coro.old/scheduler.h>
+#include <../tests.old/check.h>
 
 #include <iostream>
 #include <sstream>

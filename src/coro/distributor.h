@@ -1,7 +1,7 @@
 #pragma once
 
-#include "future.h"
-#include "queue.h"
+#include "../coro/future.h"
+#include "../coro/queue.h"
 
 #include <vector>
 #include <map>
@@ -10,6 +10,11 @@ namespace coro {
 
 template<typename T, typename Lock, typename QueueImpl>
 class distributor_queue;
+
+struct nolock {
+    void lock() {}
+    void unlock() {}
+};
 
 ///Distributes single event to multiple coroutines (subscribbers)
 /**
@@ -35,8 +40,8 @@ class distributor {
 public:
 
     using value_type = T;
-    using promise = typename future<T>::promise;
-    using pending_notify = typename future<T>::pending_notify;
+    using promise_t = promise<T>;
+    using pending_notify = typename promise<T>::notify;
     using ID = const void *;
 
     ///default constructor
@@ -55,7 +60,7 @@ public:
      */
     template<typename ... Args>
     void publish(Args &&... args) {
-        for_all([&](promise &p) {
+        for_all([&](promise_t &p) {
             return p(args...);
         });
     }
@@ -65,9 +70,9 @@ public:
      * Subscribers are removed by receiving broken_promise. This allows to
      * broadcast "end of stream"
      */
-    void drop_all() {
-        for_all([&](promise &p) {
-            return p.drop();
+    void cancel_all() {
+        for_all([&](promise_t &p) {
+            return p.cancel();
         });
     }
 
@@ -82,9 +87,9 @@ public:
         };
     }
 
-    void subscribe(promise &&prom, ID id = { }) {
+    void subscribe(promise_t &&prom, ID id = { }) {
         std::lock_guard _(_mx);
-        _subscribers.push_back(std::pair<promise, ID>(std::move(prom), id));
+        _subscribers.push_back(std::pair<promise_t, ID>(std::move(prom), id));
     }
 
     ///drop single subscriber
@@ -103,7 +108,7 @@ public:
                     });
             if (iter == _subscribers.end())
                 return {};
-            ntf = iter->first.drop();
+            ntf = iter->first.cancel();
             if (&(iter->first) != &_subscribers.back().first) {
                 std::swap(*iter, _subscribers.back());
                 _subscribers.pop_back();
@@ -130,29 +135,38 @@ public:
 
 protected:
     [[no_unique_address]] Lock _mx;
-    std::vector<std::pair<promise, ID> > _subscribers;
+    std::vector<std::pair<promise_t, ID> > _subscribers;
+
+
+    template<typename Fn, typename Vect, int count = 4>
+    void for_all_from(std::unique_lock<Lock> &lk, Fn &&fn, Vect &vect, std::size_t idx) {
+        pending_notify ntf_slots[count];
+        auto iter = std::begin(ntf_slots);
+        std::size_t sz = vect.size();
+        while (idx < sz && iter != std::end(ntf_slots)) {
+            try {
+                *iter = fn(vect[idx].first);
+            } catch(...) {
+                *iter = vect[idx].first.reject();
+            }
+           ++idx;
+        }
+        if (idx < sz) {
+            static constexpr int new_count = count > 1000?count:count*2;
+            for_all_from<Fn, Vect, new_count>(lk,std::forward<Fn>(fn), vect, idx);
+        }
+        else  {
+            vect.clear();
+        }
+        lk.unlock();
+        //dtor of ntf_slots wakes all
+
+    }
 
     template<typename Fn>
     void for_all(Fn &&fn) {
-        pending_notify *buff;
-        std::size_t sz;
-        {
-            std::lock_guard _(_mx);
-            sz = _subscribers.size();
-            buff = reinterpret_cast<pending_notify*>(alloca(
-                    sizeof(pending_notify) * _subscribers.size()));
-            for (std::size_t i = 0; i < sz; ++i) {
-                try {
-                    std::construct_at(buff + i, fn(_subscribers[i].first));
-                } catch (...) {
-                    std::construct_at(buff + 1, _subscribers[i].first.reject());
-                }
-            }
-            _subscribers.clear();
-        }
-        for (std::size_t i = 0; i < sz; ++i) {
-            std::destroy_at(buff + i);
-        }
+        std::unique_lock lk(_mx);
+        for_all_from(lk, fn, _subscribers, 0);
     }
 };
 

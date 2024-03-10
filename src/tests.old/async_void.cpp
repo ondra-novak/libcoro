@@ -1,6 +1,6 @@
-#include "../coro/async.h"
-#include "../coro/future.h"
-#include "check.h"
+#include <../coro.old/async.h>
+#include <../coro.old/future.h>
+#include <../tests.old/check.h>
 
 int test_var = 0;
 

@@ -1,11 +1,10 @@
 cmake_minimum_required(VERSION 3.1)
 project (libcoro VERSION 1.0.0)
-set (CMAKE_CXX_STANDARD 20)
 if (MSVC)
-	add_compile_options(/W4 /EHsc /DNOMINMAX)
+	add_compile_options(/W4 /EHsc /DNOMINMAX /std:c++20)
 	set(STANDARD_LIBRARIES "")
 else()
-	add_compile_options(-Wall -Wextra -Wpedantic)
+	add_compile_options(-Wall -Wextra -Wpedantic -std=c++20)
 	set(STANDARD_LIBRARIES "pthread")
 endif()
 

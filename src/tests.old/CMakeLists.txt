@@ -1,7 +1,19 @@
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/tests/)
 
 set(testFiles all_compile.cpp
-               
+                async_int.cpp
+                async_void.cpp
+                scheduler.cpp
+                mutex.cpp
+                cooperative_multitasking.cpp
+                generator.cpp
+                distributor.cpp
+                shared_future.cpp
+                allocator.cpp
+                stackful.cpp
+                aggregator.cpp
+                signals.cpp
+                pool_alloc.cpp
                 )
 foreach (testFile ${testFiles})
     string(REGEX MATCH "([^\/]+$)" filename ${testFile})

@@ -1,5 +1,5 @@
-#include "check.h"
-#include "../coro/coro_single.h"
+#include <../coro.old/coro_single.h>
+#include <../tests.old/check.h>
 
 template<typename Alloc>
 coro::generator<int, Alloc> fibo(Alloc , int count) {

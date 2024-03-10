@@ -1,6 +1,5 @@
-#include "../coro/coro_single.h"
-
-#include "check.h"
+#include <../coro.old/coro_single.h>
+#include <../tests.old/check.h>
 
 coro::generator<int> fibo(int count) {
     int a = 1;

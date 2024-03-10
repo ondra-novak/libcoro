@@ -5,7 +5,6 @@
 #include "coro.h"
 
 #ifdef __linux__
-#include "linux_signal.h"
 #endif
 
 #endif

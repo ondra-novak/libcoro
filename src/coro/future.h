@@ -1,1017 +1,1206 @@
 #pragma once
-
-#include "target.h"
+#ifndef SRC_CORO_FUTURE_H_
+#define SRC_CORO_FUTURE_H_
+#include "common.h"
+#include "function.h"
 #include "exceptions.h"
 
-#include <thread>
-#include <variant>
+#include <atomic>
+#include <memory>
 
 namespace coro {
 
-template<typename T, coro_optional_allocator Alloc = void> class async;
-template<typename T> struct async_promise_base;
-template<typename T, coro_optional_allocator Alloc = void> struct async_promise_type;
-template<typename T> class lazy_future;
-
-struct emplace_tag {};
-constexpr emplace_tag emplace;
-
-template<typename T> class future;
-
-///Promise type
-/**Promise resolves pending Future.
- * Promise is movable object. There can be only one Promise per Future.
- * Promise acts as callback, which can accepts multiple argumens depend on
- * constructor of the T
- * Promise is one shot. Once it is fullfilled, it is detached from the Future
- * Multiple threads can try to resolve promise simultaneously. this operation is
- * MT safe. Only one thread can success, other are ignored
- * Promise can rejected with exception. You can use reject() without arguments
- * inside of catch block
- * Destroying not-filled promse causes BrokenPromise
- * You can break promise by function drop()
+///Contains future value of T, can be co_awaited in coroutine
+/**
+ * @tparam T type which is subject of the future. T can be void. T can be also a reference
+ */
+template<typename T>
+class future;
+///Carries reference to future<T>, callable, sets value of an associated future<T>
+/** promise object is movable and MT Safe */
+template<typename T>
+class promise;
+///Contains future value of T, where evaluation is deferred until the value is needed
+/** Deferred future is movable unless it is in progress (which results to exception).
+ * This type of future is always returned from a function in deferred state, so
+ * it can be moved and evaluated after the future is placed to correct place.
+ *
+ * Disadvantage of this future is requirement to store evaluation function
+ * inside of the future (which must be movable) and guarantee to keep referneces
+ * valid until deferred evaluation is started.
  *
  */
+template<typename T>
+class deferred_future;
+
+namespace _details {
+template<typename T> class coro_promise_base;
+};
+
+
 template<typename T>
 class promise {
 public:
 
-    using future = ::coro::future<T>;
+    ///Associated future
+    using FutureType = future<T>;
 
 
-
-    struct pending_notify_deleter {void operator()(future *ptr)noexcept{ptr->notify_resume();}};
-
-    ///Intermediate state of the future
+    ///contain notification to be delivered to the asociated future
     /**
-     * This stores state of the future between setting the value and sending notification.
-     * In normal processing, by setting value through the promise causes immediately
-     * resumption. However, as result of setting a value you can retrieve pending_notify
-     * object, which allows to schedule notification.
+     * By setting a value to a promise, it can cause that associated coroutine
+     * will be resumed. The place, where this happens can be unsuitable for such
+     * operation. This object can be used to schedule the notification about
+     * resolution of the future. By default, the notification is delivered in the
+     * destructor, however the object can be moved, or the notification can be delivered
+     * manually. This object can be also used in situation special for coroutines,
+     * such a function await_suspend() to support the symmetric transfer
      *
-     * In this state, the future has already value, but it is not considered as
-     * resolved. You can still break the promise especially when you fail to
-     * deliver the notification.
-     *
-     * Note this object is not MT Safe
-     *
-     * If the object is ignored, standard destructor delivers the notification in
-     * current thread
      */
-
-
-
-    class pending_notify: protected std::unique_ptr<future, pending_notify_deleter>  {
+    class notify {
     public:
-        using std::unique_ptr<future, pending_notify_deleter>::unique_ptr;
-        using std::unique_ptr<future, pending_notify_deleter>::release;
-        using std::unique_ptr<future, pending_notify_deleter>::operator bool;
+        using FutureType = future<T>;
 
-        ///causes that already resolved promise is dropped
-        /** This can be useful when resumption is scheduled, but scheduler
-         * failed to perform resumtion. The stored value is destroyed. Resumption
-         * is not performed now.
-         */
-        void drop() {
-            if (*this) {
-                (*this)->drop();
+        notify() = default;
 
-            }
-        }
-        ///returns value which can be used as return value on await_suspend()
+        ///cancel the future resolution (notify still needs to be delivered)
+        void cancel() {_ptr->clearStorage();}
+        ///deliver the notification now
+        void deliver() {_ptr.reset();}
+        ///deliver the notification with ability to switch to the coroutine
         /**
-         * @return a valid coroutine handle. It assumes, that notification is
-         * finished by this operation.
+         * support for symmetric transfer
          *
-         * @note if the associated future is awaited by callback or synchronous wait,
-         * the notification is perfomed now and returned handle is noop_coroutine
+         * @return return value must be used in await_suspend() - (otherwise the
+         * notification can be lost). This allows to transfer from current coroutine
+         * to resuming coroutine. If the awaiter is not coroutine, the function
+         * simply delivers to notification and return noop_coroutine()
          */
-        std::coroutine_handle<> on_await_suspend() noexcept {
-            auto ptr = this->release();
-            if (ptr) {
-                auto r = ptr->notify_targets();
-                if (r) return r;
-            }
-            return std::noop_coroutine();
+        std::coroutine_handle<> symmetric_transfer() {
+            auto ptr = _ptr.release();
+            if (ptr) return ptr->resolve_symmetric_transfer();
+            else return std::noop_coroutine();
         }
+        ///Determines, whether object carries deferred notification
+        explicit operator bool() const {return static_cast<bool>(_ptr);}
 
         void operator()() {
-            this->reset();
+            _ptr.reset();
         }
 
+    protected:
+
+        ///Construct deferred notify from future
+        notify(FutureType *fut):_ptr(fut) {}
+
+        struct NotifyAction {
+            void operator()(FutureType *fut) {fut->set_resolved();}
+        };
+
+        std::unique_ptr<FutureType, NotifyAction> _ptr;
+
+        friend class promise<T>;
     };
 
 
 
-    ///Construct unbound promise
-    promise() = default;
-    ///Construct bound promise to a future
-    promise(future *f) noexcept :_ptr(f) {}
-    ///Move promise
-    promise(promise &&other) noexcept:_ptr(other._ptr.exchange(nullptr, std::memory_order_relaxed)) {}
-    ///Copy is disabled
-    promise(const promise &other) = delete;
-    ///Destructor drops promise
-    ~promise() {
-        drop();
-    }
 
-    ///Move promise by assignment. It can drop original promise
-    promise &operator=(promise &&other) noexcept {
+    ///construct unbound promise
+    promise() = default;
+
+    ///Bound promise to future
+    /**
+     * @param ptr pointer to promise
+     *
+     * @note requires pending future, (not checked)
+     */
+    explicit promise(FutureType *ptr):_ptr(ptr) {}
+
+    ///Move
+    promise(promise &&other):_ptr(other.claim()) {}
+
+
+    ///Assign by move
+    promise &operator=(promise &&other) {
         if (this != &other) {
-            auto x = other._ptr.exchange(nullptr, std::memory_order_relaxed);
-            if (*this) reject();
-            _ptr.store(x, std::memory_order_relaxed);
+            cancel();
+            _ptr.store(other.claim(), std::memory_order_relaxed);
         }
         return *this;
     }
-    promise &operator=(const promise &other) = delete;
 
-
-    ///Drop promise - so it becomes broken
-    /**
-     * @retval true  success
-     * @retval false promise is unbound
-     */
-    pending_notify drop() noexcept {
-        auto x = _ptr.exchange(nullptr, std::memory_order_relaxed);
-        if (x) x->drop();
-        return pending_notify(x);
+    ///Dtor - if future is pending, cancels it
+    ~promise() {
+        cancel();
     }
 
+    ///cancel the future (resolve without value)
+    /**
+     * @return deferred notification
+     */
+    notify cancel() {
+        return claim();
+    }
 
-    ///resolve promise
-    /** Imitates a callback call
-     *
-     * @param args arguments to construct T
-     * @retval true success- resolved
-     * @retval false promise is unbound, object was not constructed
-     *
-     * */
+    ///set value
+    /**
+     * @param args arguments to construct value
+     * @return deferred notification
+     */
     template<typename ... Args>
-    pending_notify operator()(Args && ... args)  {
-        auto x = _ptr.exchange(nullptr, std::memory_order_relaxed);
-        if (x) {
-            x->set_value(std::forward<Args>(args)...);
-            return pending_notify(x);
-        }
-        return {};
+    notify operator()(Args && ... args) {
+        static_assert((std::is_void_v<T> && sizeof...(Args) == 0)
+                        || std::is_constructible_v<T, Args ...>, "Value is not constructible from arguments");
+        auto fut = claim();
+        if (fut) fut->set_value(std::forward<Args>(args)...);
+        return fut;
     }
 
-
-
-    ///reject promise with exception
+    ///reject the future with exception
     /**
-     * @param except exception to construct
-     * @retval true success - resolved
-     * @retval false promise is unbound
+     * @param e exception
+     * @return deferred notification
      */
-    template<typename Exception>
-    pending_notify reject(Exception && except) {
-        auto x = _ptr.exchange(nullptr, std::memory_order_relaxed);
-        if (x) {
-            x->set_exception(std::make_exception_ptr<Exception>(std::forward<Exception>(except)));
-            return pending_notify(x);
-        }
-        return {};
+    notify reject(std::exception_ptr e) {
+        auto fut = claim();
+        if (fut) fut->set_exception(std::move(e));
+        return fut;
     }
 
-    pending_notify reject(std::exception_ptr e) {
-        auto x = _ptr.exchange(nullptr, std::memory_order_relaxed);
-        if (x) {
-            x->set_exception(std::move(e));
-            return pending_notify(x);
-        }
-        return {};
-    }
-
-    ///Determines state of the promise
+    ///reject or cancel the future with exception
     /**
-     * @retval true promise is bound to pending future
-     * @retval false promise is unbound
+     * If called inside of cach block, it rejects with current notification, otherwise
+     * it cancelles
+     * @return deferred notification
      */
-    explicit operator bool() const {
-        return _ptr.load(std::memory_order_relaxed) != nullptr;
+    notify reject() {
+        auto e = std::current_exception();
+        return e?reject(std::move(e)):cancel();
     }
 
-    ///Reject under catch handler
-    /**
-     * If called outside of catch-handler it is equivalent to drop()
-     * @retval true success
-     * @retval false promise is unbound
-     */
-    auto reject() {
-        auto exp = std::current_exception();
-        if (exp) {
-            return reject(std::move(exp));
-        } else {
-            return drop();
-        }
+    ///Reject with exception
+    template<typename E>
+    notify reject(E && exception) {
+        return reject(std::make_exception_ptr<std::decay_t<E> >(std::forward<E>(exception)));
     }
 
-
-
-    ///Release internal pointer to the future
-    /** It can be useful to transfer the pointer through non-pointer type variable,
-     * for example if you use std::uintptr_t. You need construct Promise from this
-     * pointer to use it as promise
-     *
-     * @return pointer to pending future. The future is still pending.
-     *
-     * @note this instance looses the ability to resolve the future
-     *
+    ///Release the future pointer from the promise object
+    /** This can be useful,when you need to manage the pointer by yourself. To
+     * resolve the future, you need to construct promise again with this pointer.
+     * @return
      */
-    future *release() {
-        return _ptr.exchange(nullptr, std::memory_order_relaxed);
+    FutureType *release() {
+        return claim();
     }
-
 
 protected:
-    std::atomic<future *> _ptr = {nullptr};
+
+    std::atomic<FutureType *> _ptr = {};
+
+    FutureType *claim() {return _ptr.exchange(nullptr, std::memory_order_relaxed);}
 };
 
+struct deferred_tag {};
+
+inline constexpr deferred_tag deferred=  {};
 
 template<typename T>
-class future: public future_tag {
-
-    ///is true when T is void
-    static constexpr bool is_void = std::is_void_v<T>;
-    static constexpr bool is_rvalue_ref = !std::is_void_v<T> && std::is_rvalue_reference_v<T>;
-    static constexpr bool is_lvalue_ref = !std::is_void_v<T> && std::is_lvalue_reference_v<T>;
-
+class [[nodiscard]] future {
 public:
 
-    ///contains type
-    using value_type = std::decay_t<T>;
-
-    ///declaration of type which cannot be void, so void is replaced by bool
-    using voidless_type = std::conditional_t<is_void, bool, value_type >;
-    ///declaration of return value - which is reference to type or void
-    using ret_type = std::conditional_t<is_rvalue_ref, T, std::add_lvalue_reference_t<T> >;
-
-    using StorageType = std::conditional_t<is_lvalue_ref, voidless_type *, voidless_type>;
-    using construct_type = std::conditional_t<is_lvalue_ref, voidless_type &, voidless_type>;
-
-    using cast_ret_type = std::conditional_t<is_void, bool, ret_type>;
-
-    ///Tags future<T> as valid return value for coroutines
-    using promise_type = async_promise_type<T>;
-
-
-    ///Specifies target in code where execution continues after future is resolved
-    /** This is maleable object which can be used to wakeup coroutines or
-     * call function when asynchronous operation is complete. It was intentionaly
-     * designed as non-function object to reduce heap allocations. Target can be
-     * declared statically, or can be instantiated as a member variable without
-     * need to allocate anything. If used along with coroutines, it is always
-     * created in coroutine frame which is already preallocated.
+    /*
+     *   +-------------------+
+     *   |   atomic(_state)  |  8
+     *   +-------------------+
+     *   |   enum(_result)   |  8
+     *   +-------------------+
+     *   |                   |
+     *   |  * awaiter        |
+     *   |  * deferred       |  32
+     *   |                   |
+     *   +-------------------+
+     *   |                   |
+     *   |  * exception      |
+     *   |  * value          |  8+
+     *   |                   |
+     *   +-------------------+
      *
-     * Target is designed as POD, it has no constructor, no destructor and it
-     * can be put inside to union with other Targets if only one target
-     * can be charged
+     *                          56+
      */
-    using target_type = target<future<T> *>;
-    using unique_target_type = unique_target<target_type>;
-    using promise = ::coro::promise<T>;
-    using pending_notify = typename promise::pending_notify;
 
-    future():_state(nothing) {}
 
-    future(construct_type v):_state(value),_value(from_construct_type(std::forward<construct_type>(v))) {}
+    using value_type = T;
+    using promise_t = promise<T>;
+    using value_store_type = std::conditional_t<std::is_reference_v<T>,std::add_pointer_t<std::decay_t<T> >,std::conditional_t<std::is_void_v<T>, bool, T> >;
+    using cast_return = std::conditional_t<std::is_reference_v<T>, T, value_store_type>;
+    using coro_handle = std::coroutine_handle<>;
+    using awaiter_type = function<coro_handle(future &&)>;
+    using deferred_eval_fn_type = function<coro_handle(promise_t)>;
 
+
+    future() {/*can't be default*/}
+
+    future(const future &) = delete;        //<can't copy nor move
+    future &operator=(const future &) = delete; //<can't copy nor move
+
+    ///Construct future already resolved with a value
     template<typename ... Args>
-    future(emplace_tag, Args && ... args):_state(value), _value(std::forward<Args>(args)...) {}
+    requires std::constructible_from<value_store_type, Args ...>
+    future(Args && ... args):_result(Result::value), _value(std::forward<Args>(args)...) {}
 
-    future(std::exception_ptr e):_state(exception), _exception(std::move(e)) {}
 
-    template<invocable_with_result<void, promise> Fn>
-    future(Fn &&fn):_state(nothing),_targets(nullptr) {
-        fn(promise(this));
+    ////Construct future already resolved with an exception
+    future(std::exception_ptr e):_result(Result::exception), _exception(std::move(e)) {}
+
+    ///Construct future which is evaluated inside of lambda function.
+    /**
+     * @param fn a lambda function which receives promise object
+     */
+    template<std::invocable<promise_t> Fn>
+    future(Fn &&fn):_state(State::pending) {
+        fn(promise_t(this));
     }
 
-    template<invocable_with_result<future> Fn>
+    ///Construct future with deferred evaluation
+    /**
+     * @param deferred tags this as deferred evaluatio
+     * @param fn function called when evaluation is required. Note that function
+     * is called outside of current context (don't use & in lambda)
+     *
+     * Evaluation can still be asynchronous
+     */
+    template<std::invocable<promise_t> Fn>
+    future(deferred_tag, Fn &&fn) {
+        setDeferredEvaluation(std::forward<Fn>(fn));
+    }
+
+    template<typename Fn>
+    requires std::is_invocable_r_v<future, Fn>
     future(Fn &&fn) {
         new(this) future(fn());
     }
 
-    future(const future &) = delete;
-    future &operator=(const future &) = delete;
-
+    ///dtor
+    /**
+     * @note the dtor calls terminate if future is destroyed while is in progress
+     */
     ~future() {
-        cleanup();
-    }
-
-
-    bool is_pending() const {
-        return _targets.load(std::memory_order_relaxed) != &disabled_target<target_type>;
-    }
-
-    promise get_promise() {
-        const target_type *need = &disabled_target<target_type>;
-        if (!_targets.compare_exchange_strong(need, nullptr, std::memory_order_relaxed)) {
-            throw already_pending_exception();
+        checkInProgress();
+        if (_state.load(std::memory_order_relaxed) == State::deferred) {
+            std::destroy_at(&_deferred);
         }
-        drop();
-        return promise(this);
+        clearStorage();
     }
 
-    ///synchronous wait
+    ///Store result future in already declared value
     /**
-     * @note to perform asynchonous wait, use co_await on has_value()
-     */
-    void wait() noexcept {
-        sync_target<target_type> t;
-        if (register_target_async(t)) {
-            t.wait();
-        }
-    }
-
-    ret_type get() {
-        wait();
-        return get_internal();
-    }
-
-    operator cast_ret_type() {
-        if constexpr(is_void) {
-            wait();
-            return _value;
-
-        } else {
-            return get();
-        }
-    }
-
-    bool register_target_async(target_type &t) {
-        return t.push_to(_targets);
-    }
-    bool register_target(target_type &t) {
-        if (register_target_async(t)) return true;
-        t.activate_resume(this);
-        return false;
-    }
-    bool register_target_async(unique_target_type t) {
-        auto ptr = t.release();
-        if (register_target_async(ptr)) return true;
-        delete ptr;
-        return false;
-    }
-    bool register_target(unique_target_type t) {
-        return register_target(t.release());
-    }
-
-    ///Replace target(s)
-    /**
-     * Purpose of this function is to nulify targets by replacing them with a safe target.
-     * You need to somehow process old targets.
-     * @param t pointer which holds new target. It receives old target(s) when function
-     * successes.
-     *
-     * @retval true success
-     * @retval false future is already resolved, no targets can be replaced
-     *
-     * @note function is MT Safe
-     */
-    bool replace_target(const target_type  *  &t) {
-        const target_type *need = _targets.load(std::memory_order_relaxed);
-        while (need != t && need != &disabled_target<target_type>) {
-            if (_targets.compare_exchange_weak(need, t)) {
-                t = need;
-                return true;
-            }
-        }
-        return false;
-    }
-
-    template<typename Fn>
-    bool operator >> (Fn &&fn) {
-        return register_target(target_callback<target_type>(std::forward<Fn>(fn)));
-    }
-
-
-    ///Initialize the future object from return value of a function
-    /**
-     * @param fn function which's return value is used to initialize the future.
-     * The future must be either dormant or resolved
+     * As the future cannot be copied or moved, only way to "store" result of
+     * function to existing future variable is through this operator. Note
+     * that operator accepts a function, which returns future of the exact same type
      *
      * @code
-     * Future<T> f;
-     * f << [&]{return a_function_returning_future(arg1,arg2,arg3);};
+     * future<int> doSomething(args) {...}
+     *
+     *
+     * future<int> fut;
+     * //... other code ...
+     * fut << [&]{return doSomething(args);};
+     * int res = co_await fut;
      * @endcode
+     *
      */
-
-    template<invocable_with_result<future<T> > Fn>
-    void operator << (Fn &&fn) {
+    template<typename Fn>
+    requires std::is_invocable_r_v<future, Fn>
+    future &operator << (Fn &&fn) {
         std::destroy_at(this);
         try {
-            new(this) future(fn());
+            std::construct_at(this, std::forward<Fn>(fn));
         } catch (...) {
-            new(this) future(std::current_exception());
+            std::construct_at(this);
         }
+        return *this;
     }
 
-    ///Retrieve exception pointer if the future has exception
+    ///Retrieve promise and begin evaluation
     /**
-     * @return exception pointer od nullptr if there is no exception recorded
+     * The future must be either in resolved state or in deferred state. If the
+     * future is in deferred state, deferred evaluation is canceled.
+     *
+     * Previusly stored value is cleared. The future is set to pending state
+     *
+     * @return promise
      */
-    std::exception_ptr get_exception_ptr() const noexcept {
-        return _state != exception?_exception:nullptr;
+    promise_t get_promise() {
+        auto old = State::resolved;
+        if (!_state.compare_exchange_strong(old, State::pending)) {
+            if (old == State::deferred) {
+                std::destroy_at(&_deferred);
+                _state.store(State::pending);
+            } else {
+                throw still_pending_exception();
+            }
+        }
+        clearStorage();
+        return promise_t{this};
     }
 
-    ///helps with awaiting on resolve()
-    template<bool expected>
-    class ready_state_awaiter {
-    public:
-        ready_state_awaiter(future &owner):_owner(owner) {};
-        ready_state_awaiter(const ready_state_awaiter &) = default;
-        ready_state_awaiter &operator=(const ready_state_awaiter &) = delete;
+    ///Sets callback which is called once future is resolved (future &&)
+    /**
+     * @param fn function to be called, the function must accept (future &&)
+     * and can  optionally return std::coroutine_handle<>. In this case, the
+     * returned handle can be used to switch execution to the coroutine. Another
+     * result is ignored
+     *
+     * @retval true callback has been set
+     * @retval false impossible, the future is already resolved. In this case, the
+     * callback CAN BE DESTROYED if was passed as r-value. This can happen,
+     * when future is resolved during copying the callback into the future object
+     *
+     * @note deferred future is evaluated before the callback is set. If the deferred
+     * future is evaluated synchronously, the function returns false as the
+     * future is already resolved
+     *
+     * @note there can be only one awaiter at time (callback or coroutine)
+     *
+     */
+    template<std::invocable<future &&> Fn>
+    bool set_callback(Fn &&fn) {
+        using DFn = std::decay_t<Fn>;
+        if constexpr(std::is_same_v<std::invoke_result_t<Fn, future &&>, coro_handle>) {
+            return register_awaiter(std::forward<Fn>(fn), [](auto h){h.resume();});
+        } else {
+            return set_callback([fn = DFn(std::forward<Fn>(fn))](future &&f) -> coro_handle{
+                fn(std::move(f));
+                return {};
+            });
+        }
+    }
 
-        bool await_ready() const {
-            return !_owner.is_pending();
+
+    ///Sets callback which is called once future is resolved ()
+    /**
+     * @param fn function to be called, the function doesn't accept any arguments
+     * and can optionally return std::coroutine_handle<>. In this case, the
+     * returned handle can be used to switch execution to the coroutine. Another
+     * result is ignored
+     *
+     * @retval true callback has been set
+     * @retval false impossible, the future is already resolved. In this case, the
+     * callback CAN BE DESTROYED if was passed as r-value. This can happen,
+     * when future is resolved during copying the callback into the future object
+     *
+     * @note deferred future is evaluated before the callback is set. If the deferred
+     * future is evaluated synchronously, the function returns false as the
+     * future is already resolved
+     *
+     * @note there can be only one awaiter at time (callback or coroutine)
+     */
+    template<std::invocable<> Fn>
+    bool set_callback(Fn &&fn) {
+        using DFn = std::decay_t<Fn>;
+        if constexpr(std::is_same_v<std::invoke_result_t<Fn>, coro_handle>) {
+            return set_callback([fn = DFn(std::forward<Fn>(fn))](future &&) -> coro_handle{
+                return fn();
+            });
+        } else {
+            return set_callback([fn = DFn(std::forward<Fn>(fn))](future &&) -> coro_handle{
+                fn();
+                return {};
+            });
         }
-        bool await_suspend(std::coroutine_handle<> h)  {
-            target_coroutine(_target, h);
-            return _owner.register_target_async(_target);
+    }
+
+
+    ///Perform synchronous wait on resolution
+    /**
+     * Blocks execution until future is resolved. If the future is deferred, the
+     * evaluation is started now
+     */
+    void wait() {
+        auto st = _state.load(std::memory_order_acquire);
+        while (st != State::resolved) {
+            if (st == State::deferred) {
+                startDeferredEvaluation([](auto c){c.resume();});
+            } else {
+                _state.wait(st);
+            }
+            st = _state.load(std::memory_order_acquire);
         }
-        bool await_resume() const {
-            return _owner.has_value() == expected;
+    }
+
+    ///Retrieves value, performs synchronous wait
+    T get() && {
+        wait();
+        if constexpr(std::is_void_v<T>) {
+            getInternal();
+        } else  {
+            return std::forward<T>(getInternal());
         }
-        ready_state_awaiter<!expected> operator !() const {
-            return ready_state_awaiter<!expected>(_owner);
+    }
+
+    ///Retrieves value, performs synchronous wait
+    T get() & {
+        wait();
+        if constexpr(std::is_void_v<T>) {
+            getInternal();
+        } else {
+            return getInternal();
         }
-        operator bool() const {
+    }
+
+    ///Retrieves value, performs synchronous wait
+    operator cast_return() && {
+        wait();
+        return std::forward<cast_return>(getInternal());
+    }
+
+    ///Retrieves value, performs synchronous wait
+    operator cast_return() & {
+        wait();
+        return getInternal();
+    }
+
+    ///Determines pending status
+    /**
+     * @retval true future is pending, including deferred state
+     * @retval false future is resolved
+     */
+    bool is_pending() const {
+        return _state.load(std::memory_order_relaxed) != State::resolved;
+    }
+
+    ///Determine in progress status
+    /**
+     * @retval true future is being evaluated (evaluation is performed asynchronously)
+     * @retval false future is dormant, it is either resolved or deferred
+     */
+    bool is_in_progress() const {
+        auto st = _state.load(std::memory_order_relaxed);
+        return st != State::resolved && st != State::deferred;
+    }
+
+    ///Determine deferred status
+    /**
+     * @retval true future is deferred
+     * @retval false future is in other state
+     */
+    bool is_deferred() const {
+        return _state.load(std::memory_order_relaxed) == State::deferred;
+    }
+
+    ///Determine whether an awaiter is set
+    /** @retval true future has awaiter set
+     *  @retval false there is no awaiter
+     */
+    bool is_awaited() const {
+        return _state.load(std::memory_order_relaxed) == State::awaited;
+    }
+
+    ///co_await support, returns true, if value is ready (resolved)
+    bool await_ready() const {
+        return _state.load(std::memory_order_relaxed) == State::resolved;
+    }
+
+    ///co_await support, called with suspended coroutine
+    /**
+     * the function registers coroutine to be awaken once the future is resolved.
+     * It is registered as an awaiter
+     *
+     * @param h handle of suspended coroutine waiting for result
+     * @return handle of coroutine to wakeup. This can be for example deferred
+     * evaluation if it is registered as a coroutine. The called must resume
+     * the coroutine. function returns std::noop_coroutine if there is no
+     * such coroutine
+     */
+    coro_handle await_suspend(coro_handle h) {
+        coro_handle retval = {};
+        bool st = register_awaiter([h](future &&){return h;},
+                         [&retval](coro_handle h){retval = h;});
+        if (st) return retval?retval:std::noop_coroutine();
+        return h;
+    }
+
+    ////co_await support, called by resumed coroutine to retrieve a value
+    T await_resume() && {
+        if constexpr(std::is_void_v<T>) {
+            getInternal();
+        } else {
+            return std::forward<T>(getInternal());
+        }
+    }
+
+    ////co_await support, called by resumed coroutine to retrieve a value
+    T await_resume() & {
+        if constexpr(std::is_void_v<T>) {
+            getInternal();
+        } else {
+            return getInternal();
+        }
+    }
+
+    template<bool flag = true>
+    class has_value_awaiter {
+    public:
+        has_value_awaiter(future &owner):_owner(owner) {}
+        has_value_awaiter(has_value_awaiter &&) = default;
+        has_value_awaiter &operator=(has_value_awaiter &&) = delete;
+
+        bool await_ready() const {return _owner.await_ready(); }
+        coro_handle await_suspend(coro_handle h) {return _owner.await_suspend(h);}
+        bool await_resume() const {return (_owner._result != Result::not_set) == flag;}
+
+        has_value_awaiter<!flag> operator!() const {return _owner;}
+        operator bool() {
             _owner.wait();
-            return (_owner._state != nothing) == expected;
+            return await_resume();
         }
 
     protected:
         future &_owner;
-        target_type _target;
-
     };
 
-    ///Generic awaiter
-    class value_awaiter: public ready_state_awaiter<true> {
-    public:
-        using ready_state_awaiter<true>::ready_state_awaiter;
-        ret_type await_resume() const {
-            return this->_owner.get_internal();
-        }
-    };
-
-    ///Retrieves awaitable object which resumes a coroutine once the future is resolved
+    ///Determines whether future has a value (was not canceled)
     /**
-     * The awaitable object can't throw exception. It eventually returns has_value() state
+     * @return awaitable object. A coroutine must co_await on result to
+     * determine the state. Non-coroutine can convert this value to boolean to
+     * retrieve the state. In this case, synchronous waiting is performed.
+     *  The return value also support operator ! to retrieve inverted value.
      *
-     * @code
-     * Future<T> f = [&](auto promise) {...}
-     * bool is_broken_promise = !co_await f.resolve();
-     * @endcode
+     *  The function is intended to co_await on a future and detect canceled
+     *  state without throwing an exception. To retrieve value later, the
+     *  coroutine can safely use get() or await_resume()
      *
-     * @retval true future is resolved by value or exception
-     * @retval false broken promise
-     */
-    auto has_value() {return ready_state_awaiter<true>(*this);}
-
-    auto operator!() {return ready_state_awaiter<false>(*this);}
-
-
-    ///Retrieves awaitable object to await and retrieve a value (or exception)
-    /**
+     *  @code
+     *  future<int> fut = doSomething();
+     *  if (co_await !fut.has_value()) {
+     *      std::cerr << "Canceled" << std::endl;
+     *  } else {
+     *      int val = fut.get();
+     *      std::cout << "Result:" << val << std::endl;
+     *  }
      *
-     * @code
-     * Future<T> f = [&](auto promise) {...}
-     * T result = co_await f;
-     * @endcode
+     *
+     *  @retval true future has value
+     *  @retval false future has been canceled
      *
      */
-    value_awaiter operator co_await() {
-        return value_awaiter(*this);
+    has_value_awaiter<> has_value() {
+        return *this;
     }
 
 
-    /// visit function
-    /**
-     * @param fn lambda function (template). The type depends on state: T for value, std::exception_ptr for exception, and nullptr_t for no-value
-    */
-    template<typename Fn>
-    auto visit(Fn fn) {
-        switch (_state) {
-            default: return fn(nullptr);break;
-            case value:
-                if constexpr(is_rvalue_ref) {
-                    return fn(std::move(_value));
-                } else if constexpr(is_lvalue_ref) {
-                    return fn(*_value);
-                } else {
-                    return fn(_value);
-                }
-                break;
-            case exception: return fn(_exception);break;
-        }
-    }
-    ///Forward value of the future to next promise
-    /**
-     * @param p promise to forward
-     * @return result of promise set operation
-     * @note doesn't throw exception. Possible exception is forwarded to the promise
-     */
-    template<std::convertible_to<T> X>
-    auto forward(::coro::promise<X> &&p) noexcept {
-        return visit([&](auto x) {
-            if constexpr(std::is_null_pointer_v<decltype(x)>) {
-                return p.drop();
-            } else if constexpr(std::is_same_v<std::decay_t<decltype(x)>, std::exception_ptr>) {
-                return p.reject(x);
-            } else {
-                return p(std::forward<X>(x));
-            }
-        });
-    }
 
 
 protected:
 
-    enum StorageState {
-        nothing,
-        value,
-        exception
+    enum class State {
+        //future is resolved
+        resolved,
+        //evaluation is deferred
+        deferred,
+        //future is pending  - no awaiter
+        pending,
+        //future is pending - awaiter is set
+        awaited,
+        //future is pending - deferred evaluation is current in progress
+        evaluating
+
     };
 
-    StorageState _state = nothing;
+    enum class Result {
+        //result is not set (yet?)
+        not_set,
+        //result contains value
+        value,
+        //result contains exception
+        exception,
+    };
+
+    std::atomic<State> _state = {State::resolved}; //< by default, future is resolved in canceled state
+    Result _result = Result::not_set; //< by default, future has no value
+
+    //because deferred and awaited are mutually exclusive,
+    //reuse single space for both functions
     union {
-        StorageType _value;
+        awaiter_type _awaiter;
+        deferred_eval_fn_type _deferred;
+    };
+
+    union {
+        value_store_type _value;
         std::exception_ptr _exception;
     };
-    std::atomic<const target_type *> _targets = {&disabled_target<target_type>};
 
-    std::conditional_t<is_lvalue_ref, value_type *, StorageType &&> from_construct_type(construct_type &&t) {
-        if constexpr(is_lvalue_ref) {
-            return &t;
-        } else {
-            return std::move(t);
+    void clearStorage() {
+        switch (_result) {
+            default: break;
+            case Result::value: std::destroy_at(&_value);break;
+            case Result::exception: std::destroy_at(&_exception);break;
         }
+        _result = Result::not_set;
     }
 
-    ///clean future state, do not reset (ideal for destructor)
-    void cleanup() {
-        if (is_pending()) {
-            throw std::runtime_error("Destructor or cleanup() called on pending Future");
-        }
-        clear_storage();
-    }
 
-    ///reset state into initial state
-    void reset() {
-        cleanup();
-        _state = nothing;
-    }
-
-    ///clear stored value, but do not resolve the future
-    void drop() {
-        clear_storage();
-        _state = nothing;
-    }
-
-    template<typename ... Args>
-    void set_value(Args && ... args) {
-        _state = value;
-        if constexpr(is_lvalue_ref) {
-            static_assert(sizeof...(args) == 1, "Only one argument is allowed in reference mode");
-            static constexpr auto get_ptr  = [](auto &x) {
-                return &x;
-            };
-            std::construct_at(&_value, get_ptr(args...));
-        } else {
-            std::construct_at(&_value, std::forward<Args>(args)...);
-        }
-    }
-
-    void set_exception(std::exception_ptr e) {
-        _state = exception;
-        std::construct_at(&_exception, std::move(e));
-    }
-
-    std::coroutine_handle<> notify_targets() {
-        auto n = _targets.exchange(&disabled_target<target_type>);
-        return n?notify_targets(n, this):nullptr;
-    }
-
-    static std::coroutine_handle<> notify_targets(const target_type *list, future *f) {
-        if (list->next) {
-            auto c1 = notify_targets(list->next, f);
-            auto c2 = list->activate(f);
-            if (c1) {
-                if (c2) {
-                    c1.resume();
-                    return c2;
-                }
-                return c1;
-            }
-            return c2;
-        } else {
-            return list->activate(f);
-        }
-    }
-
-    void notify_resume() {
-        auto x = notify_targets();
-        if (x) x.resume();
-    }
-
-    ret_type get_internal() {
-        switch (_state) {
-            default: throw broken_promise_exception();
-            case exception: std::rethrow_exception(_exception);
-            case value:
-                if constexpr(is_void) {
-                    return;
-                } else if constexpr(is_rvalue_ref) {
-                    return std::move(_value);
-                } else if constexpr(is_lvalue_ref) {
+    auto &getInternal() {
+        switch (_result) {
+            case Result::value:
+                if constexpr(std::is_reference_v<T>) {
                     return *_value;
                 } else {
                     return _value;
                 }
+            case Result::exception: std::rethrow_exception(_exception); break;
+            default: break;
+        }
+        throw await_canceled_exception();
+    }
+
+
+    ///Starts evaluation of deferred future
+    /**
+     * @note DOESN'T CHECK REQUIRED STATE
+     *
+     * @param resume_fn function called to handle resumption of coroutine
+     * @retval true evaluation continues asynchronously
+     * @retval false evaulation is done, future is resolved
+     */
+    template<typename ResumeFn>
+    bool startDeferredEvaluation(ResumeFn &&resume_fn) noexcept {
+        State new_state = State::evaluating;
+        _state.store(new_state, std::memory_order_acquire);
+        auto coro = _deferred(promise_t(this));
+        resume_fn(coro);
+        std::destroy_at(&_deferred);
+        return _state.compare_exchange_strong(new_state, State::pending, std::memory_order_release);
+
+    }
+
+    ///Initializes deferred evaluation
+    /**
+     * @param fn function which is called for deferred evaluation
+     *
+     * @note future must be in resolved state.
+     */
+    template<std::invocable<promise_t> Fn>
+    void setDeferredEvaluation(Fn &&fn) {
+        if constexpr(std::is_convertible_v<std::invoke_result_t<Fn, promise_t>, coro_handle>) {
+            State old = State::resolved;
+            if (!_state.compare_exchange_strong(old,State::deferred, std::memory_order_relaxed)) {
+                throw still_pending_exception();
+            }
+            try {
+                std::construct_at(&_deferred, std::forward<Fn>(fn));
+                return;
+            } catch (...) {
+                _state.store(old, std::memory_order_relaxed);
+                throw;
+            }
+        } else {
+            setDeferredEvaluation([xfn = std::move(fn)](promise_t prom) mutable->coro_handle{
+                xfn(std::move(prom));
+                return {};
+            });
+        }
+    }
+
+    template<typename ... Args>
+    void set_value(Args && ... args) {
+        clearStorage();
+        std::construct_at(&_value, std::forward<Args>(args)...);
+        _result = Result::value;
+    }
+
+    void set_exception(std::exception_ptr e) {
+        clearStorage();
+        std::construct_at(&_exception, std::move(e));
+        _result = Result::exception;
+    }
+
+    void set_resolved() {
+        auto coro = resolve();
+        if (coro) coro.resume();
+    }
+
+    coro_handle resolve_symmetric_transfer() {
+        auto coro = resolve();
+        if (coro) return coro;
+        else return std::noop_coroutine();
+    }
+
+    coro_handle resolve() noexcept {
+        State st = _state.exchange(State::resolved);
+        _state.notify_all();
+        if (st == State::awaited) {
+            auto coro = _awaiter(std::move(*this));
+            std::destroy_at(&_awaiter);
+            return coro;
+        }
+        return {};
+    }
+
+    template<typename Awt, typename ResumeFn >
+    bool register_awaiter(Awt &&awt, ResumeFn &&resumeFn) {
+        State st = _state.exchange(State::evaluating);
+        switch (st) {
+            case State::resolved: _state.store(st);
+                                  return false;
+            case State::pending:
+                std::construct_at(&_awaiter, std::forward<Awt>(awt));
+                break;
+            default:
+            case State::evaluating:
+                throw still_pending_exception();
+            case State::awaited:
+                std::destroy_at(&_awaiter);
+                std::construct_at(&_awaiter, std::forward<Awt>(awt));
+                break;
+            case State::deferred:
+                return startDeferredEvaluation(resumeFn)
+                        && register_awaiter(std::forward<Awt>(awt),
+                                            std::forward<ResumeFn>(resumeFn));
+        }
+        st = State::evaluating;
+        if (!_state.compare_exchange_strong(st, State::awaited)) {
+            std::destroy_at(&_awaiter);
+            return false;
+        }
+        return true;
+    }
+
+    void checkInProgress() {
+        if (is_in_progress()) throw still_pending_exception();
+    }
+    friend class _details::coro_promise_base<T>;
+    friend class promise<T>;
+};
+
+
+template<typename T>
+class deferred_future: public future<T> {
+public:
+
+    using promise_t = typename future<T>::promise_t;
+    using State = typename future<T>::State;
+    using Result = typename future<T>::Result;
+    using future<T>::future;
+
+    template<std::invocable<promise_t> Fn>
+    deferred_future(Fn &&fn) {
+        this->setDeferredEvaluation(std::forward<Fn>(fn));
+    }
+    deferred_future(deferred_future &&other) {
+        other.checkInProgress();
+        if (other._state == State::deferred) {
+            std::construct_at(&this->_deferred, std::move(other._deferred));
+            this->_state = State::deferred;
+        }
+        switch (other._result) {
+            case Result::value: std::construct_at(&this->_value, std::move(other._value)); break;
+            case Result::exception: std::construct_at(&this->_exception, std::move(other._exception)); break;
+            default: break;
+        }
+        this->_result = other._result;
+    }
+
+    deferred_future &operator=(deferred_future &&other) {
+        if (this != &other){
+            this->checkInProgress();
+            other.checkInProgress();
+            std::destroy_at(this);
+            std::construct_at(this, std::move(other));
+        }
+        return *this;
+    }
+
+    ///convert deferred future to future
+    operator future<T>() {
+        if (this->_state == State::deferred) {
+            return [&](auto promise) {
+                auto coro = this->_deferred(std::move(promise));
+                if (coro) coro.resume();
+                std::destroy_at(&this->_deferred);
+                this->_state = State::resolved;
+            };
+        } else if (this->_state == State::resolved) {
+            switch (this->_result) {
+                case Result::value:return std::move(this->_value);
+                case Result::exception: return std::move(this->_exception);
+                default: return {};
+            }
+        } else {
+            throw still_pending_exception();
         }
     }
 
 
-    void clear_storage() {
-        switch (_state) {
-            default:break;
-            case value: std::destroy_at(&_value);break;
-            case exception: std::destroy_at(&_exception);break;
+};
+
+namespace _details {
+
+template<typename T>
+class coro_promise_base {
+protected:
+    future<T> *fut = nullptr;
+
+    std::coroutine_handle<> set_resolved() const {
+        return fut->resolve_symmetric_transfer();
+    }
+    template<typename ... Args>
+    void set_value(Args && ... args) const {
+        if (fut) fut->set_value(std::forward<Args>(args)...);
+    }
+public:
+    void unhandled_exception() {
+        if (fut) fut->set_exception(std::current_exception());
+    }
+
+};
+
+
+template<typename T>
+class coro_promise: public coro_promise_base<T> {
+public:
+    template<std::convertible_to<T> Arg>
+    void return_value(Arg &&arg) {
+        this->set_value(std::forward<Arg>(arg));
+    }
+
+};
+
+template<>
+class coro_promise<void>: public coro_promise_base<void> {
+public:
+    void return_void() {
+        this->set_value();
+    }
+
+};
+
+}
+
+///Future which can be shared (by copying - like shared_ptr)
+/**
+ * Each instance of the shared future can be awaited or can install a callback function.
+ * So this allows to have multiple awaiters on signle future. The shared future can
+ * be constructed by similar wait as future, you can retrieve promise<T> or you can
+ * convert future<T> to shared_future<T> by passing a function call returning future<T>
+ * to a constructor of shared_future<T>
+ *
+ * @code
+ * future<int> foo(...);
+ *
+ * shared_future<int> fut( [&]{return foo(...);} );
+ * @endcode
+ *
+ * @tparam T
+ */
+template<typename T>
+class shared_future {
+public:
+
+    /*
+     * +----------------+
+     * |  shared_ptr    |---------------------> +----------------+
+     * +----------------+                       |                |
+     * | _next - l.list |                       |                |
+     * +----------------+                       |    future<T>   |
+     * | _state         |                       |                |
+     * +----------------+                       |                |
+     * |                |                       +----------------+
+     * | _awaiter/cb    |                       | chain - l.list |
+     * |                |                       +----------------+
+     * +----------------+
+     *
+     *
+     *
+     */
+
+
+    using value_type = typename future<T>::value_type;
+    using value_store_type = typename future<T>::value_store_type;
+    using awaiter_cb = function<std::coroutine_handle<>(future<T> &)>;
+
+    shared_future() = default;
+    template<typename ... Args>
+    requires std::is_constructible_v<future<T>, Args...>
+    shared_future(Args && ...args) {
+        _shared_future = std::make_shared<Shared>(std::forward<Args>(args)...);
+        if (_shared_future->is_pending()) _shared_future->init_callback(_shared_future);
+    }
+
+    shared_future(const shared_future &other):_shared_future(other._shared_future) {}
+    shared_future &operator=(const shared_future &other) {
+        this->_shared_future = other._shared_future;
+        return *this;
+    }
+
+    ~shared_future() {
+        check_in_progress();
+    }
+
+    promise<T> get_promise() {
+        _shared_future = std::make_shared<Shared>();
+        promise<T> p = _shared_future->get_promise();
+        _shared_future->init_callback(_shared_future);
+        return p;
+    }
+
+    template<std::invocable<future<T> &> Fn>
+    bool set_callback(Fn &&fn) {
+        using DFn = std::decay_t<Fn>;
+        if constexpr(std::is_same_v<std::invoke_result_t<Fn, future<T> &>, std::coroutine_handle<> >) {
+            auto st = _state.exchange(State::unused);
+            if (st == State::notified) return false;
+            if (st == State::awaited) {
+                std::destroy_at(&_awaiter);
+            }
+            std::construct_at(&_awaiter, std::forward<Fn>(fn));
+            auto st2 = State::unused;
+            if (_state.compare_exchange_strong(st2, State::awaited)) {
+                if (st == State::unused) return _shared_future->register_target(this);
+                return true;
+            }
+            std::destroy_at(&_awaiter);
+            return false;
+        } else {
+            return set_callback([fn = DFn(std::forward<Fn>(fn))](future<T> &f) -> std::coroutine_handle<> {
+                fn(f);
+                return {};
+            });
         }
     }
 
-    friend class ::coro::promise<T>;
-    friend struct async_promise_base<T>;
-    friend class lazy_future<T>;
+    template<std::invocable<> Fn>
+    bool set_callback(Fn &&fn) {
+        using DFn = std::decay_t<Fn>;
+        if constexpr(std::is_same_v<std::invoke_result_t<Fn>, std::coroutine_handle<> >) {
+            return set_callback([fn = DFn(std::forward<Fn>(fn))](future<T> &) -> std::coroutine_handle<> {
+                return fn();
+            });
+        } else {
+            return set_callback([fn = DFn(std::forward<Fn>(fn))](future<T> &) -> std::coroutine_handle<> {
+                fn();
+                return {};
+            });
+        }
+    }
 
+    ///Perform synchronous wait on resolution
+    /**
+     * Blocks execution until future is resolved. If the future is deferred, the
+     * evaluation is started now
+     */
+    void wait() {
+        _shared_future->wait();
+    }
+
+
+    ///Retrieves value, performs synchronous wait
+    T get() {
+        wait();
+        return _shared_future->get();
+    }
+
+
+    ///Retrieves value, performs synchronous wait
+    operator value_store_type(){
+        wait();
+        return *_shared_future;
+    }
+
+    ///Determines pending status
+    /**
+     * @retval true future is pending, including deferred state
+     * @retval false future is resolved
+     */
+    bool is_pending() const {
+        return _shared_future && _shared_future->is_pending();
+    }
+
+    ///Determine in progress status
+    /**
+     * @retval true future is being evaluated (evaluation is performed asynchronously)
+     * @retval false future is dormant, it is either resolved or deferred
+     */
+    bool is_in_progress() const {
+        return _shared_future && _shared_future->is_in_progress();
+    }
+
+
+    ///Determine whether an awaiter is set
+    /** @retval true future has awaiter set
+     *  @retval false there is no awaiter
+     */
+    bool is_awaited() const {
+        return _state.load(std::memory_order_relaxed) == State::awaited;
+    }
+
+    ///co_await support, returns true, if value is ready (resolved)
+    bool await_ready() const {
+        return !_shared_future || _shared_future->await_ready();
+    }
+
+    ///co_await support, called with suspended coroutine
+    /**
+     * the function registers coroutine to be awaken once the future is resolved.
+     * It is registered as an awaiter
+     *
+     * @param h handle of suspended coroutine waiting for result
+     * @return handle of coroutine to wakeup. This can be for example deferred
+     * evaluation if it is registered as a coroutine. The called must resume
+     * the coroutine. function returns std::noop_coroutine if there is no
+     * such coroutine
+     */
+    bool await_suspend(std::coroutine_handle<> h) {
+        return set_callback([h]{return h;});
+    }
+
+    ////co_await support, called by resumed coroutine to retrieve a value
+    T await_resume() {
+        return _shared_future->await_resume();
+    }
+
+    template<bool flag = true>
+    class has_value_awaiter {
+    public:
+        has_value_awaiter(shared_future &owner):_owner(owner) {}
+        has_value_awaiter(has_value_awaiter &&) = default;
+        has_value_awaiter &operator=(has_value_awaiter &&) = delete;
+
+        bool await_ready() const {return _owner.await_ready(); }
+        bool await_suspend(std::coroutine_handle<> h) {return _owner.await_suspend(h);}
+        bool await_resume() const {return _owner._shared_future->has_value();}
+
+        has_value_awaiter<!flag> operator!() const {return _owner;}
+        operator bool() {
+            _owner.wait();
+            return await_resume();
+        }
+
+    protected:
+        shared_future &_owner;
+    };
+
+    ///Determines whether future has a value (was not canceled)
+    /**
+     * @return awaitable object. A coroutine must co_await on result to
+     * determine the state. Non-coroutine can convert this value to boolean to
+     * retrieve the state. In this case, synchronous waiting is performed.
+     *  The return value also support operator ! to retrieve inverted value.
+     *
+     *  The function is intended to co_await on a future and detect canceled
+     *  state without throwing an exception. To retrieve value later, the
+     *  coroutine can safely use get() or await_resume()
+     *
+     *  @code
+     *  future<int> fut = doSomething();
+     *  if (co_await !fut.hasValue()) {
+     *      std::cerr << "Canceled" << std::endl;
+     *  } else {
+     *      int val = fut.get();
+     *      std::cout << "Result:" << val << std::endl;
+     *  }
+     *
+     *
+     *  @retval true future has value
+     *  @retval false future has been canceled
+     *
+     */
+    has_value_awaiter<> has_value() {
+        return *this;
+    }
+
+
+
+
+protected:
+
+    class Shared: public future<T> {
+    public:
+
+        using future<T>::future;
+
+        static void init_callback(std::shared_ptr<Shared> self) {
+            if (!self->set_callback([self]() -> std::coroutine_handle<> {
+                return self->notify_targets();
+            })) {
+                self->_await_chain = disabled_slot;
+            }
+        }
+
+        std::coroutine_handle<> notify_targets() {
+            auto n = _await_chain.exchange(disabled_slot);
+            return n?notify_targets(n):nullptr;
+        }
+
+        static std::coroutine_handle<> notify_targets(shared_future *list) {
+            if (list->_next) {
+                auto c1 = notify_targets(list->_next);
+                auto c2 = list->activate();
+                if (c1) {
+                    if (c2) {
+                        c1.resume();
+                        return c2;
+                    }
+                    return c1;
+                }
+                return c2;
+            } else {
+                return list->activate();
+            }
+        }
+
+        bool register_target(shared_future *item) {
+            while (!_await_chain.compare_exchange_strong(item->_next, item)) {
+                if (item->_next == disabled_slot) return false;
+            }
+            return true;
+        }
+
+
+    protected:
+        static shared_future * disabled_slot;
+        std::atomic<shared_future *> _await_chain;
+    };
+
+    enum class State {
+        ///awaiter is not set
+        unused,
+        ///awaiter is set
+        awaited,
+        ///notification has been sent, awaiter is not set
+        notified
+    };
+
+
+    std::shared_ptr<Shared> _shared_future;
+    shared_future *_next = nullptr;
+    std::atomic<State> _state = {State::unused};
+
+    union {
+        awaiter_cb _awaiter;
+    };
+
+    std::coroutine_handle<> activate() {
+        auto st = _state.exchange(State::notified);
+        if (st == State::awaited) {
+            auto coro = _awaiter(*_shared_future);
+            std::destroy_at(&_awaiter);
+            return coro;
+        }
+        return {};
+    }
+
+    void check_in_progress() {
+        if (_state.load(std::memory_order_relaxed) == State::awaited) {
+            throw still_pending_exception();
+        }
+    }
 
 };
 
 template<typename T>
-class lazy_future: public future_tag {
-public:
-
-    using promise =typename future<T>::promise;
-    using target_type = typename future<T>::target_type;
-    using unique_target_type = typename future<T>::unique_target_type;
-    using voidless_type = typename future<T>::voidless_type;
-    using construct_type = typename future<T>::construct_type;
-
-    using promise_target_type = target<promise &&>;
-    using unique_promise_target_type = unique_target<promise_target_type>;
-    using ret_type = typename future<T>::ret_type;
-    using cast_ret_type = typename future<T>::cast_ret_type;
-
-    using promise_type = async_promise_type<T>;
-
-    lazy_future() = default;
-    lazy_future(promise_target_type &t):_lazy_target(&t) {};
-    lazy_future(unique_promise_target_type t):_lazy_target(t.release()) {}
-
-    template<invocable_with_result<void, promise> Fn>
-    lazy_future(Fn &&fn):_lazy_target(target_callback<promise_target_type>(std::forward<Fn>(fn))) {}
-    template<invocable_with_result<lazy_future> Fn>
-    lazy_future(Fn &&fn):lazy_future(fn()) {}
-
-    lazy_future(voidless_type val):_base(std::move(val)) {}
-    lazy_future(std::exception e):_base(std::move(e)) {}
-
-    lazy_future(lazy_future &&other):_base([&]{return move_if_not_pending(other);})
-                                , _lazy_target(other._lazy_target.exchange(nullptr, std::memory_order_relaxed)) {}
-    lazy_future &operator=(lazy_future &&other) {
-        if (this != &other) {
-            _base<<([&]{return move_if_not_pending(other);});
-            _lazy_target.store(other._lazy_target.exchange(nullptr, std::memory_order_relaxed));
-        }
-        return *this;
-    }
-
-    ~lazy_future() {
-        const promise_target_type *v = _lazy_target.exchange(nullptr, std::memory_order_relaxed);
-        if (v) v->activate_resume(promise());
-    }
-    bool is_deferred() const {return _lazy_target.load(std::memory_order_relaxed) != nullptr;}
-    bool is_pending() const {return is_deferred() || _base.is_pending();}
-
-    promise get_promise() {return _base.get_promise();}
-
-    bool evaluate() {
-        const promise_target_type *v = _lazy_target.exchange(nullptr, std::memory_order_relaxed);
-        if (v) {
-            v->activate_resume(get_promise());
-            return true;
-        }
-        return false;
-
-    }
-    void wait() noexcept {
-        evaluate();
-        _base.wait();
-    }
-    ret_type get() {
-        evaluate();
-        return _base.get();
-    }
-
-    operator cast_ret_type() {
-        evaluate();
-        return _base.operator cast_ret_type();
-    }
-    operator future<T>() {
-        const promise_target_type *v = _lazy_target.exchange(nullptr, std::memory_order_relaxed);
-        if (v) {
-            return [&](auto promise) {
-                v->activate_resume(std::move(promise));
-            };
-        }
-        return future<T>();
-    }
-    operator future<T> & () & {
-        const promise_target_type *v = _lazy_target.exchange(nullptr, std::memory_order_relaxed);
-        if (v) {
-            v->activate_resume(get_promise());
-        }
-        return _base;
-    }
-
-    bool register_target_async(target_type &t) {
-        const promise_target_type *pt = _lazy_target.exchange(nullptr);
-        if (pt) {
-            auto prom = _base.get_promise();
-            _base.register_target_async(t);
-            pt->activate_resume(std::move(prom));
-            return true;
-        } else {
-            return _base.register_target_async(t);
-        }
-
-    }
-    bool register_target(target_type &t) {
-        if (register_target_async(t)) return true;
-        t.activate_resume(&_base);
-        return false;
-
-    }
-    bool register_target_async(unique_target_type t) {
-        auto ptr = t.release();
-        if (register_target_async(ptr)) return true;
-        delete ptr;
-        return false;
-    }
-    bool register_target(unique_target_type t) {
-        return register_target(t.release());
-    }
-
-    template<typename Fn>
-    bool operator >> (Fn &&fn) {
-        return register_target(target_callback<target_type>(std::forward<Fn>(fn)));
-    }
-
-    template<bool expected>
-    class ready_state_awaiter {
-    public:
-        ready_state_awaiter(lazy_future &owner):_owner(owner) {};
-        ready_state_awaiter(const ready_state_awaiter &) = default;
-        ready_state_awaiter &operator=(const ready_state_awaiter &) = delete;
-
-        bool await_ready() const {
-            return !_owner.is_pending();
-        }
-        std::coroutine_handle<> await_suspend(std::coroutine_handle<> h)  {
-            auto x = _owner.start_evaluation_coro();
-            target_coroutine(_target, h);
-            if (!_owner._base.register_target_async(_target)) return h;
-            return x;
-        }
-        bool await_resume() const {
-            return _owner._base.has_value() == expected;
-        }
-
-        auto operator!() const {return ready_state_awaiter<!expected>(_owner);}
-
-        operator bool() const {
-            _owner.wait();
-            return _owner._base.has_value() == expected;
-        }
-
-    protected:
-        lazy_future &_owner;
-        target_type _target;
-    };
-
-
-    class value_awaiter: public ready_state_awaiter<true> {
-    public:
-        using ready_state_awaiter<true>::ready_state_awaiter;
-        ret_type await_resume() const {
-            return this->_owner._base.get_internal();
-        }
-    };
-
-    ///Retrieves awaitable object which resumes a coroutine once the future is resolved
-    /**
-     * The awaitable object can't throw exception. It eventually returns has_value() state
-     *
-     * @code
-     * Future<T> f = [&](auto promise) {...}
-     * bool is_broken_promise = !co_await f.resolve();
-     * @endcode
-     *
-     * @retval true future is resolved by value or exception
-     * @retval false broken promise
-     */
-    auto has_value() {return ready_state_awaiter<true>(*this);}
-
-
-    ///Retrieves awaitable object to await and retrieve a value (or exception)
-    /**
-     *
-     * @code
-     * Future<T> f = [&](auto promise) {...}
-     * T result = co_await f;
-     * @endcode
-     *
-     */
-    value_awaiter operator co_await() {
-        return value_awaiter(*this);
-    }
-
-    auto operator!(){return ready_state_awaiter<false>(*this);}
-
-    /// visit function
-    /**
-     * @param fn lambda function (template). The type depends on state: T for value, std::exception_ptr for exception, and nullptr_t for no-value
-    */
-    template<typename Fn>
-    auto visit(Fn &&fn) {
-        return _base.visit(std::forward<Fn>(fn));
-    }
-
-
-    template<std::convertible_to<T> X>
-    auto forward(typename future<X>::promise &&p) noexcept {
-        return _base.forward(p);
-    }
-
-    ///Converts pointer on future to pointer to lazy_future
-    /**
-     * Only way how to get pointer to lazy_future from future (as there is no
-     * direct inheritance). Targets used by lazy_future are receiving future, so
-     * you need to call this function to retrieve pointer to lazy_future
-     *
-     * @param fut pointer to future<> object which is result of resolution of lazy_future<>
-     * @return pointer to associated lazy_future<>
-     */
-    static lazy_future *from_future(future<T> *fut) {
-        return reinterpret_cast<lazy_future *>(
-                reinterpret_cast<char *>(fut) - offsetof(lazy_future, _base));
-    }
-
-protected:
-
-    future<T> _base;
-    std::atomic<const promise_target_type *> _lazy_target = {};
-
-    static future<T> move_if_not_pending(lazy_future<T> &other) {
-        if (other._base.is_pending()) throw already_pending_exception();
-        else return other.visit([](auto &&val){
-           using Val = decltype(val);
-           using DecayVal = std::decay_t<Val>;
-           if constexpr(std::is_null_pointer_v<DecayVal>) {
-               return future<T>();
-           } else {
-               return future<T>(std::forward<Val>(val));
-           }
-        });
-    }
-
-
-    std::coroutine_handle<> start_evaluation_coro() {
-        const promise_target_type *t = _lazy_target.exchange(nullptr);
-        if (t) {
-            auto r = t->activate(_base.get_promise());
-            if (!r) r = std::noop_coroutine();
-            return r;
-        } else {
-            return std::noop_coroutine();
-        }
-    }
-
-
-};
-
-template<typename X>
-concept pending_notify = requires(X x) {
-    {x.drop()};
-    {X(x.release())};
-    {*x.release()};
-};
-
-template<auto defval>
-class promise_with_default: public promise<std::decay_t<decltype(defval) > > {
-public:
-    using super = promise<std::decay_t<decltype(defval) > >;
-    using promise<std::decay_t<decltype(defval) > >::promise;
-
-    ~promise_with_default() {
-        if (*this) {
-            (*this)(defval);
-        }
-    }
-};
-
-///construct awaiter as combination future and its awaiter
-/**
- * @tparam Future source future
- *
- * It is useful to return this as result of operator co_await
- */
-template<typename Future>
-class awaiter: public Future, public Future::value_awaiter {
-public:
-
-    template<typename ... Args>
-    requires(std::constructible_from<Future, Args...>)
-    awaiter(Args && ... args)
-        :Future(std::forward<Args>(args)...)
-        ,Future::value_awaiter(*static_cast<Future *>(this)) {}
-
-};
-
-class any_promise {
-public:
-    any_promise() = default;
-    any_promise(const any_promise &) = delete;
-    any_promise &operator=(const any_promise &) = delete;
-
-    template<typename T>
-    static void deleter_fn(void *ptr) {
-        auto *p = reinterpret_cast<promise<T> *>(ptr);
-        std::destroy_at(p);
-    }
-
-    template<typename T>
-    any_promise &operator=(promise<T> &&prom) {
-        if (deleter) deleter(_space);
-        static_assert(sizeof(promise<T>) <= sizeof(_space));
-        std::construct_at(reinterpret_cast<promise<T> *>(_space), std::move(prom));
-        deleter = &deleter_fn<T>;
-        return *this;
-    }
-
-    template<typename T>
-    promise<T> &as() & {
-        if (&deleter_fn<T> != deleter) throw std::logic_error("coro::any_promise - type missmatch");
-        auto *p = reinterpret_cast<promise<T> *>(_space);
-        return *p;
-    }
-
-    template<typename T>
-    promise<T> as() && {
-        if (&deleter_fn<T> != deleter) return promise<T>();
-        auto *p = reinterpret_cast<promise<T> *>(_space);
-        return std::move(*p);
-    }
-
-
-protected:
-    char _space[sizeof(coro::promise<int>)];
-    void (*deleter)(void *ptr) = nullptr;
-};
-
-template<typename ... Args>
-class variant_future: public std::variant<future<Args>...> {
-public:
-
-    template<typename T>
-    future<T> &as() {
-        if (!std::holds_alternative<future<T> >(*this)) {
-            this->template emplace<future<T> >();
-        }
-        return std::get<future<T> >(*this);
-    }
-};
-template<typename ... Args>
-class variant_lazy_future: public std::variant<lazy_future<Args>...> {
-public:
-
-    template<typename T>
-    future<T> &as() {
-        if (!std::holds_alternative<lazy_future<T> >(*this)) {
-            this->template emplace<lazy_future<T> >();
-        }
-        return std::get<lazy_future<T> >(*this);
-    }
-    template<typename T>
-    operator future<T> &() {
-        return as<T>();
-    }
-};
-
-
+inline shared_future<T> * shared_future<T>::Shared::disabled_slot = reinterpret_cast<shared_future<T> *>(1);
 
 }
+#endif /* SRC_CORO_FUTURE_H_ */
