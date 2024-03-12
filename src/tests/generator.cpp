@@ -38,6 +38,34 @@ coro::async<void> async_fibo_test(coro::scheduler &sch) {
     }
 }
 
+coro::async<void> async_fibo_test2(coro::scheduler &sch) {
+    int results[] = {1,1,2,3,5,8,13,21,34,55};
+    auto gen = async_fibo(sch,10);
+    auto iter = std::begin(results);
+    auto val = gen();
+    while (co_await coro::content_type(val) == coro::future_content_type::value) {
+        int v = val;
+        CHECK_EQUAL(v,*iter);
+        val = gen();
+        ++iter;
+    }
+    CHECK(iter == std::end(results));
+}
+
+coro::async<void> async_fibo_test3(coro::scheduler &sch) {
+    int results[] = {1,1,2,3,5,8,13,21,34,55};
+    auto gen = async_fibo(sch,10);
+    auto iter = std::begin(results);
+    auto val = gen();
+    while (co_await !!val) {
+        int v = val;
+        CHECK_EQUAL(v,*iter);
+        val = gen();
+        ++iter;
+    }
+    CHECK(iter == std::end(results));
+}
+
 
 int main() {
     coro::thread_pool pool(1);
@@ -60,4 +88,6 @@ int main() {
     }
 
     async_fibo_test(sch).run();
+    async_fibo_test2(sch).run();
+    async_fibo_test3(sch).run();
 }

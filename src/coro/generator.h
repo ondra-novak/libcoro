@@ -30,7 +30,7 @@ public:
 
     generator_iterator &operator++() {
         _stor = _src();
-        _is_end = !_stor.has_value();
+        _is_end = !_stor;
         return *this;
     }
 

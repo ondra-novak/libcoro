@@ -206,6 +206,26 @@ struct deferred_tag {};
 
 inline constexpr deferred_tag deferred=  {};
 
+
+enum class future_content_type {
+    nothing,
+    value,
+    exception
+};
+
+///Determines content type of the object.
+/**
+ * @tparam T type of object. Currently supported are future, deferred_future and shared_future.
+ * Result of operation is future_content_type
+ *
+ * @code
+ * future<int> myfut = ....
+ * future_content_type ct = co_await content_type(myfut);
+ * @endcode
+ *
+ */
+template<typename T> class content_type;
+
 template<typename T>
 class [[nodiscard]] future {
 public:
@@ -540,58 +560,6 @@ public:
         }
     }
 
-    template<bool flag = true>
-    class has_value_awaiter {
-    public:
-        has_value_awaiter(future &owner):_owner(owner) {}
-        has_value_awaiter(has_value_awaiter &&) = default;
-        has_value_awaiter &operator=(has_value_awaiter &&) = delete;
-
-        bool await_ready() const {return _owner.await_ready(); }
-        coro_handle await_suspend(coro_handle h) {return _owner.await_suspend(h);}
-        bool await_resume() const {return (_owner._result != Result::not_set) == flag;}
-
-        has_value_awaiter<!flag> operator!() const {return _owner;}
-        operator bool() {
-            _owner.wait();
-            return await_resume();
-        }
-
-    protected:
-        future &_owner;
-    };
-
-    ///Determines whether future has a value (was not canceled)
-    /**
-     * @return awaitable object. A coroutine must co_await on result to
-     * determine the state. Non-coroutine can convert this value to boolean to
-     * retrieve the state. In this case, synchronous waiting is performed.
-     *  The return value also support operator ! to retrieve inverted value.
-     *
-     *  The function is intended to co_await on a future and detect canceled
-     *  state without throwing an exception. To retrieve value later, the
-     *  coroutine can safely use get() or await_resume()
-     *
-     *  @code
-     *  future<int> fut = doSomething();
-     *  if (co_await !fut.has_value()) {
-     *      std::cerr << "Canceled" << std::endl;
-     *  } else {
-     *      int val = fut.get();
-     *      std::cout << "Result:" << val << std::endl;
-     *  }
-     *
-     *
-     *  @retval true future has value
-     *  @retval false future has been canceled
-     *
-     */
-    has_value_awaiter<> has_value() {
-        return *this;
-    }
-
-
-
 
 protected:
 
@@ -778,6 +746,7 @@ protected:
     }
     friend class _details::coro_promise_base<T>;
     friend class promise<T>;
+    friend class content_type<future<T> >;
 };
 
 
@@ -1067,56 +1036,6 @@ public:
         return _shared_future->await_resume();
     }
 
-    template<bool flag = true>
-    class has_value_awaiter {
-    public:
-        has_value_awaiter(shared_future &owner):_owner(owner) {}
-        has_value_awaiter(has_value_awaiter &&) = default;
-        has_value_awaiter &operator=(has_value_awaiter &&) = delete;
-
-        bool await_ready() const {return _owner.await_ready(); }
-        bool await_suspend(std::coroutine_handle<> h) {return _owner.await_suspend(h);}
-        bool await_resume() const {return _owner._shared_future->has_value();}
-
-        has_value_awaiter<!flag> operator!() const {return _owner;}
-        operator bool() {
-            _owner.wait();
-            return await_resume();
-        }
-
-    protected:
-        shared_future &_owner;
-    };
-
-    ///Determines whether future has a value (was not canceled)
-    /**
-     * @return awaitable object. A coroutine must co_await on result to
-     * determine the state. Non-coroutine can convert this value to boolean to
-     * retrieve the state. In this case, synchronous waiting is performed.
-     *  The return value also support operator ! to retrieve inverted value.
-     *
-     *  The function is intended to co_await on a future and detect canceled
-     *  state without throwing an exception. To retrieve value later, the
-     *  coroutine can safely use get() or await_resume()
-     *
-     *  @code
-     *  future<int> fut = doSomething();
-     *  if (co_await !fut.hasValue()) {
-     *      std::cerr << "Canceled" << std::endl;
-     *  } else {
-     *      int val = fut.get();
-     *      std::cout << "Result:" << val << std::endl;
-     *  }
-     *
-     *
-     *  @retval true future has value
-     *  @retval false future has been canceled
-     *
-     */
-    has_value_awaiter<> has_value() {
-        return *this;
-    }
-
 
     void reset() {
         _shared_future.reset();
@@ -1206,10 +1125,157 @@ protected:
         }
     }
 
+    friend class content_type<shared_future<T> >;
+
 };
 
 template<typename T>
 inline shared_future<T> * shared_future<T>::Shared::disabled_slot = reinterpret_cast<shared_future<T> *>(1);
 
+
+
+template<typename T>
+class content_type<future<T> > {
+public:
+    content_type(future<T> &owner):_owner(owner) {}
+    content_type(const content_type &other) = default;
+    content_type &operator=(const content_type &other) = delete;
+
+    bool await_ready() const noexcept {return _owner.await_ready();}
+    auto await_suspend(std::coroutine_handle<> h)  noexcept {return _owner.await_suspend(h);}
+    future_content_type await_resume() const noexcept {
+        return static_cast<future_content_type>(static_cast<int>(_owner._result));
+    }
+    operator future_content_type() {
+        _owner.wait();
+        return await_resume();
+    }
+
+protected:
+    future<T> &_owner;
+};
+
+
+template<typename T>
+class content_type<deferred_future<T> >: public content_type<future<T> > {
+public:
+    using content_type<future<T> >::content_type;
+};
+
+template<typename T>
+class content_type<shared_future<T> > {
+public:
+    content_type(shared_future<T> &owner):_owner(owner) {}
+    content_type(const content_type &other) = default;
+    content_type &operator=(const content_type &other) = delete;
+
+    bool await_ready() const noexcept {return _owner.await_ready();}
+    auto await_suspend(std::coroutine_handle<> h)  noexcept {return _owner.await_suspend(h);}
+    future_content_type await_resume() const noexcept {
+        content_type ct(*_owner._shared_future);
+        return ct.await_resume();
+    }
+    operator future_content_type() {
+        _owner.wait();
+        return await_resume();
+    }
+
+protected:
+    shared_future<T> &_owner;
+};
+
+
+///Implements awaiter which tests content type of the future and returns bool
+/**
+ *
+ * @tparam T type of object, can be future, shared_future, or deferred_future
+ * @tparam cmp specifies value of content type to compare
+ * @tparam need specifies result of comparison we need, (and then true is returned)
+ *
+ * @code
+ * //wait and determine, whether future has value
+ * bool has_value = co_await test_content_type_awt<future<T>, future_content_type::nothing, false>(myfut);
+ * @endcode
+ *
+ * @see operator!
+ *
+ */
+template<typename T, bool need>
+class test_content_type_awt: public content_type<T> {
+public:
+    test_content_type_awt(T &v, future_content_type cmp) :content_type<T>(v),cmp(cmp) {}
+    using content_type<T>::content_type;
+    bool await_resume() const noexcept {
+        return (content_type<T>::await_resume() == cmp) == need;
+    }
+    auto operator !() const {return test_content_type_awt<T, !need>(static_cast<T &>(this->_owner), cmp);}
+    operator bool() {
+        this->_owner.wait();
+        return await_resume();
+    }
+
+protected:
+    future_content_type cmp;
+};
+
+template<typename T>
+content_type(future<T> &) -> content_type<future<T> >;
+template<typename T>
+content_type(deferred_future<T> &) -> content_type<deferred_future<T> >;
+template<typename T>
+content_type(shared_future<T> &) -> content_type<shared_future<T> >;
+
+
+///awaitable test which determines, whether future is resolved without a value (canceled)
+/**
+ * @param fut future to test
+ * @retval true future is resolved empty
+ * @retval false future is resolved with value
+ *
+ * You can use ! to reverse result before co_await
+ *
+ * @code
+ * bool has_value = co_await !!fut;
+ * @endcode
+ *
+ */
+template<typename T>
+test_content_type_awt<future<T>, true> operator!(future<T> &fut) {return {fut, future_content_type::nothing};}
+///awaitable test which determines, whether future is resolved without a value (canceled)
+/**
+ * @param fut future to test
+ * @retval true future is resolved empty
+ * @retval false future is resolved with value
+ *
+ * You can use ! to reverse result before co_await
+ *
+ * @code
+ * bool has_value = co_await !!fut;
+ * @endcode
+ *
+ */
+template<typename T>
+test_content_type_awt<deferred_future<T>, true> operator!(deferred_future<T> &fut) {return {fut, future_content_type::nothing};}
+///awaitable test which determines, whether future is resolved without a value (canceled)
+/**
+ * @param fut future to test
+ * @retval true future is resolved empty
+ * @retval false future is resolved with value
+ *
+ * You can use ! to reverse result before co_await
+ *
+ * @code
+ * bool has_value = co_await !!fut;
+ * @endcode
+ *
+ */
+template<typename T>
+test_content_type_awt<shared_future<T>, true> operator!(shared_future<T> &fut) {return {fut, future_content_type::nothing};}
+
+
+
+
+
 }
+
 #endif /* SRC_CORO_FUTURE_H_ */
