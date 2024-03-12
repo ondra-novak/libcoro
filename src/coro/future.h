@@ -206,25 +206,42 @@ struct deferred_tag {};
 
 inline constexpr deferred_tag deferred=  {};
 
+namespace _details {
 
-enum class future_content_type {
-    nothing,
-    value,
-    exception
-};
+    template<typename T>
+    class wait_awaiter {
+    public:
+        wait_awaiter(T *fut):self(fut) {}
+        wait_awaiter(const wait_awaiter &other) = delete;
+        wait_awaiter &operator=(const wait_awaiter &other) = delete;
+        ~wait_awaiter() {wait_now();}
+        bool await_ready() const noexcept {return self->await_ready();}
+        auto await_suspend(std::coroutine_handle<> h) noexcept {return self->await_suspend(h);}
+        void await_resume() const noexcept {}
+    protected:
+        T *self;
+        void wait_now() {
+            self->wait_internal();
+        }
 
-///Determines content type of the object.
-/**
- * @tparam T type of object. Currently supported are future, deferred_future and shared_future.
- * Result of operation is future_content_type
- *
- * @code
- * future<int> myfut = ....
- * future_content_type ct = co_await content_type(myfut);
- * @endcode
- *
- */
-template<typename T> class content_type;
+    };
+
+    template<typename T, bool flag>
+    class [[nodiscard]] has_value_awaiter: public wait_awaiter<T> {
+    public:
+        using wait_awaiter<T>::wait_awaiter;
+        bool await_resume() const noexcept {
+            return this->self->has_value() == flag;
+        }
+        has_value_awaiter<T, !flag> operator !() const {return this->self;}
+        operator bool() {
+            this->wait_now();
+            return await_resume();
+        }
+    };
+
+}
+
 
 template<typename T>
 class [[nodiscard]] future {
@@ -258,7 +275,8 @@ public:
     using coro_handle = std::coroutine_handle<>;
     using awaiter_type = function<coro_handle(future &&)>;
     using deferred_eval_fn_type = function<coro_handle(promise_t)>;
-
+    using wait_awaiter = _details::wait_awaiter<future>;
+    using canceled_awaiter = _details::has_value_awaiter<future,false>;
 
     future() {/*can't be default*/}
 
@@ -436,19 +454,12 @@ public:
     ///Perform synchronous wait on resolution
     /**
      * Blocks execution until future is resolved. If the future is deferred, the
-     * evaluation is started now
+     * evaluation is started now.
+     *
+     * Result is awaitable. You can use co_await .wait() to await on resolution without
+     * retrieving the value (or throw exceptionb)
      */
-    void wait() {
-        auto st = _state.load(std::memory_order_acquire);
-        while (st != State::resolved) {
-            if (st == State::deferred) {
-                startDeferredEvaluation([](auto c){c.resume();});
-            } else {
-                _state.wait(st);
-            }
-            st = _state.load(std::memory_order_acquire);
-        }
-    }
+    wait_awaiter wait() noexcept {return this;}
 
     ///Retrieves value, performs synchronous wait
     T get() && {
@@ -519,7 +530,7 @@ public:
     }
 
     ///co_await support, returns true, if value is ready (resolved)
-    bool await_ready() const {
+    bool await_ready() const noexcept {
         return _state.load(std::memory_order_relaxed) == State::resolved;
     }
 
@@ -534,7 +545,7 @@ public:
      * the coroutine. function returns std::noop_coroutine if there is no
      * such coroutine
      */
-    coro_handle await_suspend(coro_handle h) {
+    coro_handle await_suspend(coro_handle h) noexcept {
         coro_handle retval = {};
         bool st = register_awaiter([h](future &&){return h;},
                          [&retval](coro_handle h){retval = h;});
@@ -560,6 +571,42 @@ public:
         }
     }
 
+    ///Determines, whether future has a value
+    /**
+     * @retval true future has value  or exception
+     * @retval false future has no value nor exception
+     *
+     * @note future must be resolved otherwise undefined (use wait() )
+     */
+    bool has_value() const {
+        return _result != Result::not_set;
+    }
+
+    ///Determines, whether future has exception
+    /**
+     * @retval true future has exception
+     * @retval false future hasn't exception
+     *
+     * @note future must be resolved otherwise undefined (use wait() )
+     */
+    bool has_exception() const {
+        return _result == Result::exception;
+    }
+
+
+    ///awaitable for canceled operation
+    /** Result of this operator is awaitable. It returns whether future has been canceled
+     *
+     * @retval true canceled
+     * @retval false not canceled
+     *
+     * You can invert meaning by applying ! on return value
+     *
+     * @code
+     * if (co_await !!fut) {... fut wasn't canceled...}
+     * @endcode
+     */
+    canceled_awaiter operator!() {return this;}
 
 protected:
 
@@ -573,11 +620,11 @@ protected:
         //future is pending - awaiter is set
         awaited,
         //future is pending - deferred evaluation is current in progress
-        evaluating
+        evaluating,
 
     };
 
-    enum class Result {
+    enum class Result : char{
         //result is not set (yet?)
         not_set,
         //result contains value
@@ -588,6 +635,7 @@ protected:
 
     std::atomic<State> _state = {State::resolved}; //< by default, future is resolved in canceled state
     Result _result = Result::not_set; //< by default, future has no value
+    bool _awaiter_cleanup = false;   //is set to true, if awaiter must be destroyed (in resolved state)
 
     //because deferred and awaited are mutually exclusive,
     //reuse single space for both functions
@@ -608,8 +656,23 @@ protected:
             case Result::exception: std::destroy_at(&_exception);break;
         }
         _result = Result::not_set;
+        if (_awaiter_cleanup) {
+            std::destroy_at(&_awaiter);
+            _awaiter_cleanup = false;
+        }
     }
 
+    void wait_internal() {
+        auto st = _state.load(std::memory_order_acquire);
+        while (st != State::resolved) {
+            if (st == State::deferred) {
+                startDeferredEvaluation([](auto c){c.resume();});
+            } else {
+                _state.wait(st);
+            }
+            st = _state.load(std::memory_order_acquire);
+        }
+    }
 
     auto &getInternal() {
         switch (_result) {
@@ -675,13 +738,17 @@ protected:
 
     template<typename ... Args>
     void set_value(Args && ... args) {
-        clearStorage();
-        if constexpr(std::is_reference_v<T>) {
-            std::construct_at(&_value, &args...);
-        } else {
-            std::construct_at(&_value, std::forward<Args>(args)...);
+        try {
+            clearStorage();
+            if constexpr(std::is_reference_v<T>) {
+                std::construct_at(&_value, &args...);
+            } else {
+                std::construct_at(&_value, std::forward<Args>(args)...);
+            }
+            _result = Result::value;
+        } catch (...) {
+            set_exception(std::current_exception());
         }
-        _result = Result::value;
     }
 
     void set_exception(std::exception_ptr e) {
@@ -705,8 +772,8 @@ protected:
         State st = _state.exchange(State::resolved);
         _state.notify_all();
         if (st == State::awaited) {
+            _awaiter_cleanup = true;
             auto coro = _awaiter(std::move(*this));
-            std::destroy_at(&_awaiter);
             return coro;
         }
         return {};
@@ -745,8 +812,8 @@ protected:
         if (is_in_progress()) throw still_pending_exception();
     }
     friend class _details::coro_promise_base<T>;
+    friend class _details::wait_awaiter<future>;
     friend class promise<T>;
-    friend class content_type<future<T> >;
 };
 
 
@@ -894,6 +961,8 @@ public:
     using value_type = typename future<T>::value_type;
     using value_store_type = typename future<T>::value_store_type;
     using awaiter_cb = function<std::coroutine_handle<>(future<T> &)>;
+    using wait_awaiter = _details::wait_awaiter<shared_future>;
+    using canceled_awaiter = _details::has_value_awaiter<shared_future,false>;
 
     shared_future() {}
     template<typename ... Args>
@@ -963,12 +1032,9 @@ public:
 
     ///Perform synchronous wait on resolution
     /**
-     * Blocks execution until future is resolved. If the future is deferred, the
-     * evaluation is started now
+     * Blocks execution until future is resolved.
      */
-    void wait() {
-        _shared_future->wait();
-    }
+    wait_awaiter wait() {return this;}
 
 
     ///Retrieves value, performs synchronous wait
@@ -1040,6 +1106,42 @@ public:
     void reset() {
         _shared_future.reset();
     }
+
+    ///Determines, whether future has a value
+    /**
+     * @retval true future has value  or exception
+     * @retval false future has no value nor exception
+     *
+     * @note future must be resolved otherwise undefined (use wait() )
+     */
+    bool has_value() const {
+        return _shared_future->has_value();
+    }
+
+    ///Determines, whether future has exception
+    /**
+     * @retval true future has exception
+     * @retval false future hasn't exception
+     *
+     * @note future must be resolved otherwise undefined (use wait() )
+     */
+    bool has_exception() const {
+        return _shared_future->has_exception();
+    }
+
+    ///awaitable for canceled operation
+    /** Result of this operator is awaitable. It returns whether future has been canceled
+     *
+     * @retval true canceled
+     * @retval false not canceled
+     *
+     * You can invert meaning by applying ! on return value
+     *
+     * @code
+     * if (co_await !!fut) {... fut wasn't canceled...}
+     * @endcode
+     */
+    canceled_awaiter operator!()  {return this;}
 
 protected:
 
@@ -1119,159 +1221,24 @@ protected:
         return {};
     }
 
+    void wait_internal() {
+        _shared_future->wait();
+    }
+
+
     void check_in_progress() {
         if (_state.load(std::memory_order_relaxed) == State::awaited) {
             throw still_pending_exception();
         }
     }
 
-    friend class content_type<shared_future<T> >;
+
+    friend class _details::wait_awaiter<shared_future>;
 
 };
 
 template<typename T>
 inline shared_future<T> * shared_future<T>::Shared::disabled_slot = reinterpret_cast<shared_future<T> *>(1);
-
-
-
-template<typename T>
-class content_type<future<T> > {
-public:
-    content_type(future<T> &owner):_owner(owner) {}
-    content_type(const content_type &other) = default;
-    content_type &operator=(const content_type &other) = delete;
-
-    bool await_ready() const noexcept {return _owner.await_ready();}
-    auto await_suspend(std::coroutine_handle<> h)  noexcept {return _owner.await_suspend(h);}
-    future_content_type await_resume() const noexcept {
-        return static_cast<future_content_type>(static_cast<int>(_owner._result));
-    }
-    operator future_content_type() {
-        _owner.wait();
-        return await_resume();
-    }
-
-protected:
-    future<T> &_owner;
-};
-
-
-template<typename T>
-class content_type<deferred_future<T> >: public content_type<future<T> > {
-public:
-    using content_type<future<T> >::content_type;
-};
-
-template<typename T>
-class content_type<shared_future<T> > {
-public:
-    content_type(shared_future<T> &owner):_owner(owner) {}
-    content_type(const content_type &other) = default;
-    content_type &operator=(const content_type &other) = delete;
-
-    bool await_ready() const noexcept {return _owner.await_ready();}
-    auto await_suspend(std::coroutine_handle<> h)  noexcept {return _owner.await_suspend(h);}
-    future_content_type await_resume() const noexcept {
-        content_type ct(*_owner._shared_future);
-        return ct.await_resume();
-    }
-    operator future_content_type() {
-        _owner.wait();
-        return await_resume();
-    }
-
-protected:
-    shared_future<T> &_owner;
-};
-
-
-///Implements awaiter which tests content type of the future and returns bool
-/**
- *
- * @tparam T type of object, can be future, shared_future, or deferred_future
- * @tparam cmp specifies value of content type to compare
- * @tparam need specifies result of comparison we need, (and then true is returned)
- *
- * @code
- * //wait and determine, whether future has value
- * bool has_value = co_await test_content_type_awt<future<T>, future_content_type::nothing, false>(myfut);
- * @endcode
- *
- * @see operator!
- *
- */
-template<typename T, bool need>
-class test_content_type_awt: public content_type<T> {
-public:
-    test_content_type_awt(T &v, future_content_type cmp) :content_type<T>(v),cmp(cmp) {}
-    using content_type<T>::content_type;
-    bool await_resume() const noexcept {
-        return (content_type<T>::await_resume() == cmp) == need;
-    }
-    auto operator !() const {return test_content_type_awt<T, !need>(static_cast<T &>(this->_owner), cmp);}
-    operator bool() {
-        this->_owner.wait();
-        return await_resume();
-    }
-
-protected:
-    future_content_type cmp;
-};
-
-template<typename T>
-content_type(future<T> &) -> content_type<future<T> >;
-template<typename T>
-content_type(deferred_future<T> &) -> content_type<deferred_future<T> >;
-template<typename T>
-content_type(shared_future<T> &) -> content_type<shared_future<T> >;
-
-
-///awaitable test which determines, whether future is resolved without a value (canceled)
-/**
- * @param fut future to test
- * @retval true future is resolved empty
- * @retval false future is resolved with value
- *
- * You can use ! to reverse result before co_await
- *
- * @code
- * bool has_value = co_await !!fut;
- * @endcode
- *
- */
-template<typename T>
-test_content_type_awt<future<T>, true> operator!(future<T> &fut) {return {fut, future_content_type::nothing};}
-///awaitable test which determines, whether future is resolved without a value (canceled)
-/**
- * @param fut future to test
- * @retval true future is resolved empty
- * @retval false future is resolved with value
- *
- * You can use ! to reverse result before co_await
- *
- * @code
- * bool has_value = co_await !!fut;
- * @endcode
- *
- */
-template<typename T>
-test_content_type_awt<deferred_future<T>, true> operator!(deferred_future<T> &fut) {return {fut, future_content_type::nothing};}
-///awaitable test which determines, whether future is resolved without a value (canceled)
-/**
- * @param fut future to test
- * @retval true future is resolved empty
- * @retval false future is resolved with value
- *
- * You can use ! to reverse result before co_await
- *
- * @code
- * bool has_value = co_await !!fut;
- * @endcode
- *
- */
-template<typename T>
-test_content_type_awt<shared_future<T>, true> operator!(shared_future<T> &fut) {return {fut, future_content_type::nothing};}
-
 
 
 

@@ -43,10 +43,12 @@ coro::async<void> async_fibo_test2(coro::scheduler &sch) {
     auto gen = async_fibo(sch,10);
     auto iter = std::begin(results);
     auto val = gen();
-    while (co_await coro::content_type(val) == coro::future_content_type::value) {
+    co_await val.wait();
+    while (val.has_value()) {
         int v = val;
         CHECK_EQUAL(v,*iter);
         val = gen();
+        co_await val.wait();
         ++iter;
     }
     CHECK(iter == std::end(results));

@@ -139,24 +139,18 @@ protected:
 
 
     template<typename Fn, typename Vect, int count = 4>
-    void for_all_from(std::unique_lock<Lock> &lk, Fn &&fn, Vect &vect, std::size_t idx) {
+    static void for_all(std::unique_lock<Lock> &lk, Fn &&fn, Vect &vect) {
         pending_notify ntf_slots[count];
         auto iter = std::begin(ntf_slots);
-        std::size_t sz = vect.size();
-        while (idx < sz && iter != std::end(ntf_slots)) {
-            try {
-                *iter = fn(vect[idx].first);
-            } catch(...) {
-                *iter = vect[idx].first.reject();
-            }
-           ++idx;
+        while (!vect.empty() && iter != std::end(ntf_slots)) {
+            auto &prom = vect.back();
+            *iter = fn(prom.first);
+            ++iter;
+            vect.pop_back();
         }
-        if (idx < sz) {
+        if (!vect.empty()) {
             static constexpr int new_count = count > 1000?count:count*2;
-            for_all_from<Fn, Vect, new_count>(lk,std::forward<Fn>(fn), vect, idx);
-        }
-        else  {
-            vect.clear();
+            for_all<Fn, Vect, new_count>(lk,std::forward<Fn>(fn), vect);
         }
         lk.unlock();
         //dtor of ntf_slots wakes all
@@ -166,7 +160,7 @@ protected:
     template<typename Fn>
     void for_all(Fn &&fn) {
         std::unique_lock lk(_mx);
-        for_all_from(lk, fn, _subscribers, 0);
+        for_all(lk, fn, _subscribers);
     }
 };
 
@@ -190,38 +184,12 @@ public:
      * reference stays valid during connection
      *
      * Once distributor is connected, it starts to push distributed values to
-     * the queue. The coroutine can co_await on the queue's pop() operation. It
+     * the queue. The coroutine can co_await on the queue. It
      * can process results asynchronously without loosing any distributed event
      *
      */
     void subscribe(distributor<T, Lock> &dist) {
         _connection = &dist;
-
-        target_simple_activation(_target, [&](auto) {
-            bool ok = _dist_value.visit([&](auto &&val) {
-                using ValType = decltype(val);
-                using ValNormType = std::decay_t<ValType>;
-                if constexpr (std::is_same_v<ValNormType, std::exception_ptr>) {
-                    this->close(val);
-                    return false;
-                } else if constexpr (std::is_null_pointer_v<ValNormType>) {
-                    this->close();
-                    return false;
-                } else {
-                    try {
-                        this->push(std::forward<ValType>(val));
-                        return true;
-                    } catch (...) {
-                        this->close(std::current_exception());
-                        return false;
-                    }
-                }
-            });
-            if (ok) {
-                charge();
-            }
-
-        });
         charge();
     }
 
@@ -245,12 +213,23 @@ public:
 
 protected:
     future<T> _dist_value;
-    typename future<T>::target_type _target;
     distributor<T, Lock> *_connection = nullptr;
     void charge() {
-        auto prom = _dist_value.get_promise();
-        _dist_value.register_target(_target);
-        _connection->subscribe(std::move(prom), this);
+        _dist_value << [&]{return _connection->subscribe(this);};
+        if (!_dist_value.set_callback([&]{value_ready();})) value_ready();
+    }
+
+    void value_ready() {
+        try {
+            if (_dist_value.has_value()) {
+                this->push(std::move(_dist_value).get());
+                charge();
+            } else {
+                this->close();
+            }
+        } catch (...) {
+            this->close(std::current_exception());
+        }
     }
 };
 

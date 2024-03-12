@@ -1,5 +1,6 @@
-#include <../coro.old/coro_single.h>
-#include <../tests.old/check.h>
+#include "../coro/distributor.h"
+#include "../coro/async.h"
+#include "check.h"
 
 coro::async<void> test_coro(int id, coro::distributor<int> &dist, std::queue<std::pair<int,int > > &r) {
 
@@ -19,7 +20,7 @@ coro::async<void> test_coro2(int id, coro::distributor<int> &dist, std::queue<st
             int val = co_await f;
             r.push({id, val});
         }
-    } catch (const coro::broken_promise_exception &) {
+    } catch (const coro::await_canceled_exception &) {
 
     }
 }
