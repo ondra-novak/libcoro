@@ -216,7 +216,7 @@ protected:
     distributor<T, Lock> *_connection = nullptr;
     void charge() {
         _dist_value << [&]{return _connection->subscribe(this);};
-        if (!_dist_value.set_callback([&]{value_ready();})) value_ready();
+        _dist_value >> [&]{value_ready();};
     }
 
     void value_ready() {

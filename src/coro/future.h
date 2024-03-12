@@ -7,6 +7,7 @@
 
 #include <atomic>
 #include <memory>
+#include <optional>
 
 namespace coro {
 
@@ -273,7 +274,7 @@ public:
     using value_store_type = std::conditional_t<std::is_reference_v<T>,std::add_pointer_t<std::decay_t<T> >,std::conditional_t<std::is_void_v<T>, bool, T> >;
     using cast_return = std::conditional_t<std::is_reference_v<T>, T, value_store_type>;
     using coro_handle = std::coroutine_handle<>;
-    using awaiter_type = function<coro_handle(future &&)>;
+    using awaiter_type = function<coro_handle()>;
     using deferred_eval_fn_type = function<coro_handle(promise_t)>;
     using wait_awaiter = _details::wait_awaiter<future>;
     using canceled_awaiter = _details::has_value_awaiter<future,false>;
@@ -384,70 +385,60 @@ public:
         return promise_t{this};
     }
 
-    ///Sets callback which is called once future is resolved (future &&)
+    ///Sets callback which is called once future is resolved (in future)
     /**
-     * @param fn function to be called, the function must accept (future &&)
-     * and can  optionally return std::coroutine_handle<>. In this case, the
-     * returned handle can be used to switch execution to the coroutine. Another
-     * result is ignored
+     * The function is called only when future is unresolved in time of set.
      *
-     * @retval true callback has been set
-     * @retval false impossible, the future is already resolved. In this case, the
-     * callback CAN BE DESTROYED if was passed as r-value. This can happen,
-     * when future is resolved during copying the callback into the future object
+     * @param fn function. The function can return std::coroutine_handke<>, which
+     * causes that returned coroutine will be resumed. Other return value is ignored.
      *
-     * @note deferred future is evaluated before the callback is set. If the deferred
-     * future is evaluated synchronously, the function returns false as the
-     * future is already resolved
+     * @retval true callback has been set, and will be called
+     * @retval false callback was not set, because future is already resolved.
      *
-     * @note there can be only one awaiter at time (callback or coroutine)
+     * @note There can be only one callback at time
+     *
+     * @note There can be only one callback at time. Attempt to call this function
+     * twice can cause that previous function is destroyed without calling. However
+     * this is way how to replace the callback function before resolution.
      *
      */
-    template<std::invocable<future &&> Fn>
-    bool set_callback(Fn &&fn) {
-        using DFn = std::decay_t<Fn>;
-        if constexpr(std::is_same_v<std::invoke_result_t<Fn, future &&>, coro_handle>) {
-            return register_awaiter(std::forward<Fn>(fn), [](auto h){h.resume();});
-        } else {
-            return set_callback([fn = DFn(std::forward<Fn>(fn))](future &&f) -> coro_handle{
-                fn(std::move(f));
-                return {};
-            });
-        }
+    template<std::invocable<> Fn>
+    [[nodiscard]] bool set_callback(Fn &&fn) {
+        return register_awaiter<false>(std::forward<Fn>(fn), [](auto h){h.resume();});
     }
 
 
-    ///Sets callback which is called once future is resolved ()
+    ///Sets function which is called once future is resolved (always)
     /**
-     * @param fn function to be called, the function doesn't accept any arguments
-     * and can optionally return std::coroutine_handle<>. In this case, the
-     * returned handle can be used to switch execution to the coroutine. Another
-     * result is ignored
+     * The function is called always, regardless on whether the future is already resolved
+     * @param fn function to call when future is resolved
      *
-     * @retval true callback has been set
-     * @retval false impossible, the future is already resolved. In this case, the
-     * callback CAN BE DESTROYED if was passed as r-value. This can happen,
-     * when future is resolved during copying the callback into the future object
+     * @retval true function will be called in future
+     * @retval false function was called immediatelly, because the future was already resolved
      *
-     * @note deferred future is evaluated before the callback is set. If the deferred
-     * future is evaluated synchronously, the function returns false as the
-     * future is already resolved
+     * (you can ignore return value)
      *
-     * @note there can be only one awaiter at time (callback or coroutine)
+     * @note There can be only one callback at time. Attempt to call this function
+     * twice can cause that previous function is destroyed without calling
      */
     template<std::invocable<> Fn>
-    bool set_callback(Fn &&fn) {
-        using DFn = std::decay_t<Fn>;
-        if constexpr(std::is_same_v<std::invoke_result_t<Fn>, coro_handle>) {
-            return set_callback([fn = DFn(std::forward<Fn>(fn))](future &&) -> coro_handle{
-                return fn();
-            });
-        } else {
-            return set_callback([fn = DFn(std::forward<Fn>(fn))](future &&) -> coro_handle{
-                fn();
-                return {};
-            });
-        }
+    bool when_resolved(Fn &&fn) {
+        return register_awaiter<true>(std::forward<Fn>(fn), [](auto h){h.resume();});
+    }
+
+    ///Sets function which is called once future is resolved (always)
+    /**
+     * The function is called always, regardless on whether the future is already resolved
+     * @param fn function to call when future is resolved
+     *
+     * @retval true function will be called in future
+     * @retval false function was called immediatelly, because the future was already resolved
+     *
+     * (you can ignore return value)
+     */
+    template<std::invocable<> Fn>
+    bool operator>>(Fn &&fn) {
+        return when_resolved(std::forward<Fn>(fn));
     }
 
 
@@ -547,9 +538,8 @@ public:
      */
     coro_handle await_suspend(coro_handle h) noexcept {
         coro_handle retval = {};
-        bool st = register_awaiter([h](future &&){return h;},
+        register_awaiter<true>([h]{return h;},
                          [&retval](coro_handle h){retval = h;});
-        if (st) return retval?retval:std::noop_coroutine();
         return h;
     }
 
@@ -656,10 +646,7 @@ protected:
             case Result::exception: std::destroy_at(&_exception);break;
         }
         _result = Result::not_set;
-        if (_awaiter_cleanup) {
-            std::destroy_at(&_awaiter);
-            _awaiter_cleanup = false;
-        }
+        check_awaiter_cleanup();
     }
 
     void wait_internal() {
@@ -773,39 +760,74 @@ protected:
         _state.notify_all();
         if (st == State::awaited) {
             _awaiter_cleanup = true;
-            auto coro = _awaiter(std::move(*this));
+            auto coro = _awaiter();
             return coro;
         }
         return {};
     }
 
-    template<typename Awt, typename ResumeFn >
-    bool register_awaiter(Awt &&awt, ResumeFn &&resumeFn) {
-        State st = _state.exchange(State::evaluating);
-        switch (st) {
-            case State::resolved: _state.store(st);
-                                  return false;
-            case State::pending:
-                std::construct_at(&_awaiter, std::forward<Awt>(awt));
-                break;
-            default:
-            case State::evaluating:
-                throw still_pending_exception();
-            case State::awaited:
-                std::destroy_at(&_awaiter);
-                std::construct_at(&_awaiter, std::forward<Awt>(awt));
-                break;
-            case State::deferred:
-                return startDeferredEvaluation(resumeFn)
-                        && register_awaiter(std::forward<Awt>(awt),
-                                            std::forward<ResumeFn>(resumeFn));
-        }
-        st = State::evaluating;
-        if (!_state.compare_exchange_strong(st, State::awaited)) {
+    void check_awaiter_cleanup() {
+        if (_awaiter_cleanup) {
             std::destroy_at(&_awaiter);
-            return false;
+            _awaiter_cleanup = false;
         }
-        return true;
+    }
+
+
+    template<bool call_if_ready, std::invocable<> Awt, typename ResumeFn >
+    bool register_awaiter(Awt &&awt, ResumeFn &&resumeFn) {
+
+        //determine, whether function returns coroutine_handle
+        if constexpr(std::is_invocable_r_v<std::coroutine_handle<>, Awt>) {
+            //lock awaiter slot
+            State st = _state.exchange(State::evaluating);
+            switch (st) {
+                //already resolved?
+                case State::resolved: _state.store(st); //restore state
+                                      if constexpr(call_if_ready) {
+                                          //call awaiter
+                                          auto h = awt();
+                                          //resume coroutine
+                                          if (h) resumeFn(h);
+                                      }
+                                      return false;
+
+                case State::pending: //<still pending? move awaiter
+                    std::construct_at(&_awaiter, std::forward<Awt>(awt));
+                    break;
+                default:
+                case State::evaluating:  //<locked - this is error
+                    throw still_pending_exception();
+                case State::awaited:   //<already awaited? destroy previous awaiter and construct new one
+                    std::destroy_at(&_awaiter);
+                    std::construct_at(&_awaiter, std::forward<Awt>(awt));
+                    break;
+                case State::deferred: //<deferred ? perform evaluation and try again
+                    return startDeferredEvaluation(resumeFn)
+                            && register_awaiter<call_if_ready>(std::forward<Awt>(awt),
+                                                std::forward<ResumeFn>(resumeFn));
+            }
+            st = State::evaluating; //replace evaluating with awaited
+            if (!_state.compare_exchange_strong(st, State::awaited)) {
+                //if failed, it should be resolved
+                //mark that awaited must be clean up (always)
+                _awaiter_cleanup = true;
+                //call the awaiter if requested
+                if constexpr(call_if_ready) {
+                    auto h = _awaiter();
+                    if (h) resumeFn(h);
+                }
+                //return failure
+                return false;
+            }
+            //awaiter has been set
+            return true;
+        } else {
+            //if not, wrap the function into function returning empty coroutine handle
+            return register_awaiter<call_if_ready>([awt = std::move(awt)]() mutable {
+                awt(); return std::coroutine_handle<>();
+            }, std::forward<ResumeFn>(resumeFn));
+        }
     }
 
     void checkInProgress() {
@@ -960,7 +982,7 @@ public:
 
     using value_type = typename future<T>::value_type;
     using value_store_type = typename future<T>::value_store_type;
-    using awaiter_cb = function<std::coroutine_handle<>(future<T> &)>;
+    using awaiter_cb = function<std::coroutine_handle<>()>;
     using wait_awaiter = _details::wait_awaiter<shared_future>;
     using canceled_awaiter = _details::has_value_awaiter<shared_future,false>;
 
@@ -976,6 +998,7 @@ public:
     shared_future(const shared_future &other):_shared_future(other._shared_future) {}
     shared_future &operator=(const shared_future &other) {
         this->_shared_future = other._shared_future;
+        _state.store(State::unused, std::memory_order_relaxed);
         return *this;
     }
 
@@ -987,48 +1010,47 @@ public:
         _shared_future = std::make_shared<Shared>();
         promise<T> p = _shared_future->get_promise();
         _shared_future->init_callback(_shared_future);
+        _state.store(State::unused, std::memory_order_relaxed);
         return p;
-    }
-
-    template<std::invocable<future<T> &> Fn>
-    bool set_callback(Fn &&fn) {
-        using DFn = std::decay_t<Fn>;
-        if constexpr(std::is_same_v<std::invoke_result_t<Fn, future<T> &>, std::coroutine_handle<> >) {
-            auto st = _state.exchange(State::unused);
-            if (st == State::notified) return false;
-            if (st == State::awaited) {
-                std::destroy_at(&_awaiter);
-            }
-            std::construct_at(&_awaiter, std::forward<Fn>(fn));
-            auto st2 = State::unused;
-            if (_state.compare_exchange_strong(st2, State::awaited)) {
-                if (st == State::unused) return _shared_future->register_target(this);
-                return true;
-            }
-            std::destroy_at(&_awaiter);
-            return false;
-        } else {
-            return set_callback([fn = DFn(std::forward<Fn>(fn))](future<T> &f) -> std::coroutine_handle<> {
-                fn(f);
-                return {};
-            });
-        }
     }
 
     template<std::invocable<> Fn>
     bool set_callback(Fn &&fn) {
         using DFn = std::decay_t<Fn>;
         if constexpr(std::is_same_v<std::invoke_result_t<Fn>, std::coroutine_handle<> >) {
-            return set_callback([fn = DFn(std::forward<Fn>(fn))](future<T> &) -> std::coroutine_handle<> {
-                return fn();
-            });
+            auto st = _state.exchange(State::unused);
+            _awaiter.reset();
+            _awaiter.emplace(std::forward<Fn>(fn));
+            if (st == State::notified) return false;
+            auto st2 = State::unused;
+            if (_state.compare_exchange_strong(st2, State::awaited)) {
+                if (st == State::unused) return _shared_future->register_target(this);
+                return true;
+            }
+            return false;
         } else {
-            return set_callback([fn = DFn(std::forward<Fn>(fn))](future<T> &) -> std::coroutine_handle<> {
+            return set_callback([fn = DFn(std::forward<Fn>(fn))]() -> std::coroutine_handle<> {
                 fn();
                 return {};
             });
         }
     }
+
+    template<std::invocable<> Fn>
+    bool when_resolved(Fn &&fn) {
+        if (!set_callback(std::forward<Fn>(fn))) {
+            auto coro = (*_awaiter)();
+            if (coro) coro.resume();
+            return false;
+        }
+        return true;
+    }
+
+    template<std::invocable<> Fn>
+    bool operator>>(Fn &&fn) {
+        return when_resolved(std::forward<Fn>(fn));
+    }
+
 
     ///Perform synchronous wait on resolution
     /**
@@ -1193,7 +1215,7 @@ protected:
         std::atomic<shared_future *> _await_chain;
     };
 
-    enum class State {
+    enum class State: char {
         ///awaiter is not set
         unused,
         ///awaiter is set
@@ -1206,16 +1228,12 @@ protected:
     std::shared_ptr<Shared> _shared_future;
     shared_future *_next = nullptr;
     std::atomic<State> _state = {State::unused};
-
-    union {
-        awaiter_cb _awaiter;
-    };
+    std::optional<awaiter_cb> _awaiter;
 
     std::coroutine_handle<> activate() {
         auto st = _state.exchange(State::notified);
         if (st == State::awaited) {
-            auto coro = _awaiter(*_shared_future);
-            std::destroy_at(&_awaiter);
+            auto coro = (*_awaiter)();
             return coro;
         }
         return {};
@@ -1231,6 +1249,7 @@ protected:
             throw still_pending_exception();
         }
     }
+
 
 
     friend class _details::wait_awaiter<shared_future>;
