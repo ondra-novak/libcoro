@@ -60,9 +60,7 @@ public:
      */
     template<typename ... Args>
     void publish(Args &&... args) {
-        for_all([&](promise_t &p) {
-            return p(args...);
-        });
+        collect()(std::forward<Args>(args)...);
     }
 
     ///drops all subscribers
@@ -71,9 +69,19 @@ public:
      * broadcast "end of stream"
      */
     void cancel_all() {
-        for_all([&](promise_t &p) {
-            return p.cancel();
-        });
+        collect().cancel();
+    }
+
+    ///reject all with exception
+    void reject_all(std::exception_ptr e) {
+        collect().reject(std::move(e));
+    }
+
+    ///reject all with current exception
+    void reject_all() {
+        auto e = std::current_exception();
+        if (e) reject_all(std::move(e));
+        else cancel_all();
     }
 
     ///subscribe
@@ -137,30 +145,14 @@ protected:
     [[no_unique_address]] Lock _mx;
     std::vector<std::pair<promise_t, ID> > _subscribers;
 
-
-    template<typename Fn, typename Vect, int count = 4>
-    static void for_all(std::unique_lock<Lock> &lk, Fn &&fn, Vect &vect) {
-        pending_notify ntf_slots[count];
-        auto iter = std::begin(ntf_slots);
-        while (!vect.empty() && iter != std::end(ntf_slots)) {
-            auto &prom = vect.back();
-            *iter = fn(prom.first);
-            ++iter;
-            vect.pop_back();
+    promise<T> collect() {
+        std::lock_guard _(_mx);
+        promise<T> p;
+        while (!_subscribers.empty()) {
+            p += _subscribers.back().first;
+            _subscribers.pop_back();
         }
-        if (!vect.empty()) {
-            static constexpr int new_count = count > 1000?count:count*2;
-            for_all<Fn, Vect, new_count>(lk,std::forward<Fn>(fn), vect);
-        }
-        lk.unlock();
-        //dtor of ntf_slots wakes all
-
-    }
-
-    template<typename Fn>
-    void for_all(Fn &&fn) {
-        std::unique_lock lk(_mx);
-        for_all(lk, fn, _subscribers);
+        return p;
     }
 };
 

@@ -6,7 +6,7 @@
 coro::async<void> test_coro(int mult, coro::promise<int> &shared, int &r) {
 
     coro::future<int> f;
-    shared.attach(f.get_promise());
+    shared += f.get_promise();
     int val = co_await f;
     r = mult*val;
 }

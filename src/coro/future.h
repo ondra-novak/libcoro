@@ -230,11 +230,10 @@ public:
         return claim();
     }
 
-    ///Attach other promise to the current promise to allow to control multiple futures from one promise
+    ///Combine two promises into one
     /**
      * Two promises are combined into one and they can be fulfilled together by
-     * single call operation. Requires T copy constructible. Attached promise cannot
-     * be detached later.
+     * single call operation. Requires T copy constructible. There is no reverse operation
      *
      * @param other other promise which is attached
      *
@@ -243,8 +242,9 @@ public:
      *
      * @note order of processing of such promise is not defined - can be random.
      */
+
     template<bool f>
-    void attach(promise<T, f> &&other) {
+    promise &operator+=(promise<T, f> &other) {
         static_assert(future<T>::is_chainable(), "Requires T copy constructible");
         auto fut = other.claim();
         while (fut != nullptr) {
@@ -253,6 +253,29 @@ public:
             x->_chain = nullptr;
             while (!_ptr.compare_exchange_strong(x->_chain, x));
         }
+        return *this;
+    }
+    template<bool f>
+    promise &operator+=(promise<T, f> &&other) {
+        return this->operator+=(other);
+    }
+
+    ///Combine two promises into one
+    /**
+     * Two promises are combined into one and they can be fulfilled together by
+     * single call operation. Requires T copy constructible. There is no reverse operation
+     *
+     * @param other other promise which is attached
+     * @return new promise contains combined promises. Previous objects are left empty
+     *
+     * @note result is current promise controls also attached promise.
+     * You can combine unlimited count of promises into one.
+     *
+     * @note order of processing of such promise is not defined - can be random.
+     */
+    template<bool f>
+    promise operator+(promise<T, f> &other) {
+        return std::move(this->operator+=(other));
     }
 
 protected:
@@ -889,13 +912,14 @@ protected:
     template<typename SchedulerFn>
     void set_resolved(SchedulerFn &&schfn) {
         State st = _state.exchange(State::resolved);
+        auto chain = _chain;
         _state.notify_all();
         if (st == State::awaited) {
             _awaiter_cleanup = true;
             schfn(_awaiter);
         }
         if constexpr(is_chainable()) {
-            if (_chain) _chain->set_resolved(std::forward<SchedulerFn>(schfn));
+            if (chain) chain->set_resolved(std::forward<SchedulerFn>(schfn));
         }
     }
 
