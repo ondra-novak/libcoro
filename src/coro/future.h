@@ -404,7 +404,7 @@ public:
      */
     template<std::invocable<> Fn>
     [[nodiscard]] bool set_callback(Fn &&fn) {
-        return register_awaiter<false>(std::forward<Fn>(fn), [](auto h){h.resume();});
+        return RegAwtRes::constructed_ready == register_awaiter(std::forward<Fn>(fn), [](auto h){h.resume();});
     }
 
 
@@ -422,8 +422,24 @@ public:
      * twice can cause that previous function is destroyed without calling
      */
     template<std::invocable<> Fn>
-    bool when_resolved(Fn &&fn) {
-        return register_awaiter<true>(std::forward<Fn>(fn), [](auto h){h.resume();});
+    bool then(Fn &&fn) {
+        auto res = register_awaiter(std::forward<Fn>(fn), [](auto h){h.resume();});
+        switch (res) {
+            case RegAwtRes::resolved: {
+                if constexpr(std::is_invocable_r_v<std::coroutine_handle<>, Fn>) {
+                    std::coroutine_handle<> coro = fn();
+                    if (coro) coro.resume();
+                } else {
+                    fn();
+                }
+            } return false;
+            case RegAwtRes::constructed_resolved: {
+                auto coro = _awaiter();
+                if (coro) coro.resume();
+            } return false;
+            default:
+                return true;
+        }
     }
 
     ///Sets function which is called once future is resolved (always)
@@ -438,7 +454,7 @@ public:
      */
     template<std::invocable<> Fn>
     bool operator>>(Fn &&fn) {
-        return when_resolved(std::forward<Fn>(fn));
+        return then(std::forward<Fn>(fn));
     }
 
 
@@ -538,8 +554,11 @@ public:
      */
     coro_handle await_suspend(coro_handle h) noexcept {
         coro_handle retval = {};
-        register_awaiter<true>([h]{return h;},
-                         [&retval](coro_handle h){retval = h;});
+        auto cb = [h]{return h;};
+        auto resume_fn = [&retval](coro_handle h){retval = h;};
+        if (RegAwtRes::constructed_ready == register_awaiter(cb, resume_fn)) {
+            return retval;
+        }
         return h;
     }
 
@@ -623,6 +642,17 @@ protected:
         exception,
     };
 
+    enum class RegAwtRes {
+        //awaiter constructed, but future is resolved
+        constructed_resolved,
+        //awaiter constructed and ready
+        constructed_ready,
+        //future resolved, nothing happened
+        resolved
+
+    };
+
+
     std::atomic<State> _state = {State::resolved}; //< by default, future is resolved in canceled state
     Result _result = Result::not_set; //< by default, future has no value
     bool _awaiter_cleanup = false;   //is set to true, if awaiter must be destroyed (in resolved state)
@@ -686,11 +716,16 @@ protected:
      */
     template<typename ResumeFn>
     bool startDeferredEvaluation(ResumeFn &&resume_fn) noexcept {
+        //lock awaiter state (should be deferred previously)
         State new_state = State::evaluating;
         _state.store(new_state, std::memory_order_acquire);
+        //call the deferred function and pass promise, pass coroutine to resume_fn
         auto coro = _deferred(promise_t(this));
-        resume_fn(coro);
+        if (coro) resume_fn(coro);
+        //destroy deferred function to leave place for awaiter
         std::destroy_at(&_deferred);
+        //try to set pending - however, it can be already resolved now
+        //return false, if resolved
         return _state.compare_exchange_strong(new_state, State::pending, std::memory_order_release);
 
     }
@@ -703,19 +738,25 @@ protected:
      */
     template<std::invocable<promise_t> Fn>
     void setDeferredEvaluation(Fn &&fn) {
-        if constexpr(std::is_convertible_v<std::invoke_result_t<Fn, promise_t>, coro_handle>) {
+        //check return value - should return coroutine handle
+        if constexpr(std::is_invocable_r_v<std::coroutine_handle<>, Fn, promise_t> ) {
+            //we expecting resolved state - other state is error
             State old = State::resolved;
             if (!_state.compare_exchange_strong(old,State::deferred, std::memory_order_relaxed)) {
                 throw still_pending_exception();
             }
+            //construct the function
             try {
                 std::construct_at(&_deferred, std::forward<Fn>(fn));
                 return;
             } catch (...) {
+                //in case of exception, restore state
                 _state.store(old, std::memory_order_relaxed);
+                //and rethrow
                 throw;
             }
         } else {
+            //otherwise, wrap the function
             setDeferredEvaluation([xfn = std::move(fn)](promise_t prom) mutable->coro_handle{
                 xfn(std::move(prom));
                 return {};
@@ -774,8 +815,8 @@ protected:
     }
 
 
-    template<bool call_if_ready, std::invocable<> Awt, typename ResumeFn >
-    bool register_awaiter(Awt &&awt, ResumeFn &&resumeFn) {
+    template<std::invocable<> Awt, typename ResumeFn >
+    RegAwtRes register_awaiter(Awt &&awt, ResumeFn &&resumeFn) {
 
         //determine, whether function returns coroutine_handle
         if constexpr(std::is_invocable_r_v<std::coroutine_handle<>, Awt>) {
@@ -784,13 +825,7 @@ protected:
             switch (st) {
                 //already resolved?
                 case State::resolved: _state.store(st); //restore state
-                                      if constexpr(call_if_ready) {
-                                          //call awaiter
-                                          auto h = awt();
-                                          //resume coroutine
-                                          if (h) resumeFn(h);
-                                      }
-                                      return false;
+                                      return RegAwtRes::resolved;
 
                 case State::pending: //<still pending? move awaiter
                     std::construct_at(&_awaiter, std::forward<Awt>(awt));
@@ -803,28 +838,21 @@ protected:
                     std::construct_at(&_awaiter, std::forward<Awt>(awt));
                     break;
                 case State::deferred: //<deferred ? perform evaluation and try again
-                    return startDeferredEvaluation(resumeFn)
-                            && register_awaiter<call_if_ready>(std::forward<Awt>(awt),
-                                                std::forward<ResumeFn>(resumeFn));
+                    if (!startDeferredEvaluation(resumeFn)) return RegAwtRes::resolved;
+                    return register_awaiter(std::forward<Awt>(awt),std::forward<ResumeFn>(resumeFn));
             }
             st = State::evaluating; //replace evaluating with awaited
             if (!_state.compare_exchange_strong(st, State::awaited)) {
                 //if failed, it should be resolved
                 //mark that awaited must be clean up (always)
                 _awaiter_cleanup = true;
-                //call the awaiter if requested
-                if constexpr(call_if_ready) {
-                    auto h = _awaiter();
-                    if (h) resumeFn(h);
-                }
-                //return failure
-                return false;
+                return RegAwtRes::constructed_resolved;
             }
             //awaiter has been set
-            return true;
+            return RegAwtRes::constructed_ready;
         } else {
             //if not, wrap the function into function returning empty coroutine handle
-            return register_awaiter<call_if_ready>([awt = std::move(awt)]() mutable {
+            return register_awaiter([awt = std::move(awt)]() mutable {
                 awt(); return std::coroutine_handle<>();
             }, std::forward<ResumeFn>(resumeFn));
         }
@@ -1037,7 +1065,7 @@ public:
     }
 
     template<std::invocable<> Fn>
-    bool when_resolved(Fn &&fn) {
+    bool then(Fn &&fn) {
         if (!set_callback(std::forward<Fn>(fn))) {
             auto coro = (*_awaiter)();
             if (coro) coro.resume();
