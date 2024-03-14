@@ -39,7 +39,7 @@ coro::async<void> test_coro_queued(int id, coro::distributor<int> &dist, std::qu
 
 
 int main() {
-    coro::distributor<int> d;
+     coro::distributor<int> d;
     std::queue<std::pair<int,int> > results;
     test_coro(1,d,results).detach();
     test_coro2(2,d,results).detach();

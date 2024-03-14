@@ -1,6 +1,4 @@
 #pragma once
-#ifndef SRC_CORO_ALLOCATOR_H_
-#define SRC_CORO_ALLOCATOR_H_
 
 #include <concepts>
 
@@ -104,4 +102,4 @@ public:
 
 
 
-#endif /* SRC_CORO_ALLOCATOR_H_ */
+

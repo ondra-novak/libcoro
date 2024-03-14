@@ -1,6 +1,4 @@
 #pragma once
-#ifndef SRC_CORO_FINALLY_H_
-#define SRC_CORO_FINALLY_H_
 
 namespace coro {
 
@@ -30,7 +28,5 @@ protected:
 
 }
 
-
-#endif /* SRC_CORO_FINALLY_H_ */
 
 

@@ -1,6 +1,6 @@
 #pragma once
-#ifndef SRC_CORO_PREPARED_CORO_H_
-#define SRC_CORO_PREPARED_CORO_H_
+
+#include <coroutine>
 
 namespace coro {
 
@@ -69,4 +69,4 @@ protected:
 
 
 
-#endif /* SRC_CORO_PREPARED_CORO_H_ */
+

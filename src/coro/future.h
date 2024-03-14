@@ -1,10 +1,9 @@
 #pragma once
-#ifndef SRC_CORO_FUTURE_H_
-#define SRC_CORO_FUTURE_H_
 #include "common.h"
 #include "function.h"
 #include "exceptions.h"
 
+#include "prepared_coro.h"
 #include <atomic>
 #include <memory>
 #include <optional>
@@ -18,8 +17,15 @@ namespace coro {
 template<typename T>
 class future;
 ///Carries reference to future<T>, callable, sets value of an associated future<T>
-/** promise object is movable and MT Safe */
-template<typename T>
+/**
+ * @tparam T contains type of associated future and the same type to be constructed.
+ * @tparam atomic set true to make promise atomic - it can be accessed from multiple
+ * threads at same time. Default value is false, so promise is not atomic (however it
+ * is faster to handle). You can change this flag anytime,
+ *
+ * @see atomic_promise
+ */
+template<typename T, bool atomic = false>
 class promise;
 ///Contains future value of T, where evaluation is deferred until the value is needed
 /** Deferred future is movable unless it is in progress (which results to exception).
@@ -42,6 +48,10 @@ template<typename T, typename ... Args>
 concept avoid_same_kind = sizeof...(Args) != 1 || !std::is_same_v<T, std::decay_t<Args>...>;
 
 template<typename T>
+using atomic_promise = promise<T, true>;
+
+
+template<typename T, bool atomic>
 class promise {
 public:
 
@@ -70,6 +80,23 @@ public:
         void cancel() {_ptr->clearStorage();}
         ///deliver the notification now
         void deliver() {_ptr.reset();}
+
+        ///deliver notification through the function
+        /**
+         * @param fn A function which receives another function which must be
+         * executed. You can for example pass the function to a thread pool for
+         * the execution. Return value of the function can be ignored. However
+         * it can carry a coroutine handle, you can use this value to improve
+         * scheduling. If the return value is ignored, the coroutine
+         * is resumed.
+         */
+        template<std::invocable<function<prepared_coro()>  > Fn>
+        void deliver(Fn &&fn) {
+            auto ptr = _ptr.release();
+            ptr->set_resolved(std::forward<Fn>(fn));
+        }
+
+
         ///deliver the notification with ability to switch to the coroutine
         /**
          * support for symmetric transfer
@@ -81,8 +108,12 @@ public:
          */
         std::coroutine_handle<> symmetric_transfer() {
             auto ptr = _ptr.release();
-            if (ptr) return ptr->resolve_symmetric_transfer();
-            else return std::noop_coroutine();
+            prepared_coro retval;
+            ptr->set_resolved([&](auto &&awt){
+                retval = awt();
+            });
+            return retval.symmetric_transfer();
+
         }
         ///Determines, whether object carries deferred notification
         explicit operator bool() const {return static_cast<bool>(_ptr);}
@@ -97,7 +128,7 @@ public:
         notify(FutureType *fut):_ptr(fut) {}
 
         struct NotifyAction {
-            void operator()(FutureType *fut) {fut->set_resolved();}
+            void operator()(FutureType *fut) {fut->set_resolved([](auto &c){c();});}
         };
 
         std::unique_ptr<FutureType, NotifyAction> _ptr;
@@ -122,6 +153,9 @@ public:
     ///Move
     promise(promise &&other):_ptr(other.claim()) {}
 
+    ///Move change MT Safety
+    template<bool x>
+    promise(promise<T, x> &&other): _ptr(other.claim()) {}
 
     ///Assign by move
     promise &operator=(promise &&other) {
@@ -196,9 +230,57 @@ public:
         return claim();
     }
 
+    ///Attach other promise to the current promise to allow to control multiple futures from one promise
+    /**
+     * Two promises are combined into one and they can be fulfilled together by
+     * single call operation. Requires T copy constructible. Attached promise cannot
+     * be detached later.
+     *
+     * @param other other promise which is attached
+     *
+     * @note result is current promise controls also attached promise.
+     * You can attach unlimited count of promises into one.
+     *
+     * @note order of processing of such promise is not defined - can be random.
+     */
+    template<bool f>
+    void attach(promise<T, f> &&other) {
+        static_assert(future<T>::is_chainable(), "Requires T copy constructible");
+        auto fut = other.claim();
+        while (fut != nullptr) {
+            auto x = fut;
+            fut = fut->_chain;
+            x->_chain = nullptr;
+            while (!_ptr.compare_exchange_strong(x->_chain, x));
+        }
+    }
+
 protected:
 
-    std::atomic<FutureType *> _ptr = {};
+    struct non_atomic {
+        FutureType *_ptr = {};
+        non_atomic() = default;
+        non_atomic(FutureType *ptr):_ptr(ptr) {}
+        FutureType *exchange(FutureType *x, std::memory_order) {
+            return std::exchange(_ptr, x);
+        }
+        void store(FutureType *x, std::memory_order) {
+            _ptr = x;
+        }
+        bool compare_exchange_strong(FutureType *& old, FutureType *nw) {
+            if (_ptr == old) {
+                _ptr = nw;
+                return true;
+            } else {
+                old = _ptr;
+                return false;
+            }
+        }
+    };
+
+    using Holder = std::conditional_t<atomic, std::atomic<FutureType *>, non_atomic>;
+
+    Holder _ptr = {};
 
     FutureType *claim() {return _ptr.exchange(nullptr, std::memory_order_relaxed);}
 };
@@ -250,9 +332,14 @@ public:
 
     /*
      *   +-------------------+
-     *   |   atomic(_state)  |  8
+     *   |   chain           |  8
      *   +-------------------+
-     *   |   enum(_result)   |  8
+     *   |   atomic(_state)  |  1
+     *   +-------------------+
+     *   |   enum(_result)   |  1
+     *   +-------------------+
+     *   |   await_cleanup   |  1
+     *   +-------------------+ (padding 5)
      *   +-------------------+
      *   |                   |
      *   |  * awaiter        |
@@ -273,9 +360,8 @@ public:
     using promise_t = promise<T>;
     using value_store_type = std::conditional_t<std::is_reference_v<T>,std::add_pointer_t<std::decay_t<T> >,std::conditional_t<std::is_void_v<T>, bool, T> >;
     using cast_return = std::conditional_t<std::is_reference_v<T>, T, value_store_type>;
-    using coro_handle = std::coroutine_handle<>;
-    using awaiter_type = function<coro_handle()>;
-    using deferred_eval_fn_type = function<coro_handle(promise_t)>;
+    using awaiter_type = function<prepared_coro()>;
+    using deferred_eval_fn_type = function<prepared_coro(promise_t)>;
     using wait_awaiter = _details::wait_awaiter<future>;
     using canceled_awaiter = _details::has_value_awaiter<future,false>;
 
@@ -404,7 +490,7 @@ public:
      */
     template<std::invocable<> Fn>
     [[nodiscard]] bool set_callback(Fn &&fn) {
-        return RegAwtRes::constructed_ready == register_awaiter(std::forward<Fn>(fn), [](auto h){h.resume();});
+        return RegAwtRes::constructed_ready == register_awaiter(std::forward<Fn>(fn), [](auto &&){});
     }
 
 
@@ -423,19 +509,13 @@ public:
      */
     template<std::invocable<> Fn>
     bool then(Fn &&fn) {
-        auto res = register_awaiter(std::forward<Fn>(fn), [](auto h){h.resume();});
+        auto res = register_awaiter(std::forward<Fn>(fn), [](auto &&){});
         switch (res) {
             case RegAwtRes::resolved: {
-                if constexpr(std::is_invocable_r_v<std::coroutine_handle<>, Fn>) {
-                    std::coroutine_handle<> coro = fn();
-                    if (coro) coro.resume();
-                } else {
-                    fn();
-                }
+                 fn();
             } return false;
             case RegAwtRes::constructed_resolved: {
-                auto coro = _awaiter();
-                if (coro) coro.resume();
+                _awaiter();
             } return false;
             default:
                 return true;
@@ -552,12 +632,12 @@ public:
      * the coroutine. function returns std::noop_coroutine if there is no
      * such coroutine
      */
-    coro_handle await_suspend(coro_handle h) noexcept {
-        coro_handle retval = {};
+    std::coroutine_handle<> await_suspend(std::coroutine_handle<> h) noexcept {
+        prepared_coro retval = {};
         auto cb = [h]{return h;};
-        auto resume_fn = [&retval](coro_handle h){retval = h;};
+        auto resume_fn = [&retval](prepared_coro h){retval = std::move(h);};
         if (RegAwtRes::constructed_ready == register_awaiter(cb, resume_fn)) {
-            return retval;
+            return retval.symmetric_transfer();
         }
         return h;
     }
@@ -619,7 +699,7 @@ public:
 
 protected:
 
-    enum class State {
+    enum class State: char {
         //future is resolved
         resolved,
         //evaluation is deferred
@@ -652,10 +732,15 @@ protected:
 
     };
 
+    //chainable futures requires copy constructible of T
+    using ChainPtr = std::conditional_t<std::is_copy_constructible_v<value_store_type>, future *, std::nullptr_t>;
 
+    [[no_unique_address]] ChainPtr _chain = {};            //< not null, if chained
     std::atomic<State> _state = {State::resolved}; //< by default, future is resolved in canceled state
     Result _result = Result::not_set; //< by default, future has no value
     bool _awaiter_cleanup = false;   //is set to true, if awaiter must be destroyed (in resolved state)
+
+    static constexpr bool is_chainable() {return !std::is_same_v<ChainPtr, std::nullptr_t>;}
 
     //because deferred and awaited are mutually exclusive,
     //reuse single space for both functions
@@ -664,10 +749,13 @@ protected:
         deferred_eval_fn_type _deferred;
     };
 
+
     union {
         value_store_type _value;
         std::exception_ptr _exception;
     };
+
+
 
     void clearStorage() {
         switch (_result) {
@@ -683,7 +771,7 @@ protected:
         auto st = _state.load(std::memory_order_acquire);
         while (st != State::resolved) {
             if (st == State::deferred) {
-                startDeferredEvaluation([](auto c){c.resume();});
+                startDeferredEvaluation([](auto c){c();});
             } else {
                 _state.wait(st);
             }
@@ -720,8 +808,7 @@ protected:
         State new_state = State::evaluating;
         _state.store(new_state, std::memory_order_acquire);
         //call the deferred function and pass promise, pass coroutine to resume_fn
-        auto coro = _deferred(promise_t(this));
-        if (coro) resume_fn(coro);
+        resume_fn(_deferred(promise_t(this)));
         //destroy deferred function to leave place for awaiter
         std::destroy_at(&_deferred);
         //try to set pending - however, it can be already resolved now
@@ -739,7 +826,7 @@ protected:
     template<std::invocable<promise_t> Fn>
     void setDeferredEvaluation(Fn &&fn) {
         //check return value - should return coroutine handle
-        if constexpr(std::is_invocable_r_v<std::coroutine_handle<>, Fn, promise_t> ) {
+        if constexpr(std::is_invocable_r_v<prepared_coro, Fn, promise_t> ) {
             //we expecting resolved state - other state is error
             State old = State::resolved;
             if (!_state.compare_exchange_strong(old,State::deferred, std::memory_order_relaxed)) {
@@ -757,7 +844,7 @@ protected:
             }
         } else {
             //otherwise, wrap the function
-            setDeferredEvaluation([xfn = std::move(fn)](promise_t prom) mutable->coro_handle{
+            setDeferredEvaluation([xfn = std::move(fn)](promise_t prom) mutable->prepared_coro{
                 xfn(std::move(prom));
                 return {};
             });
@@ -769,11 +856,22 @@ protected:
         try {
             clearStorage();
             if constexpr(std::is_reference_v<T>) {
-                std::construct_at(&_value, &args...);
+               std::construct_at(&_value, &args...);
             } else {
-                std::construct_at(&_value, std::forward<Args>(args)...);
+               std::construct_at(&_value, std::forward<Args>(args)...);
             }
             _result = Result::value;
+
+            //TCO?
+            if constexpr(is_chainable()) {
+                if (_chain) {
+                    if constexpr(std::is_reference_v<T>) {
+                        _chain->set_value(*_value);
+                    } else {
+                        _chain->set_value(_value);
+                    }
+                }
+            }
         } catch (...) {
             set_exception(std::current_exception());
         }
@@ -783,29 +881,24 @@ protected:
         clearStorage();
         std::construct_at(&_exception, std::move(e));
         _result = Result::exception;
+        if constexpr(is_chainable()) {
+            if (_chain) _chain->set_exception(_exception);
+        }
     }
 
-    void set_resolved() {
-        auto coro = resolve();
-        if (coro) coro.resume();
-    }
-
-    coro_handle resolve_symmetric_transfer() {
-        auto coro = resolve();
-        if (coro) return coro;
-        else return std::noop_coroutine();
-    }
-
-    coro_handle resolve() noexcept {
+    template<typename SchedulerFn>
+    void set_resolved(SchedulerFn &&schfn) {
         State st = _state.exchange(State::resolved);
         _state.notify_all();
         if (st == State::awaited) {
             _awaiter_cleanup = true;
-            auto coro = _awaiter();
-            return coro;
+            schfn(_awaiter);
         }
-        return {};
+        if constexpr(is_chainable()) {
+            if (_chain) _chain->set_resolved(std::forward<SchedulerFn>(schfn));
+        }
     }
+
 
     void check_awaiter_cleanup() {
         if (_awaiter_cleanup) {
@@ -908,8 +1001,7 @@ public:
     operator future<T>() {
         if (this->_state == State::deferred) {
             return [&](auto promise) {
-                auto coro = this->_deferred(std::move(promise));
-                if (coro) coro.resume();
+                this->_deferred(std::move(promise));
                 std::destroy_at(&this->_deferred);
                 this->_state = State::resolved;
             };
@@ -935,7 +1027,9 @@ protected:
     future<T> *fut = nullptr;
 
     std::coroutine_handle<> set_resolved() const {
-        return fut->resolve_symmetric_transfer();
+        prepared_coro ret;
+        fut->set_resolved([&](auto &&fn){ret = fn();});
+        return ret.symmetric_transfer();
     }
     template<typename ... Args>
     void set_value(Args && ... args) const {
@@ -1010,7 +1104,7 @@ public:
 
     using value_type = typename future<T>::value_type;
     using value_store_type = typename future<T>::value_store_type;
-    using awaiter_cb = function<std::coroutine_handle<>()>;
+    using awaiter_cb = function<prepared_coro()>;
     using wait_awaiter = _details::wait_awaiter<shared_future>;
     using canceled_awaiter = _details::has_value_awaiter<shared_future,false>;
 
@@ -1067,8 +1161,7 @@ public:
     template<std::invocable<> Fn>
     bool then(Fn &&fn) {
         if (!set_callback(std::forward<Fn>(fn))) {
-            auto coro = (*_awaiter)();
-            if (coro) coro.resume();
+            (*_awaiter)();
             return false;
         }
         return true;
@@ -1201,25 +1294,25 @@ protected:
         using future<T>::future;
 
         static void init_callback(std::shared_ptr<Shared> self) {
-            if (!self->set_callback([self]() -> std::coroutine_handle<> {
+            if (!self->set_callback([self]() -> prepared_coro {
                 return self->notify_targets();
             })) {
                 self->_await_chain = disabled_slot;
             }
         }
 
-        std::coroutine_handle<> notify_targets() {
+        prepared_coro notify_targets() {
             auto n = _await_chain.exchange(disabled_slot);
-            return n?notify_targets(n):nullptr;
+            return n?notify_targets(n):prepared_coro{};
         }
 
-        static std::coroutine_handle<> notify_targets(shared_future *list) {
+        static prepared_coro notify_targets(shared_future *list) {
             if (list->_next) {
                 auto c1 = notify_targets(list->_next);
                 auto c2 = list->activate();
                 if (c1) {
                     if (c2) {
-                        c1.resume();
+                        c1();
                         return c2;
                     }
                     return c1;
@@ -1258,11 +1351,10 @@ protected:
     std::atomic<State> _state = {State::unused};
     std::optional<awaiter_cb> _awaiter;
 
-    std::coroutine_handle<> activate() {
+    prepared_coro activate() {
         auto st = _state.exchange(State::notified);
         if (st == State::awaited) {
-            auto coro = (*_awaiter)();
-            return coro;
+            return (*_awaiter)();
         }
         return {};
     }
@@ -1292,4 +1384,3 @@ inline shared_future<T> * shared_future<T>::Shared::disabled_slot = reinterpret_
 
 }
 
-#endif /* SRC_CORO_FUTURE_H_ */

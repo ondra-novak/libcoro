@@ -1,6 +1,4 @@
 #pragma once
-#ifndef SRC_CORO_SCHEDULER_H_
-#define SRC_CORO_SCHEDULER_H_
 
 #include "function.h"
 #include "future.h"
@@ -261,7 +259,3 @@ protected:
 
 }
 
-
-
-
-#endif /* SRC_CORO_SCHEDULER_H_ */

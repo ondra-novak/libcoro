@@ -1,12 +1,4 @@
-/*
- * thread_pool.h
- *
- *  Created on: 9. 3. 2024
- *      Author: ondra
- */
-
-#ifndef SRC_CORO_THREAD_POOL_H_
-#define SRC_CORO_THREAD_POOL_H_
+#pragma once
 #include "function.h"
 #include "prepared_coro.h"
 
@@ -251,4 +243,4 @@ inline thread_local thread_pool *thread_pool::current = nullptr;
 
 
 
-#endif /* SRC_CORO_THREAD_POOL_H_ */
+

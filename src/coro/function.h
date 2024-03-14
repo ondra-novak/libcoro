@@ -1,6 +1,4 @@
 #pragma once
-#ifndef SRC_CORO_FUNCTION_H_
-#define SRC_CORO_FUNCTION_H_
 #include <functional>
 #include <memory>
 
@@ -231,4 +229,3 @@ protected:
 
 
 }
-#endif /* SRC_CORO_FUNCTION_H_ */

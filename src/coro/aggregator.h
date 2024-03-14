@@ -1,6 +1,4 @@
 #pragma once
-#ifndef SRC_CORO_AGREGATOR_H_
-#define SRC_CORO_AGREGATOR_H_
 
 #include "generator.h"
 #include "queue.h"
@@ -79,4 +77,3 @@ generator<T, Alloc> aggregator(std::vector<generator<T> > gens) {
 
 
 
-#endif /* SRC_CORO_AGREGATOR_H_ */

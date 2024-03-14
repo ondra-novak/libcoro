@@ -8,6 +8,8 @@
 #include "../coro/thread_pool.h"
 #include "../coro/distributor.h"
 #include "../coro/scheduler.h"
+#include "../coro/condition.h"
+
 
 template class coro::future<int>;
 template class coro::future<int &>;

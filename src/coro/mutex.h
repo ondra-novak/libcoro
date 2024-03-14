@@ -1,5 +1,4 @@
-#ifndef SRC_CORO_MUTEX_H_
-#define SRC_CORO_MUTEX_H_
+#pragma once
 #include "prepared_coro.h"
 
 #include <atomic>
@@ -353,4 +352,3 @@ protected:
 
 
 
-#endif /* SRC_CORO_MUTEX_H_ */

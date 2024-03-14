@@ -1,6 +1,4 @@
 #pragma once
-#ifndef SRC_CORO_ASYNC_H_
-#define SRC_CORO_ASYNC_H_
 
 #include "common.h"
 #include "allocator.h"
@@ -142,4 +140,3 @@ struct std::coroutine_traits<coro::shared_future<T>, Args...> {
 
 
 
-#endif /* SRC_CORO_ASYNC_H_ */

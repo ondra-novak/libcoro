@@ -6,6 +6,8 @@ set(testFiles all_compile.cpp
                shared_future.cpp
                generator.cpp
                distributor.cpp
+               condition.cpp
+               attach_promise.cpp
                 )
 foreach (testFile ${testFiles})
     string(REGEX MATCH "([^\/]+$)" filename ${testFile})
