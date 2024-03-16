@@ -28,13 +28,13 @@ template class coro::distributor<int>;
 
 
 struct X {
-coro::async<int, coro::ReusableAllocator> test(coro::ReusableAllocator &) {
+coro::async<int, coro::reusable_allocator> test(coro::reusable_allocator &) {
     co_return 42;
 }
 };
 
 int main() {
-    coro::ReusableAllocator a;
+    coro::reusable_allocator a;
     X x;
     coro::shared_future<int> val = x.test(a);
     val.get();

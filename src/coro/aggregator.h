@@ -9,7 +9,7 @@
 namespace coro {
 
 
-template<typename T, CoroAllocator Alloc = StdAllocator>
+template<typename T, coro_allocator Alloc = std_allocator>
 generator<T, Alloc> aggregator(Alloc &, std::vector<generator<T> > gens) {
 
     //list of futures waiting for results from generators
@@ -76,7 +76,7 @@ generator<T, Alloc> aggregator(Alloc &, std::vector<generator<T> > gens) {
 }
 
 template<typename T>
-generator<T, StdAllocator> aggregator(std::vector<generator<T> > gens) {
+generator<T, std_allocator> aggregator(std::vector<generator<T> > gens) {
     return aggregator(standard_allocator, std::move(gens));
 }
 
@@ -101,7 +101,7 @@ auto aggregator(generator<T, Alloc> &&gen1, Args &&... gens) {
 
 }
 
-template<typename T, typename Alloc, CoroAllocator GenAlloc,  std::convertible_to<generator<T> > ... Args>
+template<typename T, typename Alloc, coro_allocator GenAlloc,  std::convertible_to<generator<T> > ... Args>
 auto aggregator(GenAlloc &genalloc, generator<T, Alloc> &&gen1, Args &&... gens) {
     std::vector<generator<T> > out;
     out.reserve(1+sizeof...(gens));

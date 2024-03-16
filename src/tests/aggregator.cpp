@@ -81,9 +81,9 @@ int main() {
 
     std::ostringstream sout;
     coro::scheduler sch;
-    coro::ReusableAllocator reuse_alloc;
-    coro::StdAllocator std_alloc;
-    coro::ReusableAllocator gen_alloc;
+    coro::reusable_allocator reuse_alloc;
+    coro::std_allocator std_alloc;
+    coro::reusable_allocator gen_alloc;
 
     auto aggr = coro::aggregator(gen_alloc, fibo(reuse_alloc, 8), fibo(std_alloc, 12), fibo(std_alloc, 3));
 

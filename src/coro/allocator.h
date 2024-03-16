@@ -5,33 +5,33 @@
 
 namespace coro {
 
-class StdAllocator {};
+class std_allocator {};
 
-inline constexpr StdAllocator standard_allocator;
+inline constexpr std_allocator standard_allocator;
 
 template<typename T>
-concept CoroAllocatorLocal = requires(T a, std::size_t sz, void *ptr) {
+concept coro_allocator_local = requires(T a, std::size_t sz, void *ptr) {
     {a.alloc(sz)} -> std::same_as<void *>;
     {T::dealloc(ptr, sz)}->std::same_as<void>;
 };
 
 template<typename T>
-concept CoroAllocatorGlobal = requires(std::size_t sz, void *ptr) {
+concept coro_allocator_global = requires(std::size_t sz, void *ptr) {
     {T::alloc(sz)} -> std::same_as<void *>;
     {T::dealloc(ptr, sz)}->std::same_as<void>;
 };
 
 template<typename T>
-concept CoroAllocator = std::same_as<T, StdAllocator> || std::same_as<T, const StdAllocator>
-                    || CoroAllocatorLocal<T> || CoroAllocatorGlobal<T>;
+concept coro_allocator = std::same_as<T, std_allocator> || std::same_as<T, const std_allocator>
+                    || coro_allocator_local<T> || coro_allocator_global<T>;
 
 
-class ReusableAllocator {
+class reusable_allocator {
 public:
 
-    ReusableAllocator() = default;
-    ReusableAllocator(ReusableAllocator &) = delete;
-    ReusableAllocator &operator=(ReusableAllocator &) = delete;
+    reusable_allocator() = default;
+    reusable_allocator(reusable_allocator &) = delete;
+    reusable_allocator &operator=(reusable_allocator &) = delete;
 
     void *alloc(std::size_t size) {
         if (sz < size) {
@@ -48,27 +48,27 @@ protected:
     std::size_t sz = 0;
 };
 
-static_assert(CoroAllocator<ReusableAllocator>);
-static_assert(CoroAllocator<StdAllocator>);
+static_assert(coro_allocator<reusable_allocator>);
+static_assert(coro_allocator<std_allocator>);
 
 
-template<CoroAllocator Alloc>
+template<coro_allocator Alloc>
 class coro_allocator_helper;
 
 template<>
-class coro_allocator_helper<StdAllocator> {
+class coro_allocator_helper<std_allocator> {
 public:
 
 };
 
 template<>
-class coro_allocator_helper<const StdAllocator> {
+class coro_allocator_helper<const std_allocator> {
 public:
 
 };
 
 
-template<CoroAllocatorLocal Alloc>
+template<coro_allocator_local Alloc>
 class coro_allocator_helper<Alloc> {
 public:
 
@@ -91,7 +91,7 @@ private:
 };
 
 
-template<CoroAllocatorGlobal Alloc>
+template<coro_allocator_global Alloc>
 class coro_allocator_helper<Alloc> {
 public:
     void operator delete(void *ptr, std::size_t sz) {

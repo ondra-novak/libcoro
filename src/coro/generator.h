@@ -81,7 +81,7 @@ protected:
  *
  * @note The object is movable and move assignable.
  */
-template<typename T, CoroAllocator Alloc = StdAllocator>
+template<typename T, coro_allocator Alloc = std_allocator>
 class generator {
 public:
 
@@ -197,7 +197,7 @@ protected:
         }
     };
 
-    template<typename A, CoroAllocator B> friend class generator;
+    template<typename A, coro_allocator B> friend class generator;
 
     std::unique_ptr<promise_type,deleter> _prom;
 

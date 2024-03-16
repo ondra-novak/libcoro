@@ -40,10 +40,10 @@ public:
 
     stackful():_control(std::make_shared<_details::stackful_allocator<segment_size> >()) {}
 
-    void *allocate(std::size_t sz) {
+    void *alloc(std::size_t sz) {
         return _control->alloc(_control, sz);
     }
-    static void deallocate(void *ptr, std::size_t sz) {
+    static void dealloc(void *ptr, std::size_t sz) {
         _details::stackful_allocator<segment_size>::dealloc(ptr, sz);
     }
 

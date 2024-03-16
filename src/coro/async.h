@@ -6,7 +6,7 @@
 
 namespace coro {
 
-template<typename T, CoroAllocator Alloc = StdAllocator>
+template<typename T, coro_allocator Alloc = std_allocator>
 class async {
 public:
 

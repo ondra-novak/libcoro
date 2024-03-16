@@ -9,5 +9,7 @@
 #include "stackful.h"
 #include "distributor.h"
 #include "coro.h"
+#include "cooperative.h"
+#include "async.h"
 
 #endif
