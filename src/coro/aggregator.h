@@ -3,14 +3,14 @@
 #include "generator.h"
 #include "queue.h"
 #include "on_leave.h"
-#include "async.h"
+#include "coro.h"
 
 #include <vector>
 namespace coro {
 
 
 template<typename T, CoroAllocator Alloc = StdAllocator>
-generator<T, Alloc> aggregator(std::vector<generator<T> > gens) {
+generator<T, Alloc> aggregator(Alloc &, std::vector<generator<T> > gens) {
 
     //list of futures waiting for results from generators
     std::vector<deferred_future<T> > futures;
@@ -21,9 +21,7 @@ generator<T, Alloc> aggregator(std::vector<generator<T> > gens) {
     //activate function - activate generator and awaits it passing index to queue
     auto activate = [&](std::size_t idx) {
         futures[idx] = gens[idx]();
-        if (!futures[idx].set_callback([&q, idx]{q.push(idx);})) {
-            q.push(idx);
-        }
+        futures[idx] >> [&q, idx]{q.push(idx);};
     };
 
     //prepare array of futures
@@ -34,22 +32,28 @@ generator<T, Alloc> aggregator(std::vector<generator<T> > gens) {
 
     //define function, which is called on exit (including destroy)
     on_leave lv=[&]{
-        //first, try to find pending future
-        auto iter = std::find_if(futures.begin(), futures.end(), [&](auto &f){
-            return f.is_in_progress();
-        });
+
+        ///disarm all futures
+        bool pending = false;
+        for (auto &f: futures) {
+            //this should return false, as the future is already resolved
+            //but when returns true, we need handle this as special case
+            //disarming all futures allows to detach it from the queue and detect such state
+            auto r = f.set_callback([]{});
+            pending = pending || r;
+        }
         //if such future exists, install a coroutine, which awaits to resolution
-        if (iter != futures.end()) {
+        if (pending) {
             //coroutine
-            auto dtch = [](std::vector<generator<T> > , std::vector<deferred_future<T> > futures) -> async<void> {
+            auto dtch = [](std::vector<generator<T> > , std::vector<deferred_future<T> > futures) -> coro {
                 //cycle over all futures and co_await for just has_value - we don't need the value
                 for (auto &f: futures) {
-                    co_await f.has_value();
+                    co_await f.wait();
                 }
 
             };
-            //move futures and generators to the coroutine and start it detached
-            dtch(std::move(gens), std::move(futures)).detach();
+            //move futures and generators to the coroutine
+            dtch(std::move(gens), std::move(futures));
         }
     };
 
@@ -57,7 +61,7 @@ generator<T, Alloc> aggregator(std::vector<generator<T> > gens) {
     while (cnt) {
 
         //wait on queue
-        std::size_t idx = co_await q;
+        std::size_t idx = co_await q.pop();
         //retrieve index, if it has value
         if (futures[idx].has_value()) {
             //yield value of future
@@ -69,6 +73,40 @@ generator<T, Alloc> aggregator(std::vector<generator<T> > gens) {
             --cnt;
         }
     }
+}
+
+template<typename T>
+generator<T, StdAllocator> aggregator(std::vector<generator<T> > gens) {
+    return aggregator(standard_allocator, std::move(gens));
+}
+
+
+template<typename T, typename Alloc, std::convertible_to<generator<T> > ... Args>
+void aggregator_create_list(std::vector<generator<T> > &out, generator<T, Alloc> &&gen1, Args &&... gens) {
+    out.push_back(generator<T>(std::move(gen1)));
+    aggregator_create_list(out, std::forward<Args>(gens)...);
+}
+
+template<typename T>
+void aggregator_create_list(std::vector<generator<T> > &) {}
+
+
+
+template<typename T, typename Alloc, std::convertible_to<generator<T> > ... Args>
+auto aggregator(generator<T, Alloc> &&gen1, Args &&... gens) {
+    std::vector<generator<T> > out;
+    out.reserve(1+sizeof...(gens));
+    aggregator_create_list(out, std::move(gen1), std::forward<Args>(gens)...);
+    return aggregator(std::move(out));
+
+}
+
+template<typename T, typename Alloc, CoroAllocator GenAlloc,  std::convertible_to<generator<T> > ... Args>
+auto aggregator(GenAlloc &genalloc, generator<T, Alloc> &&gen1, Args &&... gens) {
+    std::vector<generator<T> > out;
+    out.reserve(1+sizeof...(gens));
+    aggregator_create_list(out, std::move(gen1), std::forward<Args>(gens)...);
+    return aggregator(genalloc, std::move(out));
 
 }
 

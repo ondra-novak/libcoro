@@ -107,9 +107,14 @@ public:
         std::unique_lock lk(_mx);
         _stop = true;
         lk.unlock();
-        _cond.notify_one();
-        _worker_active.wait(true);
+        if (scheduler::_current != this) {
+            _cond.notify_one();
+            _worker_active.wait(true);
+        }
     }
+
+
+    static scheduler * current() {return _current;}
 
 
     ///an object which holds blocking status for specified identity
@@ -171,6 +176,7 @@ protected:
     std::vector<ident_t> _blk;
     std::atomic<bool> _worker_active = {false};
     bool _stop = false;
+    static thread_local scheduler *_current;
 
     void notify() {
         _cond.notify_one();
@@ -179,11 +185,12 @@ protected:
     void worker() {
         std::unique_lock lk(_mx);
 
-        auto tpool = thread_pool::current;
+        auto tpool = thread_pool::current();
+        scheduler::_current = this;
 
         while (!_stop) {
             auto now = std::chrono::system_clock::now();
-            while (!_stop && !_items.empty() && _items.front()._tp < now) {
+            if (!_items.empty() && _items.front()._tp < now) {
                 auto d = _items.front()._prom();
                 std::pop_heap(_items.begin(),_items.end(), compare_items);
                 _items.pop_back();
@@ -194,8 +201,7 @@ protected:
                     d.deliver();
                     lk.lock();
                 }
-            }
-            if (tpool) {
+            } else if (tpool) {
                 bool unblk = false;
                 {
                     lk.unlock();
@@ -221,6 +227,8 @@ protected:
 
         _worker_active.store(false, std::memory_order_relaxed);
         _worker_active.notify_all();
+        scheduler::_current = nullptr;
+        _stop = false;
 
     }
 
@@ -256,6 +264,8 @@ protected:
 
 
 };
+
+inline thread_local scheduler *scheduler::_current = nullptr;
 
 }
 

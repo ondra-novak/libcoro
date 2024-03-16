@@ -157,7 +157,7 @@ public:
     generator() = default;
 
     template<typename A>
-    generator(generator<T, A> &other): _prom(cast_promise(other._prom.release())) {
+    generator(generator<T, A> &&other): _prom(cast_promise(other._prom.release())) {
 
     }
 
@@ -196,6 +196,8 @@ protected:
             h.destroy();
         }
     };
+
+    template<typename A, CoroAllocator B> friend class generator;
 
     std::unique_ptr<promise_type,deleter> _prom;
 

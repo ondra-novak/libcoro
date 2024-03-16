@@ -8,6 +8,9 @@ set(testFiles all_compile.cpp
                distributor.cpp
                condition.cpp
                attach_promise.cpp
+               aggregator.cpp
+               coro.cpp
+               cooperative_multitasking.cpp
                 )
 foreach (testFile ${testFiles})
     string(REGEX MATCH "([^\/]+$)" filename ${testFile})

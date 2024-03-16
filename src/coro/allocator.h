@@ -7,6 +7,8 @@ namespace coro {
 
 class StdAllocator {};
 
+inline constexpr StdAllocator standard_allocator;
+
 template<typename T>
 concept CoroAllocatorLocal = requires(T a, std::size_t sz, void *ptr) {
     {a.alloc(sz)} -> std::same_as<void *>;
@@ -20,7 +22,7 @@ concept CoroAllocatorGlobal = requires(std::size_t sz, void *ptr) {
 };
 
 template<typename T>
-concept CoroAllocator = std::same_as<T, StdAllocator>
+concept CoroAllocator = std::same_as<T, StdAllocator> || std::same_as<T, const StdAllocator>
                     || CoroAllocatorLocal<T> || CoroAllocatorGlobal<T>;
 
 
@@ -55,6 +57,12 @@ class coro_allocator_helper;
 
 template<>
 class coro_allocator_helper<StdAllocator> {
+public:
+
+};
+
+template<>
+class coro_allocator_helper<const StdAllocator> {
 public:
 
 };
@@ -94,8 +102,6 @@ public:
         return Alloc::alloc(sz);
     }
 };
-
-
 
 
 }

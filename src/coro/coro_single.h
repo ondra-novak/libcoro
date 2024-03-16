@@ -8,5 +8,6 @@
 #include "scheduler.h"
 #include "stackful.h"
 #include "distributor.h"
+#include "coro.h"
 
 #endif

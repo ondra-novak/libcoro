@@ -87,7 +87,7 @@ public:
         auto this_thr = std::this_thread::get_id();
         for (auto &t: tmp) {
             if (this_thr == t.get_id()) {
-                current = nullptr;
+                _current = nullptr;
                 t.detach();
             } else {
                 t.join();
@@ -161,7 +161,7 @@ public:
     }
 
 
-    static thread_local thread_pool *current;
+    static thread_pool *current() {return _current;}
 
 protected:
 
@@ -176,6 +176,8 @@ protected:
     unsigned int _to_start = 0;
     unsigned int _waiting = 0;
     bool _stop = false;
+
+    static thread_local thread_pool *_current;
 
 
     void notify(std::unique_lock<std::mutex> &mx) {
@@ -195,7 +197,7 @@ protected:
     }
 
     void worker() {
-        current = this;
+        _current = this;
         std::unique_lock lk(_mx);
         while (!_stop) {
             if (_que.empty()) {
@@ -208,7 +210,7 @@ protected:
                     _que.pop();
                     lk.unlock();
                     fn();
-                    if (current != this) return;
+                    if (_current != this) return;
                 }
                 _finished.fetch_add(1, std::memory_order_release);
                 _finished.notify_all();
@@ -236,7 +238,7 @@ protected:
     }
 };
 
-inline thread_local thread_pool *thread_pool::current = nullptr;
+inline thread_local thread_pool *thread_pool::_current = nullptr;
 
 
 }
