@@ -25,7 +25,7 @@ jobs:
       uses: peaceiris/actions-gh-pages@v3
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./docs/html  # Umístění vygenerované dokumentace
+        publish_dir: ./doc/html  # Umístění vygenerované dokumentace
         user_name: GitHub Actions
         user_email: actions@github.com
         commit_message: 'Deploy Doxygen documentation'
