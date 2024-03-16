@@ -2,6 +2,7 @@
 #include "prepared_coro.h"
 
 #include <atomic>
+#include <memory>
 
 
 namespace coro {
@@ -21,6 +22,7 @@ namespace coro {
  * The mutex object support co_await, lock_sync() and lock_callback(). The third
  * function allows to call a callback when lock is acquired.
  *
+ * @ingroup awaitable
  */
 class mutex {
 public:

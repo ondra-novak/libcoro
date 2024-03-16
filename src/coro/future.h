@@ -7,12 +7,14 @@
 #include <atomic>
 #include <memory>
 #include <optional>
+#include <utility>
 
 namespace coro {
 
 ///Contains future value of T, can be co_awaited in coroutine
 /**
  * @tparam T type which is subject of the future. T can be void. T can be also a reference
+ * @ingroup Coroutines, awaitable
  */
 template<typename T>
 class future;
@@ -24,6 +26,7 @@ class future;
  * is faster to handle). You can change this flag anytime,
  *
  * @see atomic_promise
+ *
  */
 template<typename T, bool atomic = false>
 class promise;
@@ -35,7 +38,7 @@ class promise;
  * Disadvantage of this future is requirement to store evaluation function
  * inside of the future (which must be movable) and guarantee to keep referneces
  * valid until deferred evaluation is started.
- *
+ * @ingroup Coroutines, awaitable
  */
 template<typename T>
 class deferred_future;
@@ -1103,6 +1106,8 @@ public:
  * @endcode
  *
  * @tparam T
+ *
+ * @ingroup awaitable
  */
 template<typename T>
 class shared_future {

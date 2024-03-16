@@ -1,5 +1,8 @@
 #pragma once
 
+#include <algorithm>
+#include <concepts>
+
 namespace coro {
 
 ///Defines function, which is called when function is exited
@@ -14,6 +17,7 @@ namespace coro {
  * also before the generator is destroyed.
  *
  * @tparam Fn function
+ * @ingroup tools
  */
 template<std::invocable<> Fn>
 class on_leave {

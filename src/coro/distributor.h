@@ -33,6 +33,8 @@ struct nolock {
  * @tparam T type which is payload of distribution. Can be reference
  * @tparam Lock locking class. Default value disables locking for better performace.
  * You need to set to std::mutex, if you need MT Safety
+ *
+ * @ingroup awaitable
  */
 
 template<typename T, typename Lock = nolock>

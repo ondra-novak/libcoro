@@ -16,6 +16,8 @@ namespace coro {
  * @code
  * using MyFunction = concurrency::function<int(std::string) noexcept, 100>;
  * @endcode
+ *
+ * @ingroup tools
  */
 template<typename Prototype, unsigned int reserved_space = 4*sizeof(void *)>
 class function;

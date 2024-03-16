@@ -85,7 +85,7 @@ int main() {
     coro::std_allocator std_alloc;
     coro::reusable_allocator gen_alloc;
 
-    auto aggr = coro::aggregator(gen_alloc, fibo(reuse_alloc, 8), fibo(std_alloc, 12), fibo(std_alloc, 3));
+    auto aggr = coro::aggregator<int,coro::std_allocator, coro::reusable_allocator>(gen_alloc, fibo(reuse_alloc, 8), fibo(std_alloc, 12), fibo(std_alloc, 3));
 
     for (int x: aggr) {
         sout << x << ',';

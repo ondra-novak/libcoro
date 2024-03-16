@@ -12,6 +12,11 @@
 namespace coro {
 
 
+/**
+ * @defgroup condition Condition
+ * Set of function that allows to synchronize on single variable
+ */
+
 namespace _details {
 
 
@@ -163,7 +168,10 @@ inline awaiter_map awaiter_map::instance;
 
 }
 
-
+///support for notify_condition()
+/**
+ * @ingroup condition
+ */
 
 template<typename T, typename Pred>
 class condition_awaiter : public _details::abstract_condition_awaiter {
@@ -198,7 +206,7 @@ protected:
             return true;
         }
     }
-    virtual const void *get_addr() noexcept {
+    virtual const void *get_addr() noexcept override {
         return &_variable;
     }
 
@@ -213,6 +221,9 @@ protected:
  * @return awaitable object, a coroutine is resumed, when condition is false
  *
  * @note await when var == val, resume when var != val
+ *
+ * @ingroup condition, awaitable
+ * @see notify_condition
  */
 template<typename T, typename U>
 auto condition_equal(T &var, const U &val) noexcept{
@@ -229,6 +240,9 @@ auto condition_equal(T &var, const U &val) noexcept{
  * @return awaitable object, a coroutine is resumed, when condition is false
  *
  * @note await when var < val, resume otherwise
+ *
+ * @ingroup condition, awaitable
+ * @see notify_condition
  */
 template<typename T, typename U>
 auto condition_less(T &var, const U &val) noexcept{
@@ -242,8 +256,10 @@ auto condition_less(T &var, const U &val) noexcept{
  * @param val value
  * @return awaitable object, a coroutine is resumed, when condition is false
  *
- *  * @note await when var > val, resume otherwise
+ * @note await when var > val, resume otherwise
  *
+ * @ingroup condition, awaitable
+ * @see notify_condition
  */
 template<typename T, typename U>
 auto condition_greater(T &var, const U &val) noexcept{
@@ -259,6 +275,8 @@ auto condition_greater(T &var, const U &val) noexcept{
  * @return awaitable object, a coroutine is resumed, when condition is false
  *
  *  * @note await when var <= val, resume otherwise
+ * @ingroup condition, awaitable
+ * @see notify_condition
  *
  */
 template<typename T, typename U>
@@ -276,6 +294,8 @@ auto condition_less_equal(T &var, const U &val) noexcept{
  *
  *  * @note await when var >= val, resume otherwise
  *
+ * @ingroup condition, awaitable
+ * @see notify_condition
  */
 template<typename T, typename U>
 auto condition_greater_equal(T &var, const U &val) noexcept{
@@ -291,15 +311,30 @@ auto condition_greater_equal(T &var, const U &val) noexcept{
  * It is not UB when variable is already destroyed. You can pass anything. If the variable
  * is not awaited, nothing happens.
  *
+ * @ingroup condition
  */
 template<typename T>
 void notify_condition(const T &var) noexcept {
     _details::awaiter_map::instance.notify_addr(&var,[](auto){});
 }
 
+///notifies variable about change in the condition.
+/**
+ * @param var reference to shared variable.
+ * @param scheduler function which receives prepared_coro, and which is responsible
+ * to schedule resumption of the coroutine. Default implementation simply resumes the
+ * coroutine, but you can define own behaviour
+ *
+ * Tests all conditions and resumes all coroutines, where condition is broken.
+ *
+ * It is not UB when variable is already destroyed. You can pass anything. If the variable
+ * is not awaited, nothing happens.
+ *
+ * @ingroup condition
+ */
 template<typename T, std::invocable<prepared_coro> Fn>
-void notify_condition(const T &var, Fn &&fn) noexcept {
-    _details::awaiter_map::instance.notify_addr(&var,fn);
+void notify_condition(const T &var, Fn &&scheduler) noexcept {
+    _details::awaiter_map::instance.notify_addr(&var,scheduler);
 }
 
 

@@ -1,4 +1,5 @@
 #pragma once
+#include <algorithm>
 #include <cstddef>
 #include <memory>
 #include <vector>
@@ -33,6 +34,8 @@ class stackful_allocator;
  * not resumed concurently. You need to create new stack for such coroutine.
  *
  * @tparam segment_size size of segment and initial stack size
+ *
+ * @ingroup allocators
  */
 template<std::size_t segment_size=8192>
 class stackful {

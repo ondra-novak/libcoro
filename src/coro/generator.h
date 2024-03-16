@@ -59,7 +59,7 @@ protected:
 
 };
 
-///Generator
+///COROUTINE:  Generator
 /**
  * Implements generator coroutine, supporting co_yield operation.
  *
@@ -80,6 +80,7 @@ protected:
  * The generator can be destroyed when it is suspended on co_yield.
  *
  * @note The object is movable and move assignable.
+ * @ingroup Coroutines, awaitable
  */
 template<typename T, coro_allocator Alloc = std_allocator>
 class generator {

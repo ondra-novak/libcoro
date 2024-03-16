@@ -8,7 +8,23 @@
 #include <vector>
 namespace coro {
 
-
+///Construct generator which aggregates results of multiple generators
+/**
+ * Aggregator is generator which aggregates results of multiple generators. The
+ * aggregated generators can be both synchronous and asynchronous. Note that
+ * it isn't a good idea to mix both types in the single aggregator.
+ *
+ * For synchronous generators, results are interleaved evenly. If used
+ * with asynchronous generators, results are in order of finished generation
+ *
+ * @tparam T subject of generation
+ * @tparam Alloc allocator for the generator (there is also version without allocator)
+ * @param gens list of generators to aggregate
+ * @return instance of aggregator
+ *
+ * @ingroup tools
+ * @{
+ */
 template<typename T, coro_allocator Alloc = std_allocator>
 generator<T, Alloc> aggregator(Alloc &, std::vector<generator<T> > gens) {
 
@@ -75,6 +91,7 @@ generator<T, Alloc> aggregator(Alloc &, std::vector<generator<T> > gens) {
     }
 }
 
+///Construct generator which aggregates results of multiple generators
 template<typename T>
 generator<T, std_allocator> aggregator(std::vector<generator<T> > gens) {
     return aggregator(standard_allocator, std::move(gens));
@@ -92,6 +109,7 @@ void aggregator_create_list(std::vector<generator<T> > &) {}
 
 
 
+///Construct generator which aggregates results of multiple generators
 template<typename T, typename Alloc, std::convertible_to<generator<T> > ... Args>
 auto aggregator(generator<T, Alloc> &&gen1, Args &&... gens) {
     std::vector<generator<T> > out;
@@ -101,6 +119,7 @@ auto aggregator(generator<T, Alloc> &&gen1, Args &&... gens) {
 
 }
 
+///Construct generator which aggregates results of multiple generators
 template<typename T, typename Alloc, coro_allocator GenAlloc,  std::convertible_to<generator<T> > ... Args>
 auto aggregator(GenAlloc &genalloc, generator<T, Alloc> &&gen1, Args &&... gens) {
     std::vector<generator<T> > out;
@@ -110,7 +129,9 @@ auto aggregator(GenAlloc &genalloc, generator<T, Alloc> &&gen1, Args &&... gens)
 
 }
 
-
+/*
+ * @}
+ */
 }
 
 

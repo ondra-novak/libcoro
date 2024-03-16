@@ -13,7 +13,7 @@ namespace coro {
 /**
  * Implements co_awaitable sleep_for and sleep_until
  *
- *
+ * @ingroup awaitable
  */
 class scheduler {
 public:

@@ -1,6 +1,7 @@
 #pragma once
 #include "function.h"
 #include "prepared_coro.h"
+#include "exceptions.h"
 
 #include <condition_variable>
 #include <mutex>
@@ -11,6 +12,9 @@
 namespace coro {
 
 ///thread pool implementation
+/**
+ * @ingroup awaitable
+ */
 class thread_pool {
 
     class abstract_unblocker {

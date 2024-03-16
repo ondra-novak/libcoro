@@ -5,8 +5,19 @@
 
 namespace coro {
 
+///represents standard allocator for coroutines
+/**
+ * This class is empty, just activates usage of standard allocator.
+ *
+ * You can use global (constexpr) instance standard_allocator
+ * @ingroup allocators
+ */
 class std_allocator {};
 
+///Global instance for std_allocator which can be used anywhere the allocator is requested
+/**
+ * @ingroup allocators
+ */
 inline constexpr std_allocator standard_allocator;
 
 template<typename T>
@@ -26,6 +37,13 @@ concept coro_allocator = std::same_as<T, std_allocator> || std::same_as<T, const
                     || coro_allocator_local<T> || coro_allocator_global<T>;
 
 
+///Handles allocation of single coroutine, if it is repeatedly allocated and deallocated
+/**
+ * Holds allocated space. This can be useful in cycles, where a coroutine is repeatedly called.
+ * You can preserve allocated space for each loop and avoid costly allocations.
+ *
+ * @ingroup allocators
+ */
 class reusable_allocator {
 public:
 
@@ -52,6 +70,7 @@ static_assert(coro_allocator<reusable_allocator>);
 static_assert(coro_allocator<std_allocator>);
 
 
+///inherit this class to include coro_allocator into your promise_type
 template<coro_allocator Alloc>
 class coro_allocator_helper;
 
@@ -73,19 +92,22 @@ class coro_allocator_helper<Alloc> {
 public:
 
     template<typename ... Args>
-    void *operator new(std::size_t sz, Alloc &a, Args && ...) {
+    void *operator new(std::size_t sz, Alloc &a, Args  && ...) {
         return a.alloc(sz);
     }
     template<typename This, typename ... Args>
-    void *operator new(std::size_t sz, This &&, Alloc &a, Args && ...) {
+    void *operator new(std::size_t sz, This &, Alloc &a, Args && ...) {
         return a.alloc(sz);
     }
 
     void operator delete(void *ptr, std::size_t sz) {
         Alloc::dealloc(ptr, sz);
     }
-
+#ifndef __clang__
+    //clang 15+ doesn't like operator new declared as private
+    //so we left it undefined. This ensures that standard allocator will not be used
 private:
+#endif
     void *operator new(std::size_t sz);
 
 };

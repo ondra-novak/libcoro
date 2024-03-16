@@ -6,6 +6,11 @@
 
 namespace coro {
 
+/**
+ * @defgroup cooperative Cooperative
+ * Set of functions for cooperative multitasking
+ */
+
 ///Suspend current coroutine and switch to another coroutine ready to run
 /**
  * This allows you to run cooperative task switching in the current thread.
@@ -28,11 +33,12 @@ namespace coro {
  * Usage:
  *
  * @code
- * co_await coro::qswitch();
+ * co_await coro::suspend();
  * @endcode
  *
  * @note this queue is thread local. If you need to share a queue between threads, use
  * thread_pool
+ * @ingroup cooperative, awaitable
  *
  */
 class suspend : public std::suspend_always{
@@ -63,6 +69,7 @@ public:
     /**
      * @retval true thread is in cooperative mode
      * @retval false thread is not in cooperative mode
+     * @ingroup cooperative
      */
     friend bool in_cooperative_mode() {
         return local_queue != nullptr;
@@ -74,6 +81,7 @@ public:
      *
      * @note if the thread is not in cooperative mode, the coroutine
      * is just resumed
+     * @ingroup cooperative
      *
      */
     friend void enqueue(prepared_coro c) {

@@ -16,6 +16,7 @@ namespace coro {
  * @tparam QueueImpl object which implements the queue, default is std::queue. You
  * can use for example some kind of priority queue or stack, however the
  * object must have the same interface as the std::queue
+ * @ingroup awaitable
  */
 template<typename T, typename QueueImpl = std::queue<T> >
 class queue {

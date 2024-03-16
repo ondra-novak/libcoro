@@ -5,6 +5,12 @@
 
 namespace coro {
 
+///COROUTINE: Basic coroutine
+/**
+ * @ingroup Coroutines
+ * @see coro
+ * @tparam Alloc allocator
+ */
 template<coro_allocator Alloc = std_allocator>
 class basic_coro {
 public:
@@ -19,8 +25,9 @@ public:
 };
 
 
-///Very basic coroutine, always detached, with no return value
+///COROUTINE:  Basic coroutine, always detached, with no return value
 /**
+ * @ingroup Coroutines
  * @code
  * coro::coro my_coroutine(... args...) {
  *     ....

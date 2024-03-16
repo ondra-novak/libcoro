@@ -3,7 +3,7 @@
 
 using my_stack = coro::stackful<500>;
 
-coro::async<int,my_stack > fibonacci(my_stack stack, int n) {
+coro::async<int,my_stack> fibonacci(my_stack stack, int n) {
     if (n <= 1) {
         co_return n;
     } else {

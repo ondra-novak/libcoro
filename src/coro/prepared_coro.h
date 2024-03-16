@@ -9,6 +9,7 @@ namespace coro {
 /**
  * This object allows to schedule coroutine resumption. If this object is destroyed
  * without scheduling, the coroutine is resumed in the destructor. Object is movable
+ * @ingroup tools
  */
 class prepared_coro {
 public:
