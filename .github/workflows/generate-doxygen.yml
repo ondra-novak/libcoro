@@ -1,0 +1,32 @@
+name: Generate Doxygen Documentation
+
+on:
+  push:
+    branches:
+      - master  # Můžete změnit na hlavní větev vašeho repozitáře
+
+jobs:
+  generate-doxygen:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Install Doxygen
+      run: sudo apt-get install -y doxygen
+
+    - name: Generate Doxygen Documentation
+      run: |
+        mkdir -p docs
+        doxygen Doxyfile
+
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./docs/html  # Umístění vygenerované dokumentace
+        user_name: GitHub Actions
+        user_email: actions@github.com
+        commit_message: 'Deploy Doxygen documentation'
+
