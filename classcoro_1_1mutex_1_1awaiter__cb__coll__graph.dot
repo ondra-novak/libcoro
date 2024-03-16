@@ -1,0 +1,13 @@
+digraph "coro::mutex::awaiter_cb&lt; Fn, static_buffer &gt;"
+{
+ // LATEX_PDF_SIZE
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  Node1 [label="coro::mutex::awaiter\l_cb\< Fn, static_buffer \>",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black",tooltip="awaiter with a callback function"];
+  Node2 -> Node1 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node2 [label="coro::mutex::awaiter",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classcoro_1_1mutex_1_1awaiter.html",tooltip="awaiter is object used in most of cases by coroutines, however it is building block of this class"];
+  Node3 -> Node2 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" _owner" ,fontname="Helvetica"];
+  Node3 [label="coro::mutex",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classcoro_1_1mutex.html",tooltip="Mutex which allows locking across co_await and co_yield suspend points."];
+  Node2 -> Node3 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" _que" ,fontname="Helvetica"];
+  Node2 -> Node2 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" _next" ,fontname="Helvetica"];
+}
