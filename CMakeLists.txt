@@ -28,7 +28,7 @@ add_subdirectory("src/tests")
 
 # Install the header file to the include directory
 install(FILES ${CMAKE_HEADER_OUTPUT_DIRECTORY}/coro.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include/libcoro)
-install(FILES ${CMAKE_HEADER_OUTPUT_DIRECTORY}/coro_commented.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include/libcoro)
+
 
 # Generate and install the Config.cmake file
 include(CMakePackageConfigHelpers)
