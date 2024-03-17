@@ -82,11 +82,11 @@ $(function() {
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
-<tr class="memitem:a1aacf7aa546e3ed4716680e34b3fdef0"><td class="memItemLeft" align="right" valign="top">static void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1pool__alloc.html#a1aacf7aa546e3ed4716680e34b3fdef0">alloc</a> (std::size_t sz)</td></tr>
-<tr class="memdesc:a1aacf7aa546e3ed4716680e34b3fdef0"><td class="mdescLeft">&#160;</td><td class="mdescRight">allocate a block  <a href="classcoro_1_1pool__alloc.html#a1aacf7aa546e3ed4716680e34b3fdef0">More...</a><br /></td></tr>
+<tr class="memitem:a1aacf7aa546e3ed4716680e34b3fdef0"><td class="memItemLeft" align="right" valign="top">static void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1pool__alloc_a1aacf7aa546e3ed4716680e34b3fdef0.html#a1aacf7aa546e3ed4716680e34b3fdef0">alloc</a> (std::size_t sz)</td></tr>
+<tr class="memdesc:a1aacf7aa546e3ed4716680e34b3fdef0"><td class="mdescLeft">&#160;</td><td class="mdescRight">allocate a block  <a href="classcoro_1_1pool__alloc_a1aacf7aa546e3ed4716680e34b3fdef0.html#a1aacf7aa546e3ed4716680e34b3fdef0">More...</a><br /></td></tr>
 <tr class="separator:a1aacf7aa546e3ed4716680e34b3fdef0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac9fd2adce807d81692d618b41ba6339a"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1pool__alloc.html#ac9fd2adce807d81692d618b41ba6339a">dealloc</a> (void *ptr, std::size_t sz)</td></tr>
-<tr class="memdesc:ac9fd2adce807d81692d618b41ba6339a"><td class="mdescLeft">&#160;</td><td class="mdescRight">deallocate block  <a href="classcoro_1_1pool__alloc.html#ac9fd2adce807d81692d618b41ba6339a">More...</a><br /></td></tr>
+<tr class="memitem:ac9fd2adce807d81692d618b41ba6339a"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1pool__alloc_ac9fd2adce807d81692d618b41ba6339a.html#ac9fd2adce807d81692d618b41ba6339a">dealloc</a> (void *ptr, std::size_t sz)</td></tr>
+<tr class="memdesc:ac9fd2adce807d81692d618b41ba6339a"><td class="mdescLeft">&#160;</td><td class="mdescRight">deallocate block  <a href="classcoro_1_1pool__alloc_ac9fd2adce807d81692d618b41ba6339a.html#ac9fd2adce807d81692d618b41ba6339a">More...</a><br /></td></tr>
 <tr class="separator:ac9fd2adce807d81692d618b41ba6339a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
@@ -95,98 +95,13 @@ Static Public Member Functions</h2></td></tr>
 <p>Each thread has its own pool. This makes the allocation not using locking. Deallocations that are made in a thread other than the mother thread of the frame are registered in a lock-free list, which is then moved to the mother pool at the appropriate time </p>
 
 <p class="definition">Definition at line <a class="el" href="pool__alloc_8h_source.html#l00171">171</a> of file <a class="el" href="pool__alloc_8h_source.html">pool_alloc.h</a>.</p>
-</div><h2 class="groupheader">Member Function Documentation</h2>
-<a id="a1aacf7aa546e3ed4716680e34b3fdef0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1aacf7aa546e3ed4716680e34b3fdef0">&#9670;&nbsp;</a></span>alloc()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">static void* coro::pool_alloc::alloc </td>
-          <td>(</td>
-          <td class="paramtype">std::size_t&#160;</td>
-          <td class="paramname"><em>sz</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>allocate a block </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">sz</td><td>requested size. The size is rounded to next 16 bytes </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>pointer to allocated block </dd></dl>
-
-<p class="definition">Definition at line <a class="el" href="pool__alloc_8h_source.html#l00179">179</a> of file <a class="el" href="pool__alloc_8h_source.html">pool_alloc.h</a>.</p>
-
-</div>
-</div>
-<a id="ac9fd2adce807d81692d618b41ba6339a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac9fd2adce807d81692d618b41ba6339a">&#9670;&nbsp;</a></span>dealloc()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">static void coro::pool_alloc::dealloc </td>
-          <td>(</td>
-          <td class="paramtype">void *&#160;</td>
-          <td class="paramname"><em>ptr</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">std::size_t&#160;</td>
-          <td class="paramname"><em>sz</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>deallocate block </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">ptr</td><td>pointer to block, it must be allocated by this allocator </td></tr>
-    <tr><td class="paramname">sz</td><td>size of the block, it must be same size as requested during allocation </td></tr>
-  </table>
-  </dd>
-</dl>
-
-<p class="definition">Definition at line <a class="el" href="pool__alloc_8h_source.html#l00190">190</a> of file <a class="el" href="pool__alloc_8h_source.html">pool_alloc.h</a>.</p>
-
-</div>
-</div>
-<hr/>The documentation for this class was generated from the following file:<ul>
+</div><hr/>The documentation for this class was generated from the following file:<ul>
 <li>src/coro/<a class="el" href="pool__alloc_8h_source.html">pool_alloc.h</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Mar 17 2024 13:19:28 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+Generated on Sun Mar 17 2024 13:27:21 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
 </small></address>
 </body>
 </html>

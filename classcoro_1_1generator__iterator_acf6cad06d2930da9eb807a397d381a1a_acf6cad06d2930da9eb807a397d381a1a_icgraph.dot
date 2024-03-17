@@ -1,0 +1,10 @@
+digraph "coro::generator_iterator::end"
+{
+ // LATEX_PDF_SIZE
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="RL";
+  Node1 [label="coro::generator_iterator::end",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black",tooltip="retrieve end iterator"];
+  Node1 -> Node2 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node2 [label="coro::generator::end",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classcoro_1_1generator_a0b31eb3cc65fa021ccf45c5eb9fdc442.html#a0b31eb3cc65fa021ccf45c5eb9fdc442",tooltip="retrieve end iterator"];
+}

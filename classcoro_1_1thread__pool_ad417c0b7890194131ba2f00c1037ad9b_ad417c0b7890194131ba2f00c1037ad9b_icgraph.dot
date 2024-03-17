@@ -1,0 +1,10 @@
+digraph "coro::thread_pool::is_stopped"
+{
+ // LATEX_PDF_SIZE
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="RL";
+  Node1 [label="coro::thread_pool::\lis_stopped",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black",tooltip="test whether is stopped"];
+  Node1 -> Node2 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node2 [label="coro::thread_pool::\lawait_resume",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classcoro_1_1thread__pool_a02868bb048717ba8d3bb8786ced6d126.html#a02868bb048717ba8d3bb8786ced6d126",tooltip="co_await support (nothing returned)"];
+}

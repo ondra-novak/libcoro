@@ -1,0 +1,14 @@
+digraph "coro::mutex::make_ownership"
+{
+ // LATEX_PDF_SIZE
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="RL";
+  Node1 [label="coro::mutex::make_ownership",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black",tooltip="creates ownership object"];
+  Node1 -> Node2 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node2 [label="coro::mutex::awaiter\l::await_resume",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classcoro_1_1mutex_1_1awaiter_a7d13b5385c0fdee242a9193ac83b1d42.html#a7d13b5385c0fdee242a9193ac83b1d42",tooltip="coroutine - retrieve ownership"];
+  Node2 -> Node3 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node3 [label="coro::mutex::awaiter\l::wait",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classcoro_1_1mutex_1_1awaiter_ac36f60109b6a68c09cad6f89f98e5f41.html#ac36f60109b6a68c09cad6f89f98e5f41",tooltip="perform synchronou wait on lock"];
+  Node3 -> Node4 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node4 [label="coro::mutex::lock_sync",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classcoro_1_1mutex_a0067038a6413cc3c34bfca3a8ef63314.html#a0067038a6413cc3c34bfca3a8ef63314",tooltip="lock synchronously"];
+}
