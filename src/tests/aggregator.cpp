@@ -37,7 +37,7 @@ coro::generator<int, Alloc> fibo(Alloc &, int count) {
 
 }
 
-coro::coro test_async_fibo(coro::scheduler &sch) {
+coro::coroutine test_async_fibo(coro::scheduler &sch) {
     auto aggr = coro::aggregator(async_fibo(sch, 8, 5), async_fibo(sch,12,6), async_fibo(sch,3,7));
     std::ostringstream sout;
     std::set<int> res;
@@ -55,7 +55,7 @@ coro::coro test_async_fibo(coro::scheduler &sch) {
 
 }
 
-coro::coro test_async_fibo_intr(coro::scheduler &sch) {
+coro::coroutine test_async_fibo_intr(coro::scheduler &sch) {
     {
         auto aggr = coro::aggregator(async_fibo(sch, 8, 5), async_fibo(sch,12,6), async_fibo(sch,3,7));
         std::ostringstream sout;

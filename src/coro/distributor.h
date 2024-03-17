@@ -25,7 +25,7 @@ struct nolock {
  *
  * Every subscription is one-shot. If the coroutine need to continue in subscription,
  * it must re-call subscribe() right after resumption (in the same thread, without
- * calling another co_await). If the subscriber need to process result asynchronously,
+ * calling another @b co_await). If the subscriber need to process result asynchronously,
  * it need to use distributor::queue to push received results to an queue, which
  * can be also co_awaited
  *
@@ -178,7 +178,7 @@ public:
      * reference stays valid during connection
      *
      * Once distributor is connected, it starts to push distributed values to
-     * the queue. The coroutine can co_await on the queue. It
+     * the queue. The coroutine can @b co_await on the queue. It
      * can process results asynchronously without loosing any distributed event
      *
      */

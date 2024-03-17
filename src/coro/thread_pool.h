@@ -106,16 +106,16 @@ public:
         stop();
     }
 
-    ///co_await support (never ready)
+    ///@b co_await support (never ready)
     static constexpr bool await_ready() noexcept {return false;}
-    ///co_await support (nothing returned)
+    ///@b co_await support (nothing returned)
     /**
      * @exception await_canceled_exception - thread pool has been stopped
      */
     void await_resume()  {
         if (is_stopped()) throw await_canceled_exception();
     }
-    ///co_await support - resumes the coroutine inside of thread_pool
+    ///@b co_await support - resumes the coroutine inside of thread_pool
     /**
      * @param h handle of suspended coroutine
      *

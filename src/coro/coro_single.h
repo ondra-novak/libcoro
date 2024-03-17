@@ -11,5 +11,6 @@
 #include "coro.h"
 #include "cooperative.h"
 #include "async.h"
+#include "pool_alloc.h"
 
 #endif

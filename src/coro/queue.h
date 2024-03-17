@@ -10,7 +10,7 @@ namespace coro {
 
 ///Implements asychronous queue with support for coroutines
 /**
- * Asynchronous queue allows to co_await on new items. You can have multiple
+ * Asynchronous queue allows to @b co_await on new items. You can have multiple
  * coroutines reading the same queue (for push-pull)
  * @tparam T type of item
  * @tparam QueueImpl object which implements the queue, default is std::queue. You

@@ -6,6 +6,10 @@
 namespace coro {
 
 ///Iterator to access generators
+/**
+ * Note the iterator is only input iterator.
+ *
+ */
 template<typename Src>
 class generator_iterator {
 public:
@@ -19,31 +23,37 @@ public:
     using difference_type = std::ptrdiff_t;
     using pointer = std::add_pointer_t<value_type>;
 
+    ///retrieve current value
     reference operator*() {
         return _stor;
     }
 
+    ///retrieve current value
     pointer operator->() {
         reference &r = _stor;
         return &r;
     }
 
+    ///advance next value
     generator_iterator &operator++() {
         _stor = _src();
         _is_end = !_stor;
         return *this;
     }
 
+    ///you can only compare with end()
     bool operator==(const generator_iterator &other) const {
         return _is_end == other._is_end;
     }
 
+    ///retrieve iterator to generator
     static generator_iterator begin(Src src) {
         generator_iterator ret(src, false);
         ++ret;
         return ret;
     }
 
+    ///retrieve end iterator
     static generator_iterator end(Src src) {
         return generator_iterator(src, true);
     }
@@ -61,12 +71,12 @@ protected:
 
 ///COROUTINE:  Generator
 /**
- * Implements generator coroutine, supporting co_yield operation.
+ * Implements generator coroutine, supporting @b co_yield operation.
  *
  * @tparam T type of yielded value. This argument can be T or T & (reference).
  * In case that T is reference, the behaviour is same, however, the internal part
  * of the generator just carries a reference to the result which is always avaiable
- * as temporary value when coroutine is suspended on co_yield. This helps to
+ * as temporary value when coroutine is suspended on @b co_yield. This helps to
  * reduce necessery copying.
  *
  * @tparam Alloc A class which is responsible to allocate generator's frame. It must
@@ -77,7 +87,7 @@ protected:
  * The generator IS NOT MT SAFE! Only one thread can call the generator and one must
  * avoid to call the generator again before the result is available.
  *
- * The generator can be destroyed when it is suspended on co_yield.
+ * The generator can be destroyed when it is suspended on @b co_yield.
  *
  * @note The object is movable and move assignable.
  * @ingroup Coroutines, awaitable
@@ -137,6 +147,11 @@ public:
         }
     };
 
+    ///call the generator
+    /**
+     * @return future value, note that generator is actually called once the
+     * value is requested.
+     */
     deferred_future<T> operator()() {
         return _prom->resume();
     }
@@ -157,6 +172,7 @@ public:
     ///object can be default constructed
     generator() = default;
 
+    ///convert from different allocator
     template<typename A>
     generator(generator<T, A> &&other): _prom(cast_promise(other._prom.release())) {
 

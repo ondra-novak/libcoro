@@ -31,7 +31,7 @@ namespace coro {
  * int val = co_await f;
  * @endcode
  *
- * Direct co_await
+ * Direct @b co_await
  * @code
  * int val = co_await my_coro(...);
  * @endcode
@@ -120,7 +120,7 @@ public:
         };
     }
 
-    ///direct co_await
+    ///direct @b co_await
     deferred_future<T> operator co_await() {
         return defer_start();
     }

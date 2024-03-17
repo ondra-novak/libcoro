@@ -43,7 +43,7 @@ public:
      * @param tp time point
      * @param ident optional identification. You can use any pointer as identification. The
      * pointer is dereferrenced
-     * @return future which becomes resolved at specified time point. You just need to co_await on it
+     * @return future which becomes resolved at specified time point. You just need to @b co_await on it
      */
     future<void> sleep_until(std::chrono::system_clock::time_point tp, ident_t ident = nullptr) {
         return [&](auto promise) {
@@ -60,7 +60,7 @@ public:
      * @param dur duration
      * @param ident optional identification. You can use any pointer as identification. The
      * pointer is dereferrenced
-     * @return future which becomes resolved after specified duration. You just need to co_await on it
+     * @return future which becomes resolved after specified duration. You just need to @b co_await on it
      */
     template<typename A, typename B>
     future<void> sleep_for(std::chrono::duration<A,B> dur, ident_t ident = nullptr) {

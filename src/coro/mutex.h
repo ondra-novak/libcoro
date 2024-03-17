@@ -7,10 +7,10 @@
 
 namespace coro {
 
-///Mutex which allows locking across co_await and co_yield suspend points.
+///Mutex which allows locking across @b co_await and @b co_yield suspend points.
 /**
  * This object can be used to hold exclusive access to a resource while the
- * coroutine is suspended on co_await on co_yield. Standard mutex can't support
+ * coroutine is suspended on @b co_await on @b co_yield. Standard mutex can't support
  * such feature. This mutex is also co_awaitable.
  *
  * The object suports lock and try_lock. However the lock protocol is different. When
@@ -19,7 +19,7 @@ namespace coro {
  * The ownership object uses RAII to track to mutex ownership. So there is no
  * explicit unlock() function.
  *
- * The mutex object support co_await, lock_sync() and lock_callback(). The third
+ * The mutex object support @b co_await, lock_sync() and lock_callback(). The third
  * function allows to call a callback when lock is acquired.
  *
  * @ingroup awaitable
@@ -215,7 +215,7 @@ public:
         return ownership(try_acquire()?this:nullptr);
     }
 
-    ///co_await support
+    ///@b co_await support
     awaiter operator co_await() {return *this;}
 
     ///lock synchronously

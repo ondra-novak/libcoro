@@ -212,7 +212,7 @@ protected:
 
 };
 
-///allows to co_await on variable while the variable is equal to value
+///allows to @b co_await on variable while the variable is equal to value
 /**
  * awaiting while variable equals value
  *
@@ -222,14 +222,14 @@ protected:
  *
  * @note await when var == val, resume when var != val
  *
- * @ingroup condition, awaitable
+ * @ingroup condition awaitable
  * @see notify_condition
  */
 template<typename T, typename U>
 auto condition_equal(T &var, const U &val) noexcept{
     return condition_awaiter(var, [&val](T &var){return var != val;});
 }
-///allows to co_await on variable while the variable si less than value
+///allows to @b co_await on variable while the variable si less than value
 /**
  * awaiting while variable is less than value
  *
@@ -241,14 +241,14 @@ auto condition_equal(T &var, const U &val) noexcept{
  *
  * @note await when var < val, resume otherwise
  *
- * @ingroup condition, awaitable
+ * @ingroup condition awaitable
  * @see notify_condition
  */
 template<typename T, typename U>
 auto condition_less(T &var, const U &val) noexcept{
     return condition_awaiter(var, [&val](T &var){return var >= val;});
 }
-///allows to co_await on variable while the variable si greater than value
+///allows to @b co_await on variable while the variable si greater than value
 /**
  * awaiting while variable is greater than value
  *
@@ -258,7 +258,7 @@ auto condition_less(T &var, const U &val) noexcept{
  *
  * @note await when var > val, resume otherwise
  *
- * @ingroup condition, awaitable
+ * @ingroup condition awaitable
  * @see notify_condition
  */
 template<typename T, typename U>
@@ -266,7 +266,7 @@ auto condition_greater(T &var, const U &val) noexcept{
     return condition_awaiter(var, [&val](T &var){return var <= val;});
 }
 
-///allows to co_await on variable while the variable is less or equal to a value
+///allows to @b co_await on variable while the variable is less or equal to a value
 /**
  * awaiting while variable is less or equal to a value
  *
@@ -275,7 +275,7 @@ auto condition_greater(T &var, const U &val) noexcept{
  * @return awaitable object, a coroutine is resumed, when condition is false
  *
  *  * @note await when var <= val, resume otherwise
- * @ingroup condition, awaitable
+ * @ingroup condition awaitable
  * @see notify_condition
  *
  */
@@ -284,7 +284,7 @@ auto condition_less_equal(T &var, const U &val) noexcept{
     return condition_awaiter(var, [&val](T &var){return var > val;});
 }
 
-///allows to co_await on variable while the variable is greater or equal to a value
+///allows to @b co_await on variable while the variable is greater or equal to a value
 /**
  * awaiting while variable is greater or equal to a value
  *
@@ -294,7 +294,7 @@ auto condition_less_equal(T &var, const U &val) noexcept{
  *
  *  * @note await when var >= val, resume otherwise
  *
- * @ingroup condition, awaitable
+ * @ingroup condition awaitable
  * @see notify_condition
  */
 template<typename T, typename U>
@@ -312,6 +312,7 @@ auto condition_greater_equal(T &var, const U &val) noexcept{
  * is not awaited, nothing happens.
  *
  * @ingroup condition
+ * @see condition_less, condition_equal, condition_greater, condition_less_equal, condition_greater_equal
  */
 template<typename T>
 void notify_condition(const T &var) noexcept {
@@ -331,6 +332,7 @@ void notify_condition(const T &var) noexcept {
  * is not awaited, nothing happens.
  *
  * @ingroup condition
+ * @see condition_less, condition_equal, condition_greater, condition_less_equal, condition_greater_equal
  */
 template<typename T, std::invocable<prepared_coro> Fn>
 void notify_condition(const T &var, Fn &&scheduler) noexcept {

@@ -17,7 +17,7 @@ coro::deferred_future<double> evaluate_async(int val) {
 }
 
 
-coro::coro test_coro(int val, coro::promise<double> result) {
+coro::coroutine test_coro(int val, coro::promise<double> result) {
     double r = co_await evaluate_async(val);
     result(r);
 }

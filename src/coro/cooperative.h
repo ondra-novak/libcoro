@@ -20,11 +20,11 @@ namespace coro {
  * The current corutine is scheduled to run at the end of the queue.
  *
  * This mode must be activated. Activation must be done by the main coroutine,
- * which first executes `co_await suspend()` to activate the cooperative run.
- * This first `co_await` is not about waiting, as there is no corutine ready
+ * which first executes `@b co_await suspend()` to activate the cooperative run.
+ * This first `@b co_await` is not about waiting, as there is no corutine ready
  * in the queue yet. After that, this main corutine can start other corutines
- * that use `co_await suspend()` when they run.
- * The main corutine itself can also use `co_await suspend()`.
+ * that use `@b co_await suspend()` when they run.
+ * The main corutine itself can also use `@b co_await suspend()`.
  *
  * The main coroutine can finish anytime as it is no longer considered as main.
  * The current thread stays in this mode while there are any suspended coroutine

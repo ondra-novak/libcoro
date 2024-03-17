@@ -569,7 +569,7 @@ public:
      * Blocks execution until future is resolved. If the future is deferred, the
      * evaluation is started now.
      *
-     * Result is awaitable. You can use co_await .wait() to await on resolution without
+     * Result is awaitable. You can use @b co_await .wait() to await on resolution without
      * retrieving the value (or throw exceptionb)
      */
     wait_awaiter wait() noexcept {return this;}
@@ -642,12 +642,12 @@ public:
         return _state.load(std::memory_order_relaxed) == State::awaited;
     }
 
-    ///co_await support, returns true, if value is ready (resolved)
+    ///@b co_await support, returns true, if value is ready (resolved)
     bool await_ready() const noexcept {
         return _state.load(std::memory_order_relaxed) == State::resolved;
     }
 
-    ///co_await support, called with suspended coroutine
+    ///@b co_await support, called with suspended coroutine
     /**
      * the function registers coroutine to be awaken once the future is resolved.
      * It is registered as an awaiter
@@ -668,7 +668,7 @@ public:
         return h;
     }
 
-    ////co_await support, called by resumed coroutine to retrieve a value
+    ////@b co_await support, called by resumed coroutine to retrieve a value
     T await_resume() && {
         if constexpr(std::is_void_v<T>) {
             getInternal();
@@ -677,7 +677,7 @@ public:
         }
     }
 
-    ////co_await support, called by resumed coroutine to retrieve a value
+    ////@b co_await support, called by resumed coroutine to retrieve a value
     T await_resume() & {
         if constexpr(std::is_void_v<T>) {
             getInternal();
@@ -1249,12 +1249,12 @@ public:
         return _state.load(std::memory_order_relaxed) == State::awaited;
     }
 
-    ///co_await support, returns true, if value is ready (resolved)
+    ///@b co_await support, returns true, if value is ready (resolved)
     bool await_ready() const {
         return !_shared_future || _shared_future->await_ready();
     }
 
-    ///co_await support, called with suspended coroutine
+    ///@b co_await support, called with suspended coroutine
     /**
      * the function registers coroutine to be awaken once the future is resolved.
      * It is registered as an awaiter
@@ -1269,7 +1269,7 @@ public:
         return set_callback([h]{return h;});
     }
 
-    ////co_await support, called by resumed coroutine to retrieve a value
+    ////@b co_await support, called by resumed coroutine to retrieve a value
     T await_resume() {
         return _shared_future->await_resume();
     }

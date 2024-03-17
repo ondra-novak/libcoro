@@ -13,7 +13,7 @@ std::vector<int> results = {
 
 static auto iter = results.begin();
 
-coro::coro test_task(int id) {
+coro::coroutine test_task(int id) {
     for (int j = 0; j < 5; j++) {
         int v = id*10+j;
         CHECK_EQUAL(v, *iter);
@@ -24,7 +24,7 @@ coro::coro test_task(int id) {
 }
 
 
-coro::coro test_cooperative() {
+coro::coroutine test_cooperative() {
 
     //initialize qswitch - transfer execution into the queue
     co_await coro::suspend();

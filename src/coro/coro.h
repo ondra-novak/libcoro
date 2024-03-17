@@ -12,7 +12,7 @@ namespace coro {
  * @tparam Alloc allocator
  */
 template<coro_allocator Alloc = std_allocator>
-class basic_coro {
+class basic_coroutine {
 public:
     class promise_type: public coro_allocator_helper<Alloc> {
     public:
@@ -20,7 +20,7 @@ public:
         static constexpr std::suspend_never final_suspend() noexcept {return {};}
         static constexpr void return_void() {}
         static void unhandled_exception() {std::terminate();}
-        basic_coro get_return_object() const {return {};}
+        basic_coroutine get_return_object() const {return {};}
     };
 };
 
@@ -38,6 +38,6 @@ public:
  *
  * @note assume noexcept. When exception is thrown, std::terminate() is called
  */
-using coro = basic_coro<std_allocator>;
+using coroutine = basic_coroutine<std_allocator>;
 
 }

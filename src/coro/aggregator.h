@@ -61,8 +61,8 @@ generator<T, Alloc> aggregator(Alloc &, std::vector<generator<T> > gens) {
         //if such future exists, install a coroutine, which awaits to resolution
         if (pending) {
             //coroutine
-            auto dtch = [](std::vector<generator<T> > , std::vector<deferred_future<T> > futures) -> coro {
-                //cycle over all futures and co_await for just has_value - we don't need the value
+            auto dtch = [](std::vector<generator<T> > , std::vector<deferred_future<T> > futures) -> coroutine {
+                //cycle over all futures and @b co_await for just has_value - we don't need the value
                 for (auto &f: futures) {
                     co_await f.wait();
                 }

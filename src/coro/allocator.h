@@ -21,16 +21,17 @@ class std_allocator {};
 inline constexpr std_allocator standard_allocator;
 
 template<typename T>
-concept coro_allocator_local = requires(T a, std::size_t sz, void *ptr) {
-    {a.alloc(sz)} -> std::same_as<void *>;
-    {T::dealloc(ptr, sz)}->std::same_as<void>;
-};
-
-template<typename T>
 concept coro_allocator_global = requires(std::size_t sz, void *ptr) {
     {T::alloc(sz)} -> std::same_as<void *>;
     {T::dealloc(ptr, sz)}->std::same_as<void>;
 };
+
+template<typename T>
+concept coro_allocator_local = (!coro_allocator_global<T> && requires(T a, std::size_t sz, void *ptr) {
+    {a.alloc(sz)} -> std::same_as<void *>;
+    {T::dealloc(ptr, sz)}->std::same_as<void>;
+});
+
 
 template<typename T>
 concept coro_allocator = std::same_as<T, std_allocator> || std::same_as<T, const std_allocator>
