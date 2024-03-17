@@ -41,10 +41,10 @@ Doxygen: [https://ondra-novak.github.io/libcoro/](https://ondra-novak.github.io/
 
 ### Writing coroutine
 
-#### coro, basic_coro
+#### coroutine, basic_coroutine
 
 ```
-coro::coro my_coroutine(int arg) {
+coro::coroutine my_coroutine(int arg) {
     co_await ...;
     co_return ...;
 }
@@ -57,10 +57,10 @@ int main() {
 This is simple coroutine, which doesn't return value and which cannot be synchronized. 
 It is *detached*. Inside of coroutine, you can use all features of this library
 
-**basic_coro** is template, which allows to set allocator for the coroutine
+**basic_coroutine** is template, which allows to set allocator for the coroutine
 
 ```
-coro::basic_coro<MyAllocator> my_coroutine_with_allocator(MyAllocator &alloc, args...) {
+coro::basic_coroutine<MyAllocator> my_coroutine_with_allocator(MyAllocator &alloc, args...) {
     ...
 }
 ```
@@ -102,7 +102,7 @@ int main() {
 or
 
 ```
-coro::coro coro_example() {
+coro::coroutine coro_example() {
     int result = co_await my_async(42);     //co_await on result (suspend during waiting)
 }
 ```
@@ -270,7 +270,7 @@ coro::generator<int> my_generator() {
     co_await;    
 }
 
-coro::coro async_generator_reader(coro::generator<int> &gen) {
+coro::coroutine async_generator_reader(coro::generator<int> &gen) {
     coro::deferred_future<int> v = gen();
     while (co_await !!v) {
         int val = v;
