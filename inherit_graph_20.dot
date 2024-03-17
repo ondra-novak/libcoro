@@ -4,5 +4,5 @@ digraph "Graphical Class Hierarchy"
   edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
   node [fontname="Helvetica",fontsize="10",shape=record];
   rankdir="LR";
-  Node0 [label="coro::promise\< T, atomic\l \>::notify",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classcoro_1_1promise_1_1notify.html",tooltip="contain notification to be delivered to the asociated future"];
+  Node0 [label="coro::promise\< T, atomic \>",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classcoro_1_1promise.html",tooltip="Carries reference to future<T>, callable, sets value of an associated future<T>"];
 }

@@ -112,7 +112,7 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
 <tr class="separator:ae1b4487261355f4218fd10f5eac64d67"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae36a2e24973e74c411ca28a69d3c24d6"><td class="memItemLeft" align="right" valign="top"><a id="ae36a2e24973e74c411ca28a69d3c24d6"></a>
 <a class="el" href="classcoro_1_1deferred__future.html">deferred_future</a>&lt; T &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1async.html#ae36a2e24973e74c411ca28a69d3c24d6">operator co_await</a> ()</td></tr>
-<tr class="memdesc:ae36a2e24973e74c411ca28a69d3c24d6"><td class="mdescLeft">&#160;</td><td class="mdescRight">direct co_await <br /></td></tr>
+<tr class="memdesc:ae36a2e24973e74c411ca28a69d3c24d6"><td class="mdescLeft">&#160;</td><td class="mdescRight">direct <b>co_await</b> <br /></td></tr>
 <tr class="separator:ae36a2e24973e74c411ca28a69d3c24d6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aac92597c5953737b2e911d8f7d5c88f8"><td class="memItemLeft" align="right" valign="top"><a id="aac92597c5953737b2e911d8f7d5c88f8"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1async.html#aac92597c5953737b2e911d8f7d5c88f8">operator future&lt; T &gt;</a> ()</td></tr>
@@ -148,7 +148,7 @@ class coro::async&lt; T, Alloc &gt;</h3>
 </div><!-- fragment --><p>Synchronous access </p><div class="fragment"><div class="line"><span class="keywordtype">int</span> val = my_coro(...)</div>
 </div><!-- fragment --><p>Retrieve future </p><div class="fragment"><div class="line">future&lt;int&gt; f = my_coro(...);</div>
 <div class="line"><span class="keywordtype">int</span> val = co_await f;</div>
-</div><!-- fragment --><p>Direct co_await </p><div class="fragment"><div class="line"><span class="keywordtype">int</span> val = co_await my_coro(...);</div>
+</div><!-- fragment --><p>Direct <b>co_await</b> </p><div class="fragment"><div class="line"><span class="keywordtype">int</span> val = co_await my_coro(...);</div>
 </div><!-- fragment --><dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname">T</td><td>type of returned value </td></tr>
@@ -205,7 +205,7 @@ template&lt;typename T , coro_allocator Alloc = std_allocator&gt; </div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Mar 16 2024 14:24:15 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+Generated on Sun Mar 17 2024 13:19:28 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
 </small></address>
 </body>
 </html>

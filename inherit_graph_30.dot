@@ -4,5 +4,5 @@ digraph "Graphical Class Hierarchy"
   edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
   node [fontname="Helvetica",fontsize="10",shape=record];
   rankdir="LR";
-  Node0 [label="coro::still_pending\l_exception",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classcoro_1_1still__pending__exception.html",tooltip="Exception is thrown on attempt to retrieve promise when the future is already pending."];
+  Node0 [label="coro::std_allocator",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classcoro_1_1std__allocator.html",tooltip="represents standard allocator for coroutines"];
 }

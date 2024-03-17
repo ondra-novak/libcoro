@@ -73,7 +73,7 @@ $(function() {
 <div class="contents">
 <div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;<span class="preprocessor">#pragma once</span></div>
 <div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160; </div>
-<div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160;<span class="preprocessor">#include &quot;common.h&quot;</span></div>
+<div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="common_8h.html">common.h</a>&quot;</span></div>
 <div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="preprocessor">#include &quot;allocator.h&quot;</span></div>
 <div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;<span class="preprocessor">#include &quot;future.h&quot;</span></div>
 <div class="line"><a name="l00006"></a><span class="lineno">    6</span>&#160; </div>
@@ -225,17 +225,18 @@ $(function() {
 <div class="ttc" id="aclasscoro_1_1async_html_ad1f88e9dee9e17e070d1e8db91d94f98"><div class="ttname"><a href="classcoro_1_1async.html#ad1f88e9dee9e17e070d1e8db91d94f98">coro::async::async</a></div><div class="ttdeci">async()=default</div><div class="ttdoc">construct uninitialized object</div></div>
 <div class="ttc" id="aclasscoro_1_1async_html_ae1b4487261355f4218fd10f5eac64d67"><div class="ttname"><a href="classcoro_1_1async.html#ae1b4487261355f4218fd10f5eac64d67">coro::async::shared_start</a></div><div class="ttdeci">shared_future&lt; T &gt; shared_start()</div><div class="ttdoc">Start coroutine and return shared future.</div><div class="ttdef"><b>Definition:</b> <a href="async_8h_source.html#l00116">async.h:116</a></div></div>
 <div class="ttc" id="aclasscoro_1_1async_html_ae5632c77cf6c16f6d5dacc3f1a63063b"><div class="ttname"><a href="classcoro_1_1async.html#ae5632c77cf6c16f6d5dacc3f1a63063b">coro::async::start</a></div><div class="ttdeci">future&lt; T &gt; start()</div><div class="ttdoc">Start coroutine and return future.</div><div class="ttdef"><b>Definition:</b> <a href="async_8h_source.html#l00094">async.h:94</a></div></div>
-<div class="ttc" id="aclasscoro_1_1coro__allocator__helper_html"><div class="ttname"><a href="classcoro_1_1coro__allocator__helper.html">coro::coro_allocator_helper</a></div><div class="ttdoc">inherit this class to include coro_allocator into your promise_type</div><div class="ttdef"><b>Definition:</b> <a href="allocator_8h_source.html#l00075">allocator.h:75</a></div></div>
+<div class="ttc" id="aclasscoro_1_1coro__allocator__helper_html"><div class="ttname"><a href="classcoro_1_1coro__allocator__helper.html">coro::coro_allocator_helper</a></div><div class="ttdoc">inherit this class to include coro_allocator into your promise_type</div><div class="ttdef"><b>Definition:</b> <a href="allocator_8h_source.html#l00076">allocator.h:76</a></div></div>
 <div class="ttc" id="aclasscoro_1_1deferred__future_html"><div class="ttname"><a href="classcoro_1_1deferred__future.html">coro::deferred_future</a></div><div class="ttdoc">Contains future value of T, where evaluation is deferred until the value is needed.</div><div class="ttdef"><b>Definition:</b> <a href="future_8h_source.html#l00991">future.h:991</a></div></div>
 <div class="ttc" id="aclasscoro_1_1future_html"><div class="ttname"><a href="classcoro_1_1future.html">coro::future</a></div><div class="ttdoc">Contains future value of T, can be co_awaited in coroutine.</div><div class="ttdef"><b>Definition:</b> <a href="future_8h_source.html#l00356">future.h:356</a></div></div>
 <div class="ttc" id="aclasscoro_1_1promise_html"><div class="ttname"><a href="classcoro_1_1promise.html">coro::promise</a></div><div class="ttdoc">Carries reference to future&lt;T&gt;, callable, sets value of an associated future&lt;T&gt;</div><div class="ttdef"><b>Definition:</b> <a href="future_8h_source.html#l00058">future.h:58</a></div></div>
 <div class="ttc" id="aclasscoro_1_1promise_html_a0717c02c0591d87591abe213b87fbcb2"><div class="ttname"><a href="classcoro_1_1promise.html#a0717c02c0591d87591abe213b87fbcb2">coro::promise::release</a></div><div class="ttdeci">FutureType * release()</div><div class="ttdoc">Release the future pointer from the promise object.</div><div class="ttdef"><b>Definition:</b> <a href="future_8h_source.html#l00232">future.h:232</a></div></div>
 <div class="ttc" id="aclasscoro_1_1shared__future_html"><div class="ttname"><a href="classcoro_1_1shared__future.html">coro::shared_future</a></div><div class="ttdoc">Future which can be shared (by copying - like shared_ptr)</div><div class="ttdef"><b>Definition:</b> <a href="future_8h_source.html#l01113">future.h:1113</a></div></div>
+<div class="ttc" id="acommon_8h_html"><div class="ttname"><a href="common_8h.html">common.h</a></div></div>
 <div class="ttc" id="anamespacecoro_html"><div class="ttname"><a href="namespacecoro.html">coro</a></div><div class="ttdoc">main namespace</div><div class="ttdef"><b>Definition:</b> <a href="aggregator_8h_source.html#l00009">aggregator.h:9</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Mar 16 2024 14:24:15 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+Generated on Sun Mar 17 2024 13:19:28 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
 </small></address>
 </body>
 </html>

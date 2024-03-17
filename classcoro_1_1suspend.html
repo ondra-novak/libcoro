@@ -101,7 +101,7 @@ Friends</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Suspend current coroutine and switch to another coroutine ready to run. </p>
 <p>This allows you to run cooperative task switching in the current thread. In order for this to work, additional corutines need to be scheduled to run within this thread. Each time a corutine is suspended on suspend(), execution is switched to the next scheduled corutine. The current corutine is scheduled to run at the end of the queue.</p>
-<p>This mode must be activated. Activation must be done by the main coroutine, which first executes <code>co_await suspend()</code> to activate the cooperative run. This first <code>co_await</code> is not about waiting, as there is no corutine ready in the queue yet. After that, this main corutine can start other corutines that use <code>co_await suspend()</code> when they run. The main corutine itself can also use <code>co_await suspend()</code>.</p>
+<p>This mode must be activated. Activation must be done by the main coroutine, which first executes <code>@b co_await suspend()</code> to activate the cooperative run. This first <code>@b co_await</code> is not about waiting, as there is no corutine ready in the queue yet. After that, this main corutine can start other corutines that use <code>@b co_await suspend()</code> when they run. The main corutine itself can also use <code>@b co_await suspend()</code>.</p>
 <p>The main coroutine can finish anytime as it is no longer considered as main. The current thread stays in this mode while there are any suspended coroutine in the queue.</p>
 <p>Usage:</p>
 <div class="fragment"><div class="line">co_await <a class="code" href="classcoro_1_1suspend.html">coro::suspend</a>();</div>
@@ -152,7 +152,7 @@ Friends</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Mar 16 2024 14:24:15 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+Generated on Sun Mar 17 2024 13:19:28 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
 </small></address>
 </body>
 </html>

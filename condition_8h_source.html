@@ -305,24 +305,24 @@ $(function() {
 <div class="line"><a name="l00303"></a><span class="lineno">  303</span>&#160;}</div>
 <div class="line"><a name="l00304"></a><span class="lineno">  304</span>&#160; </div>
 <div class="line"><a name="l00306"></a><span class="lineno">  306</span>&#160; </div>
-<div class="line"><a name="l00316"></a><span class="lineno">  316</span>&#160;<span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</div>
-<div class="line"><a name="l00317"></a><span class="lineno"><a class="line" href="group__condition.html#ga9f0555789cbd22148a9e7cc76ee95692">  317</a></span>&#160;<span class="keywordtype">void</span> <a class="code" href="group__condition.html#ga9f0555789cbd22148a9e7cc76ee95692">notify_condition</a>(<span class="keyword">const</span> T &amp;var) noexcept {</div>
-<div class="line"><a name="l00318"></a><span class="lineno">  318</span>&#160;    _details::awaiter_map::instance.notify_addr(&amp;var,[](<span class="keyword">auto</span>){});</div>
-<div class="line"><a name="l00319"></a><span class="lineno">  319</span>&#160;}</div>
-<div class="line"><a name="l00320"></a><span class="lineno">  320</span>&#160; </div>
-<div class="line"><a name="l00322"></a><span class="lineno">  322</span>&#160; </div>
-<div class="line"><a name="l00335"></a><span class="lineno">  335</span>&#160;<span class="keyword">template</span>&lt;<span class="keyword">typename</span> T, std::invocable&lt;prepared_coro&gt; Fn&gt;</div>
-<div class="line"><a name="l00336"></a><span class="lineno"><a class="line" href="group__condition.html#ga1f6fb6ccd5b93f0c1bda62595565adb8">  336</a></span>&#160;<span class="keywordtype">void</span> <a class="code" href="group__condition.html#ga9f0555789cbd22148a9e7cc76ee95692">notify_condition</a>(<span class="keyword">const</span> T &amp;var, Fn &amp;&amp;<a class="code" href="classcoro_1_1scheduler.html">scheduler</a>) noexcept {</div>
-<div class="line"><a name="l00337"></a><span class="lineno">  337</span>&#160;    _details::awaiter_map::instance.notify_addr(&amp;var,<a class="code" href="classcoro_1_1scheduler.html">scheduler</a>);</div>
-<div class="line"><a name="l00338"></a><span class="lineno">  338</span>&#160;}</div>
-<div class="line"><a name="l00339"></a><span class="lineno">  339</span>&#160; </div>
-<div class="line"><a name="l00340"></a><span class="lineno">  340</span>&#160; </div>
-<div class="line"><a name="l00341"></a><span class="lineno">  341</span>&#160;}</div>
+<div class="line"><a name="l00317"></a><span class="lineno">  317</span>&#160;<span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</div>
+<div class="line"><a name="l00318"></a><span class="lineno"><a class="line" href="group__condition.html#ga9f0555789cbd22148a9e7cc76ee95692">  318</a></span>&#160;<span class="keywordtype">void</span> <a class="code" href="group__condition.html#ga9f0555789cbd22148a9e7cc76ee95692">notify_condition</a>(<span class="keyword">const</span> T &amp;var) noexcept {</div>
+<div class="line"><a name="l00319"></a><span class="lineno">  319</span>&#160;    _details::awaiter_map::instance.notify_addr(&amp;var,[](<span class="keyword">auto</span>){});</div>
+<div class="line"><a name="l00320"></a><span class="lineno">  320</span>&#160;}</div>
+<div class="line"><a name="l00321"></a><span class="lineno">  321</span>&#160; </div>
+<div class="line"><a name="l00323"></a><span class="lineno">  323</span>&#160; </div>
+<div class="line"><a name="l00337"></a><span class="lineno">  337</span>&#160;<span class="keyword">template</span>&lt;<span class="keyword">typename</span> T, std::invocable&lt;prepared_coro&gt; Fn&gt;</div>
+<div class="line"><a name="l00338"></a><span class="lineno"><a class="line" href="group__condition.html#ga1f6fb6ccd5b93f0c1bda62595565adb8">  338</a></span>&#160;<span class="keywordtype">void</span> <a class="code" href="group__condition.html#ga9f0555789cbd22148a9e7cc76ee95692">notify_condition</a>(<span class="keyword">const</span> T &amp;var, Fn &amp;&amp;<a class="code" href="classcoro_1_1scheduler.html">scheduler</a>) noexcept {</div>
+<div class="line"><a name="l00339"></a><span class="lineno">  339</span>&#160;    _details::awaiter_map::instance.notify_addr(&amp;var,<a class="code" href="classcoro_1_1scheduler.html">scheduler</a>);</div>
+<div class="line"><a name="l00340"></a><span class="lineno">  340</span>&#160;}</div>
+<div class="line"><a name="l00341"></a><span class="lineno">  341</span>&#160; </div>
 <div class="line"><a name="l00342"></a><span class="lineno">  342</span>&#160; </div>
-<div class="line"><a name="l00343"></a><span class="lineno">  343</span>&#160; </div>
+<div class="line"><a name="l00343"></a><span class="lineno">  343</span>&#160;}</div>
 <div class="line"><a name="l00344"></a><span class="lineno">  344</span>&#160; </div>
 <div class="line"><a name="l00345"></a><span class="lineno">  345</span>&#160; </div>
 <div class="line"><a name="l00346"></a><span class="lineno">  346</span>&#160; </div>
+<div class="line"><a name="l00347"></a><span class="lineno">  347</span>&#160; </div>
+<div class="line"><a name="l00348"></a><span class="lineno">  348</span>&#160; </div>
 <div class="ttc" id="aclasscoro_1_1condition__awaiter_html"><div class="ttname"><a href="classcoro_1_1condition__awaiter.html">coro::condition_awaiter</a></div><div class="ttdoc">support for notify_condition()</div><div class="ttdef"><b>Definition:</b> <a href="condition_8h_source.html#l00177">condition.h:177</a></div></div>
 <div class="ttc" id="aclasscoro_1_1scheduler_html"><div class="ttname"><a href="classcoro_1_1scheduler.html">coro::scheduler</a></div><div class="ttdoc">scheduler for coroutines</div><div class="ttdef"><b>Definition:</b> <a href="scheduler_8h_source.html#l00018">scheduler.h:18</a></div></div>
 <div class="ttc" id="agroup__awaitable_html_ga1d3c20176e390b9988c77f088e433468"><div class="ttname"><a href="group__awaitable.html#ga1d3c20176e390b9988c77f088e433468">coro::condition_equal</a></div><div class="ttdeci">auto condition_equal(T &amp;var, const U &amp;val) noexcept</div><div class="ttdoc">allows to co_await on variable while the variable is equal to value</div><div class="ttdef"><b>Definition:</b> <a href="condition_8h_source.html#l00229">condition.h:229</a></div></div>
@@ -330,12 +330,12 @@ $(function() {
 <div class="ttc" id="agroup__awaitable_html_gac447f0258ce4c6114370d4d836378f2b"><div class="ttname"><a href="group__awaitable.html#gac447f0258ce4c6114370d4d836378f2b">coro::condition_less_equal</a></div><div class="ttdeci">auto condition_less_equal(T &amp;var, const U &amp;val) noexcept</div><div class="ttdoc">allows to co_await on variable while the variable is less or equal to a value</div><div class="ttdef"><b>Definition:</b> <a href="condition_8h_source.html#l00283">condition.h:283</a></div></div>
 <div class="ttc" id="agroup__awaitable_html_gadb8ba3c313610156b3ad2916c06b7845"><div class="ttname"><a href="group__awaitable.html#gadb8ba3c313610156b3ad2916c06b7845">coro::condition_less</a></div><div class="ttdeci">auto condition_less(T &amp;var, const U &amp;val) noexcept</div><div class="ttdoc">allows to co_await on variable while the variable si less than value</div><div class="ttdef"><b>Definition:</b> <a href="condition_8h_source.html#l00248">condition.h:248</a></div></div>
 <div class="ttc" id="agroup__awaitable_html_gae1ecc61736c00e0bb32bc5875dd92ac7"><div class="ttname"><a href="group__awaitable.html#gae1ecc61736c00e0bb32bc5875dd92ac7">coro::condition_greater</a></div><div class="ttdeci">auto condition_greater(T &amp;var, const U &amp;val) noexcept</div><div class="ttdoc">allows to co_await on variable while the variable si greater than value</div><div class="ttdef"><b>Definition:</b> <a href="condition_8h_source.html#l00265">condition.h:265</a></div></div>
-<div class="ttc" id="agroup__condition_html_ga9f0555789cbd22148a9e7cc76ee95692"><div class="ttname"><a href="group__condition.html#ga9f0555789cbd22148a9e7cc76ee95692">coro::notify_condition</a></div><div class="ttdeci">void notify_condition(const T &amp;var) noexcept</div><div class="ttdoc">notifies variable about change in the condition.</div><div class="ttdef"><b>Definition:</b> <a href="condition_8h_source.html#l00317">condition.h:317</a></div></div>
+<div class="ttc" id="agroup__condition_html_ga9f0555789cbd22148a9e7cc76ee95692"><div class="ttname"><a href="group__condition.html#ga9f0555789cbd22148a9e7cc76ee95692">coro::notify_condition</a></div><div class="ttdeci">void notify_condition(const T &amp;var) noexcept</div><div class="ttdoc">notifies variable about change in the condition.</div><div class="ttdef"><b>Definition:</b> <a href="condition_8h_source.html#l00318">condition.h:318</a></div></div>
 <div class="ttc" id="anamespacecoro_html"><div class="ttname"><a href="namespacecoro.html">coro</a></div><div class="ttdoc">main namespace</div><div class="ttdef"><b>Definition:</b> <a href="aggregator_8h_source.html#l00009">aggregator.h:9</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Mar 16 2024 14:24:15 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+Generated on Sun Mar 17 2024 13:19:28 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
 </small></address>
 </body>
 </html>

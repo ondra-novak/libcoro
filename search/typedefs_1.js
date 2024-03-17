@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['futuretype_290',['FutureType',['../classcoro_1_1promise.html#aff5c200afa35fd996a91c8dbd3e80381',1,'coro::promise']]]
+  ['futuretype_307',['FutureType',['../classcoro_1_1promise.html#aff5c200afa35fd996a91c8dbd3e80381',1,'coro::promise']]]
 ];

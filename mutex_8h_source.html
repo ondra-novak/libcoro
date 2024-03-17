@@ -120,7 +120,7 @@ $(function() {
 <div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;            <span class="comment">//not configures (should not be used to waiting)</span></div>
 <div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160;            none,</div>
 <div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;            <span class="comment">//resume coroutine</span></div>
-<div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;            coroutine,</div>
+<div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;            <a class="code" href="classcoro_1_1basic__coroutine.html">coroutine</a>,</div>
 <div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160;            <span class="comment">//synchronize</span></div>
 <div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160;            sync,</div>
 <div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160;            <span class="comment">//call a callback</span></div>
@@ -133,7 +133,7 @@ $(function() {
 <div class="line"><a name="l00095"></a><span class="lineno"><a class="line" href="classcoro_1_1mutex_1_1awaiter.html#af4f7f5cd836632e99dd9ed0ec8902462">   95</a></span>&#160;        <a class="code" href="classcoro_1_1mutex_1_1awaiter.html#af4f7f5cd836632e99dd9ed0ec8902462">~awaiter</a>() {</div>
 <div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;            <span class="keywordflow">switch</span> (_mode) {</div>
 <div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;                <span class="keywordflow">default</span>: <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;                <span class="keywordflow">case</span> coroutine: std::destroy_at(&amp;_coro);</div>
+<div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;                <span class="keywordflow">case</span> <a class="code" href="classcoro_1_1basic__coroutine.html">coroutine</a>: std::destroy_at(&amp;_coro);</div>
 <div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;                <span class="keywordflow">case</span> sync: std::destroy_at(&amp;_sync);</div>
 <div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;                <span class="keywordflow">case</span> callback: std::destroy_at(&amp;_resume_cb);</div>
 <div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;            }</div>
@@ -141,7 +141,7 @@ $(function() {
 <div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160; </div>
 <div class="line"><a name="l00105"></a><span class="lineno"><a class="line" href="classcoro_1_1mutex_1_1awaiter.html#a6b5313e3e3cd5ae4ac616ab943db0807">  105</a></span>&#160;        <span class="keywordtype">bool</span> <a class="code" href="classcoro_1_1mutex_1_1awaiter.html#a6b5313e3e3cd5ae4ac616ab943db0807">await_ready</a>() const noexcept {<span class="keywordflow">return</span> _owner.<a class="code" href="classcoro_1_1mutex.html#ae9c73d87232d3dd22e4dd45c0719206e">try_acquire</a>();}</div>
 <div class="line"><a name="l00107"></a><span class="lineno"><a class="line" href="classcoro_1_1mutex_1_1awaiter.html#a588b216c6ab5a4b1841071b28371c919">  107</a></span>&#160;        <span class="keywordtype">bool</span> <a class="code" href="classcoro_1_1mutex_1_1awaiter.html#a588b216c6ab5a4b1841071b28371c919">await_suspend</a>(std::coroutine_handle&lt;&gt; h) noexcept {</div>
-<div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160;            _mode = coroutine;</div>
+<div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160;            _mode = <a class="code" href="classcoro_1_1basic__coroutine.html">coroutine</a>;</div>
 <div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;            std::construct_at(&amp;_coro,h);</div>
 <div class="line"><a name="l00110"></a><span class="lineno">  110</span>&#160;            <span class="keywordflow">return</span> _owner.<a class="code" href="classcoro_1_1mutex.html#ad0e661447e136717a63e38cf9047f20b">do_lock</a>(<span class="keyword">this</span>);</div>
 <div class="line"><a name="l00111"></a><span class="lineno">  111</span>&#160;        }</div>
@@ -317,6 +317,7 @@ $(function() {
 <div class="line"><a name="l00354"></a><span class="lineno">  354</span>&#160; </div>
 <div class="line"><a name="l00355"></a><span class="lineno">  355</span>&#160; </div>
 <div class="line"><a name="l00356"></a><span class="lineno">  356</span>&#160; </div>
+<div class="ttc" id="aclasscoro_1_1basic__coroutine_html"><div class="ttname"><a href="classcoro_1_1basic__coroutine.html">coro::basic_coroutine</a></div><div class="ttdoc">COROUTINE: Basic coroutine.</div><div class="ttdef"><b>Definition:</b> <a href="coro_8h_source.html#l00015">coro.h:15</a></div></div>
 <div class="ttc" id="aclasscoro_1_1mutex_1_1awaiter__cb_html"><div class="ttname"><a href="classcoro_1_1mutex_1_1awaiter__cb.html">coro::mutex::awaiter_cb</a></div><div class="ttdoc">awaiter with a callback function</div><div class="ttdef"><b>Definition:</b> <a href="mutex_8h_source.html#l00175">mutex.h:175</a></div></div>
 <div class="ttc" id="aclasscoro_1_1mutex_1_1awaiter_html"><div class="ttname"><a href="classcoro_1_1mutex_1_1awaiter.html">coro::mutex::awaiter</a></div><div class="ttdoc">awaiter is object used in most of cases by coroutines, however it is building block of this class</div><div class="ttdef"><b>Definition:</b> <a href="mutex_8h_source.html#l00075">mutex.h:75</a></div></div>
 <div class="ttc" id="aclasscoro_1_1mutex_1_1awaiter_html_a099baeb4b15803f493b5cf05e9f77d3c"><div class="ttname"><a href="classcoro_1_1mutex_1_1awaiter.html#a099baeb4b15803f493b5cf05e9f77d3c">coro::mutex::awaiter::operator=</a></div><div class="ttdeci">awaiter &amp; operator=(const awaiter &amp;other)=delete</div><div class="ttdoc">awaiter is not assignable</div></div>
@@ -351,7 +352,7 @@ $(function() {
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Mar 16 2024 14:24:15 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+Generated on Sun Mar 17 2024 13:19:28 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
 </small></address>
 </body>
 </html>

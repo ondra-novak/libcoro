@@ -105,10 +105,10 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:ab0e30d714f8f79fc36d69126e49d5aca"><td class="mdescLeft">&#160;</td><td class="mdescRight">dtor <br /></td></tr>
 <tr class="separator:ab0e30d714f8f79fc36d69126e49d5aca"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a02868bb048717ba8d3bb8786ced6d126"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1thread__pool.html#a02868bb048717ba8d3bb8786ced6d126">await_resume</a> ()</td></tr>
-<tr class="memdesc:a02868bb048717ba8d3bb8786ced6d126"><td class="mdescLeft">&#160;</td><td class="mdescRight">co_await support (nothing returned)  <a href="classcoro_1_1thread__pool.html#a02868bb048717ba8d3bb8786ced6d126">More...</a><br /></td></tr>
+<tr class="memdesc:a02868bb048717ba8d3bb8786ced6d126"><td class="mdescLeft">&#160;</td><td class="mdescRight"><b>co_await</b> support (nothing returned)  <a href="classcoro_1_1thread__pool.html#a02868bb048717ba8d3bb8786ced6d126">More...</a><br /></td></tr>
 <tr class="separator:a02868bb048717ba8d3bb8786ced6d126"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8f2d544a0c08e94effdc7814c482e131"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1thread__pool.html#a8f2d544a0c08e94effdc7814c482e131">await_suspend</a> (std::coroutine_handle&lt;&gt; h)</td></tr>
-<tr class="memdesc:a8f2d544a0c08e94effdc7814c482e131"><td class="mdescLeft">&#160;</td><td class="mdescRight">co_await support - resumes the coroutine inside of <a class="el" href="classcoro_1_1thread__pool.html" title="thread pool implementation">thread_pool</a>  <a href="classcoro_1_1thread__pool.html#a8f2d544a0c08e94effdc7814c482e131">More...</a><br /></td></tr>
+<tr class="memdesc:a8f2d544a0c08e94effdc7814c482e131"><td class="mdescLeft">&#160;</td><td class="mdescRight"><b>co_await</b> support - resumes the coroutine inside of <a class="el" href="classcoro_1_1thread__pool.html" title="thread pool implementation">thread_pool</a>  <a href="classcoro_1_1thread__pool.html#a8f2d544a0c08e94effdc7814c482e131">More...</a><br /></td></tr>
 <tr class="separator:a8f2d544a0c08e94effdc7814c482e131"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9c712346ef693dfd061d9b4fe7cda803"><td class="memItemLeft" align="right" valign="top"><a id="a9c712346ef693dfd061d9b4fe7cda803"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1thread__pool.html#a9c712346ef693dfd061d9b4fe7cda803">join</a> ()</td></tr>
@@ -127,7 +127,7 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
 Static Public Member Functions</h2></td></tr>
 <tr class="memitem:aca9d2fb2c170f134dc8b260c835a4a64"><td class="memItemLeft" align="right" valign="top"><a id="aca9d2fb2c170f134dc8b260c835a4a64"></a>
 static constexpr bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1thread__pool.html#aca9d2fb2c170f134dc8b260c835a4a64">await_ready</a> () noexcept</td></tr>
-<tr class="memdesc:aca9d2fb2c170f134dc8b260c835a4a64"><td class="mdescLeft">&#160;</td><td class="mdescRight">co_await support (never ready) <br /></td></tr>
+<tr class="memdesc:aca9d2fb2c170f134dc8b260c835a4a64"><td class="mdescLeft">&#160;</td><td class="mdescRight"><b>co_await</b> support (never ready) <br /></td></tr>
 <tr class="separator:aca9d2fb2c170f134dc8b260c835a4a64"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
@@ -196,7 +196,7 @@ static constexpr bool&#160;</td><td class="memItemRight" valign="bottom"><a clas
 </table>
 </div><div class="memdoc">
 
-<p>co_await support (nothing returned) </p>
+<p><b>co_await</b> support (nothing returned) </p>
 <dl class="exception"><dt>Exceptions</dt><dd>
   <table class="exception">
     <tr><td class="paramname"><a class="el" href="classcoro_1_1await__canceled__exception.html" title="Exception is thrown on attempt to retrieve value after promise has been broken.">await_canceled_exception</a></td><td>- thread pool has been stopped </td></tr>
@@ -232,7 +232,7 @@ static constexpr bool&#160;</td><td class="memItemRight" valign="bottom"><a clas
 </table>
 </div><div class="memdoc">
 
-<p>co_await support - resumes the coroutine inside of <a class="el" href="classcoro_1_1thread__pool.html" title="thread pool implementation">thread_pool</a> </p>
+<p><b>co_await</b> support - resumes the coroutine inside of <a class="el" href="classcoro_1_1thread__pool.html" title="thread pool implementation">thread_pool</a> </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">h</td><td>handle of suspended coroutine</td></tr>
@@ -385,7 +385,7 @@ template&lt;std::invocable&lt; bool &gt; Fn&gt; </div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Mar 16 2024 14:24:15 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+Generated on Sun Mar 17 2024 13:19:28 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
 </small></address>
 </body>
 </html>

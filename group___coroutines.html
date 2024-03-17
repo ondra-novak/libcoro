@@ -83,8 +83,8 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1async.html">coro::async&lt; T, Alloc &gt;</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">COROUTINE: Coroutine for asynchronous operation.  <a href="classcoro_1_1async.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1basic__coro.html">coro::basic_coro&lt; Alloc &gt;</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">COROUTINE: Basic coroutine.  <a href="classcoro_1_1basic__coro.html#details">More...</a><br /></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1basic__coroutine.html">coro::basic_coroutine&lt; Alloc &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">COROUTINE: Basic coroutine.  <a href="classcoro_1_1basic__coroutine.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1future.html">coro::future&lt; T &gt;</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Contains future value of T, can be co_awaited in coroutine.  <a href="classcoro_1_1future.html#details">More...</a><br /></td></tr>
@@ -98,13 +98,13 @@ Classes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
 Typedefs</h2></td></tr>
-<tr class="memitem:ga62e4ef39e3bdbca11ef9413a3f8e9ec5"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___coroutines.html#ga62e4ef39e3bdbca11ef9413a3f8e9ec5">coro::coro</a> = <a class="el" href="classcoro_1_1basic__coro.html">basic_coro</a>&lt; <a class="el" href="classcoro_1_1std__allocator.html">std_allocator</a> &gt;</td></tr>
-<tr class="memdesc:ga62e4ef39e3bdbca11ef9413a3f8e9ec5"><td class="mdescLeft">&#160;</td><td class="mdescRight">COROUTINE: Basic coroutine, always detached, with no return value.  <a href="group___coroutines.html#ga62e4ef39e3bdbca11ef9413a3f8e9ec5">More...</a><br /></td></tr>
-<tr class="separator:ga62e4ef39e3bdbca11ef9413a3f8e9ec5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaa0bb63fe4aa91a6b3c0bd1a2440e0c53"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___coroutines.html#gaa0bb63fe4aa91a6b3c0bd1a2440e0c53">coro::coroutine</a> = <a class="el" href="classcoro_1_1basic__coroutine.html">basic_coroutine</a>&lt; <a class="el" href="classcoro_1_1std__allocator.html">std_allocator</a> &gt;</td></tr>
+<tr class="memdesc:gaa0bb63fe4aa91a6b3c0bd1a2440e0c53"><td class="mdescLeft">&#160;</td><td class="mdescRight">COROUTINE: Basic coroutine, always detached, with no return value.  <a href="group___coroutines.html#gaa0bb63fe4aa91a6b3c0bd1a2440e0c53">More...</a><br /></td></tr>
+<tr class="separator:gaa0bb63fe4aa91a6b3c0bd1a2440e0c53"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>Classes which can be used to write coroutines</p>
-<div class="fragment"><div class="line"><a class="code" href="classcoro_1_1basic__coro.html">coro::coro</a> my_coro1(...) {</div>
+<div class="fragment"><div class="line">coro::coro my_coro1(...) {</div>
 <div class="line">     co_await...;</div>
 <div class="line">     co_return...;</div>
 <div class="line">}</div>
@@ -119,23 +119,22 @@ Typedefs</h2></td></tr>
 <div class="line">     co_return...;</div>
 <div class="line">}</div>
 <div class="ttc" id="aclasscoro_1_1async_html"><div class="ttname"><a href="classcoro_1_1async.html">coro::async</a></div><div class="ttdoc">COROUTINE: Coroutine for asynchronous operation.</div><div class="ttdef"><b>Definition:</b> <a href="async_8h_source.html#l00047">async.h:47</a></div></div>
-<div class="ttc" id="aclasscoro_1_1basic__coro_html"><div class="ttname"><a href="classcoro_1_1basic__coro.html">coro::basic_coro</a></div><div class="ttdoc">COROUTINE: Basic coroutine.</div><div class="ttdef"><b>Definition:</b> <a href="coro_8h_source.html#l00015">coro.h:15</a></div></div>
 <div class="ttc" id="aclasscoro_1_1future_html"><div class="ttname"><a href="classcoro_1_1future.html">coro::future</a></div><div class="ttdoc">Contains future value of T, can be co_awaited in coroutine.</div><div class="ttdef"><b>Definition:</b> <a href="future_8h_source.html#l00356">future.h:356</a></div></div>
 </div><!-- fragment --> <h2 class="groupheader">Typedef Documentation</h2>
-<a id="ga62e4ef39e3bdbca11ef9413a3f8e9ec5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga62e4ef39e3bdbca11ef9413a3f8e9ec5">&#9670;&nbsp;</a></span>coro</h2>
+<a id="gaa0bb63fe4aa91a6b3c0bd1a2440e0c53"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaa0bb63fe4aa91a6b3c0bd1a2440e0c53">&#9670;&nbsp;</a></span>coroutine</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">using <a class="el" href="group___coroutines.html#ga62e4ef39e3bdbca11ef9413a3f8e9ec5">coro::coro</a> = typedef <a class="el" href="classcoro_1_1basic__coro.html">basic_coro</a>&lt;<a class="el" href="classcoro_1_1std__allocator.html">std_allocator</a>&gt;</td>
+          <td class="memname">using <a class="el" href="group___coroutines.html#gaa0bb63fe4aa91a6b3c0bd1a2440e0c53">coro::coroutine</a> = typedef <a class="el" href="classcoro_1_1basic__coroutine.html">basic_coroutine</a>&lt;<a class="el" href="classcoro_1_1std__allocator.html">std_allocator</a>&gt;</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 <p>COROUTINE: Basic coroutine, always detached, with no return value. </p>
-<div class="fragment"><div class="line"><a class="code" href="classcoro_1_1basic__coro.html">coro::coro</a> my_coroutine(... args...) {</div>
+<div class="fragment"><div class="line">coro::coro my_coroutine(... args...) {</div>
 <div class="line">    ....</div>
 <div class="line">    co_await ...</div>
 <div class="line">    ....</div>
@@ -149,7 +148,7 @@ Typedefs</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Mar 16 2024 14:24:15 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+Generated on Sun Mar 17 2024 13:19:28 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
 </small></address>
 </body>
 </html>

@@ -126,7 +126,7 @@ class coro::distributor&lt; T, Lock &gt;</h3>
 
 <p>Distributes single event to multiple coroutines (subscribbers) </p>
 <p>To use this object, a consument must subscribe itself at this object by calling <a class="el" href="classcoro_1_1distributor.html#ac7ca251aacef8245f0c07c335e38484c" title="subscribe">subscribe()</a> method. Return value is lazy_future. It must be awaited to finish subscribtion. To distribute event, you need to publish the event. The method resumes all registered coroutines.</p>
-<p>Every subscription is one-shot. If the coroutine need to continue in subscription, it must re-call <a class="el" href="classcoro_1_1distributor.html#ac7ca251aacef8245f0c07c335e38484c" title="subscribe">subscribe()</a> right after resumption (in the same thread, without calling another co_await). If the subscriber need to process result asynchronously, it need to use <a class="el" href="classcoro_1_1distributor.html#ad7967d46813c5eabba0ce5004255cacf" title="Implements queue above distributor.">distributor::queue</a> to push received results to an queue, which can be also co_awaited</p>
+<p>Every subscription is one-shot. If the coroutine need to continue in subscription, it must re-call <a class="el" href="classcoro_1_1distributor.html#ac7ca251aacef8245f0c07c335e38484c" title="subscribe">subscribe()</a> right after resumption (in the same thread, without calling another <b>co_await</b>). If the subscriber need to process result asynchronously, it need to use <a class="el" href="classcoro_1_1distributor.html#ad7967d46813c5eabba0ce5004255cacf" title="Implements queue above distributor.">distributor::queue</a> to push received results to an queue, which can be also co_awaited</p>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname">T</td><td>type which is payload of distribution. Can be reference </td></tr>
@@ -332,7 +332,7 @@ template&lt;typename T , typename Lock  = nolock&gt; </div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Mar 16 2024 14:24:15 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+Generated on Sun Mar 17 2024 13:19:28 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
 </small></address>
 </body>
 </html>

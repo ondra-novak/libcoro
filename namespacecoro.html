@@ -96,8 +96,8 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1suspend.html">suspend</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Suspend current coroutine and switch to another coroutine ready to run.  <a href="classcoro_1_1suspend.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1basic__coro.html">basic_coro</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">COROUTINE: Basic coroutine.  <a href="classcoro_1_1basic__coro.html#details">More...</a><br /></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1basic__coroutine.html">basic_coroutine</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">COROUTINE: Basic coroutine.  <a href="classcoro_1_1basic__coroutine.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1distributor.html">distributor</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Distributes single event to multiple coroutines (subscribbers)  <a href="classcoro_1_1distributor.html#details">More...</a><br /></td></tr>
@@ -133,10 +133,13 @@ Classes</h2></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">COROUTINE: Generator.  <a href="classcoro_1_1generator.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1mutex.html">mutex</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Mutex which allows locking across co_await and co_yield suspend points.  <a href="classcoro_1_1mutex.html#details">More...</a><br /></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Mutex which allows locking across <b>co_await</b> and <b>co_yield</b> suspend points.  <a href="classcoro_1_1mutex.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1on__leave.html">on_leave</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Defines function, which is called when function is exited.  <a href="classcoro_1_1on__leave.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1pool__alloc.html">pool_alloc</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A corutine allocator that caches unused frames in the pool.  <a href="classcoro_1_1pool__alloc.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1prepared__coro.html">prepared_coro</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">contains prepared coroutine (prepared to run)  <a href="classcoro_1_1prepared__coro.html#details">More...</a><br /></td></tr>
@@ -156,31 +159,31 @@ Classes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
 Typedefs</h2></td></tr>
-<tr class="memitem:ga62e4ef39e3bdbca11ef9413a3f8e9ec5"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___coroutines.html#ga62e4ef39e3bdbca11ef9413a3f8e9ec5">coro</a> = <a class="el" href="classcoro_1_1basic__coro.html">basic_coro</a>&lt; <a class="el" href="classcoro_1_1std__allocator.html">std_allocator</a> &gt;</td></tr>
-<tr class="memdesc:ga62e4ef39e3bdbca11ef9413a3f8e9ec5"><td class="mdescLeft">&#160;</td><td class="mdescRight">COROUTINE: Basic coroutine, always detached, with no return value.  <a href="group___coroutines.html#ga62e4ef39e3bdbca11ef9413a3f8e9ec5">More...</a><br /></td></tr>
-<tr class="separator:ga62e4ef39e3bdbca11ef9413a3f8e9ec5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaa0bb63fe4aa91a6b3c0bd1a2440e0c53"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___coroutines.html#gaa0bb63fe4aa91a6b3c0bd1a2440e0c53">coroutine</a> = <a class="el" href="classcoro_1_1basic__coroutine.html">basic_coroutine</a>&lt; <a class="el" href="classcoro_1_1std__allocator.html">std_allocator</a> &gt;</td></tr>
+<tr class="memdesc:gaa0bb63fe4aa91a6b3c0bd1a2440e0c53"><td class="mdescLeft">&#160;</td><td class="mdescRight">COROUTINE: Basic coroutine, always detached, with no return value.  <a href="group___coroutines.html#gaa0bb63fe4aa91a6b3c0bd1a2440e0c53">More...</a><br /></td></tr>
+<tr class="separator:gaa0bb63fe4aa91a6b3c0bd1a2440e0c53"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:ga1d3c20176e390b9988c77f088e433468"><td class="memTemplParams" colspan="2">template&lt;typename T , typename U &gt; </td></tr>
 <tr class="memitem:ga1d3c20176e390b9988c77f088e433468"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="group__awaitable.html#ga1d3c20176e390b9988c77f088e433468">condition_equal</a> (T &amp;var, const U &amp;val) noexcept</td></tr>
-<tr class="memdesc:ga1d3c20176e390b9988c77f088e433468"><td class="mdescLeft">&#160;</td><td class="mdescRight">allows to co_await on variable while the variable is equal to value  <a href="group__awaitable.html#ga1d3c20176e390b9988c77f088e433468">More...</a><br /></td></tr>
+<tr class="memdesc:ga1d3c20176e390b9988c77f088e433468"><td class="mdescLeft">&#160;</td><td class="mdescRight">allows to <b>co_await</b> on variable while the variable is equal to value  <a href="group__awaitable.html#ga1d3c20176e390b9988c77f088e433468">More...</a><br /></td></tr>
 <tr class="separator:ga1d3c20176e390b9988c77f088e433468"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gadb8ba3c313610156b3ad2916c06b7845"><td class="memTemplParams" colspan="2">template&lt;typename T , typename U &gt; </td></tr>
 <tr class="memitem:gadb8ba3c313610156b3ad2916c06b7845"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="group__awaitable.html#gadb8ba3c313610156b3ad2916c06b7845">condition_less</a> (T &amp;var, const U &amp;val) noexcept</td></tr>
-<tr class="memdesc:gadb8ba3c313610156b3ad2916c06b7845"><td class="mdescLeft">&#160;</td><td class="mdescRight">allows to co_await on variable while the variable si less than value  <a href="group__awaitable.html#gadb8ba3c313610156b3ad2916c06b7845">More...</a><br /></td></tr>
+<tr class="memdesc:gadb8ba3c313610156b3ad2916c06b7845"><td class="mdescLeft">&#160;</td><td class="mdescRight">allows to <b>co_await</b> on variable while the variable si less than value  <a href="group__awaitable.html#gadb8ba3c313610156b3ad2916c06b7845">More...</a><br /></td></tr>
 <tr class="separator:gadb8ba3c313610156b3ad2916c06b7845"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gae1ecc61736c00e0bb32bc5875dd92ac7"><td class="memTemplParams" colspan="2">template&lt;typename T , typename U &gt; </td></tr>
 <tr class="memitem:gae1ecc61736c00e0bb32bc5875dd92ac7"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="group__awaitable.html#gae1ecc61736c00e0bb32bc5875dd92ac7">condition_greater</a> (T &amp;var, const U &amp;val) noexcept</td></tr>
-<tr class="memdesc:gae1ecc61736c00e0bb32bc5875dd92ac7"><td class="mdescLeft">&#160;</td><td class="mdescRight">allows to co_await on variable while the variable si greater than value  <a href="group__awaitable.html#gae1ecc61736c00e0bb32bc5875dd92ac7">More...</a><br /></td></tr>
+<tr class="memdesc:gae1ecc61736c00e0bb32bc5875dd92ac7"><td class="mdescLeft">&#160;</td><td class="mdescRight">allows to <b>co_await</b> on variable while the variable si greater than value  <a href="group__awaitable.html#gae1ecc61736c00e0bb32bc5875dd92ac7">More...</a><br /></td></tr>
 <tr class="separator:gae1ecc61736c00e0bb32bc5875dd92ac7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gac447f0258ce4c6114370d4d836378f2b"><td class="memTemplParams" colspan="2">template&lt;typename T , typename U &gt; </td></tr>
 <tr class="memitem:gac447f0258ce4c6114370d4d836378f2b"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="group__awaitable.html#gac447f0258ce4c6114370d4d836378f2b">condition_less_equal</a> (T &amp;var, const U &amp;val) noexcept</td></tr>
-<tr class="memdesc:gac447f0258ce4c6114370d4d836378f2b"><td class="mdescLeft">&#160;</td><td class="mdescRight">allows to co_await on variable while the variable is less or equal to a value  <a href="group__awaitable.html#gac447f0258ce4c6114370d4d836378f2b">More...</a><br /></td></tr>
+<tr class="memdesc:gac447f0258ce4c6114370d4d836378f2b"><td class="mdescLeft">&#160;</td><td class="mdescRight">allows to <b>co_await</b> on variable while the variable is less or equal to a value  <a href="group__awaitable.html#gac447f0258ce4c6114370d4d836378f2b">More...</a><br /></td></tr>
 <tr class="separator:gac447f0258ce4c6114370d4d836378f2b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga3f3a5571285c760581a476a560ac746d"><td class="memTemplParams" colspan="2">template&lt;typename T , typename U &gt; </td></tr>
 <tr class="memitem:ga3f3a5571285c760581a476a560ac746d"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="group__awaitable.html#ga3f3a5571285c760581a476a560ac746d">condition_greater_equal</a> (T &amp;var, const U &amp;val) noexcept</td></tr>
-<tr class="memdesc:ga3f3a5571285c760581a476a560ac746d"><td class="mdescLeft">&#160;</td><td class="mdescRight">allows to co_await on variable while the variable is greater or equal to a value  <a href="group__awaitable.html#ga3f3a5571285c760581a476a560ac746d">More...</a><br /></td></tr>
+<tr class="memdesc:ga3f3a5571285c760581a476a560ac746d"><td class="mdescLeft">&#160;</td><td class="mdescRight">allows to <b>co_await</b> on variable while the variable is greater or equal to a value  <a href="group__awaitable.html#ga3f3a5571285c760581a476a560ac746d">More...</a><br /></td></tr>
 <tr class="separator:ga3f3a5571285c760581a476a560ac746d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga9f0555789cbd22148a9e7cc76ee95692"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
 <tr class="memitem:ga9f0555789cbd22148a9e7cc76ee95692"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="group__condition.html#ga9f0555789cbd22148a9e7cc76ee95692">notify_condition</a> (const T &amp;var) noexcept</td></tr>
@@ -223,7 +226,7 @@ constexpr <a class="el" href="classcoro_1_1std__allocator.html">std_allocator</a
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Mar 16 2024 14:24:15 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+Generated on Sun Mar 17 2024 13:19:28 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
 </small></address>
 </body>
 </html>

@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['coro_289',['coro',['../group___coroutines.html#ga62e4ef39e3bdbca11ef9413a3f8e9ec5',1,'coro']]]
+  ['coroutine_306',['coroutine',['../group___coroutines.html#gaa0bb63fe4aa91a6b3c0bd1a2440e0c53',1,'coro']]]
 ];

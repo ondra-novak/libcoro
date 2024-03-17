@@ -80,7 +80,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p>Mutex which allows locking across co_await and co_yield suspend points.  
+<p>Mutex which allows locking across <b>co_await</b> and <b>co_yield</b> suspend points.  
  <a href="classcoro_1_1mutex.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="mutex_8h_source.html">mutex.h</a>&gt;</code></p>
@@ -111,7 +111,7 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a1b5fb2fd2995e2210181de3c4211ca6f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acd530af9e366966cc459b81cd4850705"><td class="memItemLeft" align="right" valign="top"><a id="acd530af9e366966cc459b81cd4850705"></a>
 <a class="el" href="classcoro_1_1mutex_1_1awaiter.html">awaiter</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1mutex.html#acd530af9e366966cc459b81cd4850705">operator co_await</a> ()</td></tr>
-<tr class="memdesc:acd530af9e366966cc459b81cd4850705"><td class="mdescLeft">&#160;</td><td class="mdescRight">co_await support <br /></td></tr>
+<tr class="memdesc:acd530af9e366966cc459b81cd4850705"><td class="mdescLeft">&#160;</td><td class="mdescRight"><b>co_await</b> support <br /></td></tr>
 <tr class="separator:acd530af9e366966cc459b81cd4850705"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0067038a6413cc3c34bfca3a8ef63314"><td class="memItemLeft" align="right" valign="top"><a id="a0067038a6413cc3c34bfca3a8ef63314"></a>
 <a class="el" href="classcoro_1_1mutex_1_1ownership.html">ownership</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1mutex.html#a0067038a6413cc3c34bfca3a8ef63314">lock_sync</a> ()</td></tr>
@@ -168,10 +168,10 @@ Protected Attributes</h2></td></tr>
 <tr class="separator:a283b0c85b2776e768ed3ae13a4aca584"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Mutex which allows locking across co_await and co_yield suspend points. </p>
-<p>This object can be used to hold exclusive access to a resource while the coroutine is suspended on co_await on co_yield. Standard mutex can't support such feature. This mutex is also co_awaitable.</p>
+<div class="textblock"><p>Mutex which allows locking across <b>co_await</b> and <b>co_yield</b> suspend points. </p>
+<p>This object can be used to hold exclusive access to a resource while the coroutine is suspended on <b>co_await</b> on <b>co_yield</b>. Standard mutex can't support such feature. This mutex is also co_awaitable.</p>
 <p>The object suports lock and try_lock. However the lock protocol is different. When lock success, you receive an ownership object, which must be held to keep exclusive access. Once the ownership is released, the mutex is unlocked. The ownership object uses RAII to track to mutex ownership. So there is no explicit <a class="el" href="classcoro_1_1mutex.html#adda886fc0b4171935329781e05d92d24" title="unlock the lock">unlock()</a> function.</p>
-<p>The mutex object support co_await, <a class="el" href="classcoro_1_1mutex.html#a0067038a6413cc3c34bfca3a8ef63314" title="lock synchronously">lock_sync()</a> and <a class="el" href="classcoro_1_1mutex.html#a66fc3958880800e8420a2b2ef34932c1" title="lock and call a function when access is granted">lock_callback()</a>. The third function allows to call a callback when lock is acquired. </p>
+<p>The mutex object support <b>co_await</b>, <a class="el" href="classcoro_1_1mutex.html#a0067038a6413cc3c34bfca3a8ef63314" title="lock synchronously">lock_sync()</a> and <a class="el" href="classcoro_1_1mutex.html#a66fc3958880800e8420a2b2ef34932c1" title="lock and call a function when access is granted">lock_callback()</a>. The third function allows to call a callback when lock is acquired. </p>
 
 <p class="definition">Definition at line <a class="el" href="mutex_8h_source.html#l00027">27</a> of file <a class="el" href="mutex_8h_source.html">mutex.h</a>.</p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
@@ -576,7 +576,7 @@ template&lt;typename Fn &gt; </div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Mar 16 2024 14:24:15 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+Generated on Sun Mar 17 2024 13:19:28 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
 </small></address>
 </body>
 </html>
