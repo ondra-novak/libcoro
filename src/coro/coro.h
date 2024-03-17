@@ -8,8 +8,21 @@ namespace coro {
 ///COROUTINE: Basic coroutine
 /**
  * @ingroup Coroutines
- * @see coro
+ * @see coroutine
  * @tparam Alloc allocator
+ *
+ *
+ * @code
+ * coro::basic_coroutine<coro::pool_alloc> my_coroutine(...args...) {
+ *      co_await...;
+ * }
+ * @endcode
+ *
+ * @code
+ * coro::basic_coroutine<coro::reusable_allocator> my_coroutine(coro::reusable_allocator &, ...args...) {
+ *      co_await...;
+ * }
+ * @endcode
  */
 template<coro_allocator Alloc = std_allocator>
 class basic_coroutine {
@@ -29,7 +42,7 @@ public:
 /**
  * @ingroup Coroutines
  * @code
- * coro::coro my_coroutine(... args...) {
+ * coro::coroutine my_coroutine(... args...) {
  *     ....
  *     co_await ...
  *     ....

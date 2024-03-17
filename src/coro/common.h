@@ -10,7 +10,7 @@
  * Classes which can be used to write coroutines
  *
  * @code
- * coro::coro my_coro1(...) {
+ * coro::coroutine my_coro1(...) {
  *      co_await...;
  *      co_return...;
  * }
