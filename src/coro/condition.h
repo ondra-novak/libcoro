@@ -168,28 +168,86 @@ inline awaiter_map awaiter_map::instance;
 
 }
 
-///support for notify_condition()
+///await on a condition
 /**
  * @ingroup condition
+ *
+ * @tparam T type of shared variable to monitor
+ * @tparam Pred a predicate which tests the condition. The predicate must
+ * return true or false and it should test condition related to shared variable
+ *
+ * @code
+ * co_await coro::condition(var, [&]{return var == value;});
+ * @endcode
+ *
+ * The coroutine is suspended until the condition is fullfilled.
+ *
+ * @see notify_condition
+ *
+ * @note The class is not MT Safe. The predicate should use proper synchronization
+ * if used in multiple threads
+ *
  */
 
 template<typename T, typename Pred>
-class condition_awaiter : public _details::abstract_condition_awaiter {
+class condition : public _details::abstract_condition_awaiter {
 public:
 
-    condition_awaiter(T &var, Pred &&pred):_variable(var),_predicate(std::forward<Pred>(pred)) {}
+    static_assert(std::is_invocable_r_v<bool, Pred, T &> || std::is_invocable_r_v<bool, Pred>);
+
+    ///constructor
+    /**
+     * @param var shared variable
+     * @param pred predicate which should return boolean if condition is fulfilled
+     */
+    condition(T &var, Pred &&pred):_variable(var),_predicate(std::forward<Pred>(pred)) {}
 
 
-    bool await_ready() const {return _predicate(_variable);}
+    ///@b co_await support
+    /**
+     * Tests condition.
+     * @retval true condition is true - we can continue
+     * @retval false condition is false - we must sleep
+     */
+    bool await_ready() const {
+        if constexpr (std::is_invocable_r_v<bool, Pred>) {
+            return _predicate();
+        } else {
+            return _predicate(_variable);
+        }
+    }
+
+    ///@b co_await support
+    /**
+     * Returns value of shared variable. However, if the test of condition throws
+     * an exception, the exception is rethrown now
+     *
+     * @return shared variable
+     */
     T &await_resume() const {
         if (_exp) std::rethrow_exception(_exp);
         return _variable;
     }
+
+    ///@b co_await support
+    /** called by @b co_await when coroutine is suspened */
     bool await_suspend(std::coroutine_handle<> h) {
         this->h = h;
         return _details::awaiter_map::instance.reg_awaiter(&_variable, this);
     }
 
+    ///Synchronous waiting, allows to condition be used in normal function
+    /**
+     * @code
+     * coro::condition(shared, [&]{shared == val}).wait();
+     * @endcode
+     *
+     * @return
+     */
+    T &wait() const {
+        this->n.wait(false);
+        return await_resume();
+    }
 
 
 
@@ -212,95 +270,7 @@ protected:
 
 };
 
-///allows to @b co_await on variable while the variable is equal to value
-/**
- * awaiting while variable equals value
- *
- * @param var variable
- * @param val value
- * @return awaitable object, a coroutine is resumed, when condition is false
- *
- * @note await when var == val, resume when var != val
- *
- * @ingroup condition awaitable
- * @see notify_condition
- */
-template<typename T, typename U>
-auto condition_equal(T &var, const U &val) noexcept{
-    return condition_awaiter(var, [&val](T &var){return var != val;});
-}
-///allows to @b co_await on variable while the variable si less than value
-/**
- * awaiting while variable is less than value
- *
- *
- *
- * @param var variable
- * @param val value
- * @return awaitable object, a coroutine is resumed, when condition is false
- *
- * @note await when var < val, resume otherwise
- *
- * @ingroup condition awaitable
- * @see notify_condition
- */
-template<typename T, typename U>
-auto condition_less(T &var, const U &val) noexcept{
-    return condition_awaiter(var, [&val](T &var){return var >= val;});
-}
-///allows to @b co_await on variable while the variable si greater than value
-/**
- * awaiting while variable is greater than value
- *
- * @param var variable
- * @param val value
- * @return awaitable object, a coroutine is resumed, when condition is false
- *
- * @note await when var > val, resume otherwise
- *
- * @ingroup condition awaitable
- * @see notify_condition
- */
-template<typename T, typename U>
-auto condition_greater(T &var, const U &val) noexcept{
-    return condition_awaiter(var, [&val](T &var){return var <= val;});
-}
 
-///allows to @b co_await on variable while the variable is less or equal to a value
-/**
- * awaiting while variable is less or equal to a value
- *
- * @param var variable
- * @param val value
- * @return awaitable object, a coroutine is resumed, when condition is false
- *
- *  * @note await when var <= val, resume otherwise
- * @ingroup condition awaitable
- * @see notify_condition
- *
- */
-template<typename T, typename U>
-auto condition_less_equal(T &var, const U &val) noexcept{
-    return condition_awaiter(var, [&val](T &var){return var > val;});
-}
-
-///allows to @b co_await on variable while the variable is greater or equal to a value
-/**
- * awaiting while variable is greater or equal to a value
- *
- * @param var variable
- * @param val value
- * @return awaitable object, a coroutine is resumed, when condition is false
- *
- *  * @note await when var >= val, resume otherwise
- *
- * @ingroup condition awaitable
- * @see notify_condition
- */
-template<typename T, typename U>
-auto condition_greater_equal(T &var, const U &val) noexcept{
-    return condition_awaiter(var, [&val](T &var){return var < val;});
-}
 
 ///notifies variable about change in the condition.
 /**
@@ -312,7 +282,7 @@ auto condition_greater_equal(T &var, const U &val) noexcept{
  * is not awaited, nothing happens.
  *
  * @ingroup condition
- * @see condition_less, condition_equal, condition_greater, condition_less_equal, condition_greater_equal
+ * @see condition
  */
 template<typename T>
 void notify_condition(const T &var) noexcept {
@@ -331,14 +301,33 @@ void notify_condition(const T &var) noexcept {
  * It is not UB when variable is already destroyed. You can pass anything. If the variable
  * is not awaited, nothing happens.
  *
+ * @see condition
  * @ingroup condition
- * @see condition_less, condition_equal, condition_greater, condition_less_equal, condition_greater_equal
  */
 template<typename T, std::invocable<prepared_coro> Fn>
 void notify_condition(const T &var, Fn &&scheduler) noexcept {
     _details::awaiter_map::instance.notify_addr(&var,scheduler);
 }
 
+
+///Perform synchronous waiting with condition
+/**
+ * @param var shared variable
+ * @param pred a predicate testing condition,
+ * the function blocks execution, if the condition
+ * is not true.
+ *
+ * @note Not MT Safe. The predicate must use proper synchronization.
+
+ * @see condition
+ * @ingroup condition
+ */
+template<typename T, typename Pred>
+void condition_sync_wait(T &var, Pred &&pred) {
+    coro::condition<T, Pred> c(var, std::forward<Pred>(pred));
+    return c.wait();
+
+}
 
 }
 

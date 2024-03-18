@@ -3,11 +3,11 @@
 #include "check.h"
 
 #include <queue>
-coro::async<void> test_coro(int mult, int &shared, std::queue<int> &r) {
+coro::async<void> test_coro(int mult, const int &shared, std::queue<int> &r) {
 
     int val = shared;
     while(true) {
-        val = co_await coro::condition_equal(shared, val);
+        val = co_await coro::condition(shared, [&]{return shared != val;});
         if (val == -1) break;
         r.push(mult*val);
 
