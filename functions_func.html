@@ -73,17 +73,20 @@ $(function() {
 : <a class="el" href="classcoro_1_1async_ad1f88e9dee9e17e070d1e8db91d94f98.html#ad1f88e9dee9e17e070d1e8db91d94f98">coro::async&lt; T, Alloc &gt;</a>
 </li>
 <li>await_ready()
-: <a class="el" href="classcoro_1_1future_a4e650f783e76f3e30ba2f19f1fbb2c33.html#a4e650f783e76f3e30ba2f19f1fbb2c33">coro::future&lt; T &gt;</a>
+: <a class="el" href="classcoro_1_1condition_aea0b1586549d735bc1288f86e319a156.html#aea0b1586549d735bc1288f86e319a156">coro::condition&lt; T, Pred &gt;</a>
+, <a class="el" href="classcoro_1_1future_a4e650f783e76f3e30ba2f19f1fbb2c33.html#a4e650f783e76f3e30ba2f19f1fbb2c33">coro::future&lt; T &gt;</a>
 , <a class="el" href="classcoro_1_1mutex_1_1awaiter_a6b5313e3e3cd5ae4ac616ab943db0807.html#a6b5313e3e3cd5ae4ac616ab943db0807">coro::mutex::awaiter</a>
 , <a class="el" href="classcoro_1_1shared__future_a97aa68a50406904f1447313d79801f41.html#a97aa68a50406904f1447313d79801f41">coro::shared_future&lt; T &gt;</a>
 , <a class="el" href="classcoro_1_1thread__pool_aca9d2fb2c170f134dc8b260c835a4a64.html#aca9d2fb2c170f134dc8b260c835a4a64">coro::thread_pool</a>
 </li>
 <li>await_resume()
-: <a class="el" href="classcoro_1_1mutex_1_1awaiter_a7d13b5385c0fdee242a9193ac83b1d42.html#a7d13b5385c0fdee242a9193ac83b1d42">coro::mutex::awaiter</a>
+: <a class="el" href="classcoro_1_1condition_a783e80c9ed32936fa4de3c925dcbb862.html#a783e80c9ed32936fa4de3c925dcbb862">coro::condition&lt; T, Pred &gt;</a>
+, <a class="el" href="classcoro_1_1mutex_1_1awaiter_a7d13b5385c0fdee242a9193ac83b1d42.html#a7d13b5385c0fdee242a9193ac83b1d42">coro::mutex::awaiter</a>
 , <a class="el" href="classcoro_1_1thread__pool_a02868bb048717ba8d3bb8786ced6d126.html#a02868bb048717ba8d3bb8786ced6d126">coro::thread_pool</a>
 </li>
 <li>await_suspend()
-: <a class="el" href="classcoro_1_1future_a37a4846ac351808aff805f36b648211d.html#a37a4846ac351808aff805f36b648211d">coro::future&lt; T &gt;</a>
+: <a class="el" href="classcoro_1_1condition_a4af423ab8217ca7df5715c8ada626c8e.html#a4af423ab8217ca7df5715c8ada626c8e">coro::condition&lt; T, Pred &gt;</a>
+, <a class="el" href="classcoro_1_1future_a37a4846ac351808aff805f36b648211d.html#a37a4846ac351808aff805f36b648211d">coro::future&lt; T &gt;</a>
 , <a class="el" href="classcoro_1_1mutex_1_1awaiter_a588b216c6ab5a4b1841071b28371c919.html#a588b216c6ab5a4b1841071b28371c919">coro::mutex::awaiter</a>
 , <a class="el" href="classcoro_1_1shared__future_a44a270b1c601a88a14be1048960f2523.html#a44a270b1c601a88a14be1048960f2523">coro::shared_future&lt; T &gt;</a>
 , <a class="el" href="classcoro_1_1suspend_a3fd73bbc139b4679d90d204bf2aa1865.html#a3fd73bbc139b4679d90d204bf2aa1865">coro::suspend</a>
@@ -123,6 +126,9 @@ $(function() {
 </li>
 <li>close()
 : <a class="el" href="classcoro_1_1queue_a5402d3032685d967f869d4a42a6215ed.html#a5402d3032685d967f869d4a42a6215ed">coro::queue&lt; T, QueueImpl &gt;</a>
+</li>
+<li>condition()
+: <a class="el" href="classcoro_1_1condition_a5205f58eb4e2bd68c1c5e505b1cf434e.html#a5205f58eb4e2bd68c1c5e505b1cf434e">coro::condition&lt; T, Pred &gt;</a>
 </li>
 </ul>
 
@@ -464,7 +470,8 @@ $(function() {
 
 <h3><a id="index_w"></a>- w -</h3><ul>
 <li>wait()
-: <a class="el" href="classcoro_1_1future_ac40e99f6a067392f23e87cbca808c84c.html#ac40e99f6a067392f23e87cbca808c84c">coro::future&lt; T &gt;</a>
+: <a class="el" href="classcoro_1_1condition_a945046ea7da6041c16944f2a3d9860aa.html#a945046ea7da6041c16944f2a3d9860aa">coro::condition&lt; T, Pred &gt;</a>
+, <a class="el" href="classcoro_1_1future_ac40e99f6a067392f23e87cbca808c84c.html#ac40e99f6a067392f23e87cbca808c84c">coro::future&lt; T &gt;</a>
 , <a class="el" href="classcoro_1_1mutex_1_1awaiter_ac36f60109b6a68c09cad6f89f98e5f41.html#ac36f60109b6a68c09cad6f89f98e5f41">coro::mutex::awaiter</a>
 , <a class="el" href="classcoro_1_1shared__future_ac2a7af93a2ede836f51e8eed84cfe8e2.html#ac2a7af93a2ede836f51e8eed84cfe8e2">coro::shared_future&lt; T &gt;</a>
 </li>
@@ -497,7 +504,7 @@ $(function() {
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Mar 17 2024 13:38:06 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+Generated on Mon Mar 18 2024 09:58:07 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
 </small></address>
 </body>
 </html>

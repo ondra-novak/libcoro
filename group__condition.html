@@ -73,8 +73,8 @@ $(function() {
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Classes</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1condition__awaiter.html">coro::condition_awaiter&lt; T, Pred &gt;</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">support for <a class="el" href="group__condition_ga9f0555789cbd22148a9e7cc76ee95692.html#ga9f0555789cbd22148a9e7cc76ee95692" title="notifies variable about change in the condition.">notify_condition()</a>  <a href="classcoro_1_1condition__awaiter.html#details">More...</a><br /></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1condition.html">coro::condition&lt; T, Pred &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">await on a condition  <a href="classcoro_1_1condition.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
@@ -87,13 +87,17 @@ Functions</h2></td></tr>
 <tr class="memitem:ga1f6fb6ccd5b93f0c1bda62595565adb8"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="group__condition_ga1f6fb6ccd5b93f0c1bda62595565adb8.html#ga1f6fb6ccd5b93f0c1bda62595565adb8">coro::notify_condition</a> (const T &amp;var, Fn &amp;&amp;<a class="el" href="classcoro_1_1scheduler.html">scheduler</a>) noexcept</td></tr>
 <tr class="memdesc:ga1f6fb6ccd5b93f0c1bda62595565adb8"><td class="mdescLeft">&#160;</td><td class="mdescRight">notifies variable about change in the condition.  <a href="group__condition_ga1f6fb6ccd5b93f0c1bda62595565adb8.html#ga1f6fb6ccd5b93f0c1bda62595565adb8">More...</a><br /></td></tr>
 <tr class="separator:ga1f6fb6ccd5b93f0c1bda62595565adb8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga7462a3c7fabdbe8f5976c21c59124284"><td class="memTemplParams" colspan="2">template&lt;typename T , typename Pred &gt; </td></tr>
+<tr class="memitem:ga7462a3c7fabdbe8f5976c21c59124284"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="group__condition_ga7462a3c7fabdbe8f5976c21c59124284.html#ga7462a3c7fabdbe8f5976c21c59124284">coro::condition_sync_wait</a> (T &amp;var, Pred &amp;&amp;pred)</td></tr>
+<tr class="memdesc:ga7462a3c7fabdbe8f5976c21c59124284"><td class="mdescLeft">&#160;</td><td class="mdescRight">Perform synchronous waiting with condition.  <a href="group__condition_ga7462a3c7fabdbe8f5976c21c59124284.html#ga7462a3c7fabdbe8f5976c21c59124284">More...</a><br /></td></tr>
+<tr class="separator:ga7462a3c7fabdbe8f5976c21c59124284"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>Set of function that allows to synchronize on single variable </p>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Mar 17 2024 13:38:05 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+Generated on Mon Mar 18 2024 09:58:07 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
 </small></address>
 </body>
 </html>
