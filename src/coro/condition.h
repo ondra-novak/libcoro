@@ -306,7 +306,7 @@ auto condition_greater_equal(T &var, const U &val) noexcept{
 /**
  * @param var reference to shared variable.
  *
- * Tests all conditions and resumes all coroutines, where condition is broken.
+ * Tests all conditions and resumes all coroutines, where condition is fulfilled.
  *
  * It is not UB when variable is already destroyed. You can pass anything. If the variable
  * is not awaited, nothing happens.
@@ -326,7 +326,7 @@ void notify_condition(const T &var) noexcept {
  * to schedule resumption of the coroutine. Default implementation simply resumes the
  * coroutine, but you can define own behaviour
  *
- * Tests all conditions and resumes all coroutines, where condition is broken.
+ * Tests all conditions and resumes all coroutines, where condition is fulfilled.
  *
  * It is not UB when variable is already destroyed. You can pass anything. If the variable
  * is not awaited, nothing happens.

@@ -248,16 +248,11 @@ public:
 
     template<bool f>
     promise &operator+=(promise<T, f> &other) {
-        static_assert(future<T>::is_chainable(), "Requires T copy constructible");
-        auto fut = other.claim();
-        while (fut != nullptr) {
-            auto x = fut;
-            fut = fut->_chain;
-            x->_chain = nullptr;
-            while (!_ptr.compare_exchange_strong(x->_chain, x));
-        }
+        promise z =  other + (*this);
+        _ptr = z.claim();
         return *this;
     }
+
     template<bool f>
     promise &operator+=(promise<T, f> &&other) {
         return this->operator+=(other);
@@ -278,7 +273,22 @@ public:
      */
     template<bool f>
     promise operator+(promise<T, f> &other) {
-        return std::move(this->operator+=(other));
+        static_assert(future<T>::is_chainable(), "Requires T copy constructible");
+        auto a = claim();
+        auto b = other.claim();
+        if (!a) return promise(b);
+        if (!b) return promise(a);
+        if (a->_chain) {
+            while (b) {
+                auto x = b->_chain;
+                b->_chain = x->_chain;
+                x->_chain = a;
+                a = x;
+            }
+            return promise(a);
+        }
+        a->_chain = b;
+        return promise(a);
     }
 
 protected:
