@@ -21,7 +21,7 @@ int main() {
     std::queue<int > results1;
     std::queue<int > results2;
     std::queue<int > results3;
-    int shared;
+    int shared = 0;
     test_coro(1,shared,results1).detach();
     test_coro(2,shared,results2).detach();
     test_coro(3,shared,results3).detach();

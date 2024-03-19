@@ -291,6 +291,10 @@ public:
         return promise(a);
     }
 
+    operator bool () const {
+        return _ptr.load(std::memory_order_relaxed) != nullptr;
+    }
+
 protected:
 
     struct non_atomic {
@@ -302,6 +306,9 @@ protected:
         }
         void store(FutureType *x, std::memory_order) {
             _ptr = x;
+        }
+        FutureType *load(std::memory_order) const {
+            return _ptr;
         }
         bool compare_exchange_strong(FutureType *& old, FutureType *nw) {
             if (_ptr == old) {
