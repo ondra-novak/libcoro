@@ -1000,7 +1000,7 @@ protected:
         if constexpr (std::is_constructible_v<prepared_coro, std::invoke_result_t<Fn> >) {
             return std::forward<Fn>(fn);
         } else {
-            return [fn = std::move(fn)]() -> prepared_coro {
+            return [fn = std::move(fn)]() mutable -> prepared_coro {
               fn();return {};
             };
         }
@@ -1275,7 +1275,7 @@ public:
         if constexpr(std::is_constructible_v<prepared_coro, std::invoke_result_t<Fn> >) {
             _awaiter.emplace(std::forward<Fn>(fn));
         } else {
-            _awaiter.emplace([fn = std::move(fn)]()->prepared_coro{
+            _awaiter.emplace([fn = std::move(fn)]() mutable ->prepared_coro{
                 fn(); return {};
             });
         }
