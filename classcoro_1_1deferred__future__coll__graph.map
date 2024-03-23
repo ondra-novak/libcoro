@@ -1,0 +1,6 @@
+<map id="coro::deferred_future&lt; T &gt;" name="coro::deferred_future&lt; T &gt;">
+<area shape="rect" id="node1" title="Contains future value of T, where evaluation is deferred until the value is needed." alt="" coords="103,185,300,212"/>
+<area shape="rect" id="node2" href="$classcoro_1_1future.html" title="Contains future value of T, can be co_awaited in coroutine." alt="" coords="134,109,269,136"/>
+<area shape="rect" id="node3" href="$classcoro_1_1function.html" title=" " alt="" coords="5,5,189,47"/>
+<area shape="rect" id="node4" href="$classcoro_1_1function.html" title=" " alt="" coords="213,5,397,47"/>
+</map>

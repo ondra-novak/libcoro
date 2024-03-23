@@ -1,0 +1,4 @@
+<map id="coro::thread_pool::is_stopped" name="coro::thread_pool::is_stopped">
+<area shape="rect" id="node1" title="test whether is stopped" alt="" coords="196,5,339,47"/>
+<area shape="rect" id="node2" href="$classcoro_1_1thread__pool_a02868bb048717ba8d3bb8786ced6d126.html#a02868bb048717ba8d3bb8786ced6d126" title="co_await support (nothing returned)" alt="" coords="5,5,148,47"/>
+</map>

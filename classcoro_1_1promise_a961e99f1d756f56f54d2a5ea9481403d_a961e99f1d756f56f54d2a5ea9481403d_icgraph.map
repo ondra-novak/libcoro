@@ -1,0 +1,8 @@
+<map id="coro::promise::cancel" name="coro::promise::cancel">
+<area shape="rect" id="node1" title="cancel the future (resolve without value)" alt="" coords="443,81,604,108"/>
+<area shape="rect" id="node2" href="$classcoro_1_1promise_ae15d2141df3da33a4470c9fdcd87c90a.html#ae15d2141df3da33a4470c9fdcd87c90a" title="Assign by move." alt="" coords="209,5,395,32"/>
+<area shape="rect" id="node3" href="$classcoro_1_1queue_a1875f8e5f4d570fd99544eaa6702a5e9.html#a1875f8e5f4d570fd99544eaa6702a5e9" title="Pop item into a promise." alt="" coords="237,56,367,83"/>
+<area shape="rect" id="node4" href="$classcoro_1_1promise_a9a4cd832c719c2fe86562e041d71df4c.html#a9a4cd832c719c2fe86562e041d71df4c" title="reject or cancel the future with exception" alt="" coords="224,107,380,133"/>
+<area shape="rect" id="node6" href="$classcoro_1_1promise_a5f743831e951e3d94285bc99e51c184d.html#a5f743831e951e3d94285bc99e51c184d" title="Dtor &#45; if future is pending, cancels it." alt="" coords="211,157,393,184"/>
+<area shape="rect" id="node5" href="$classcoro_1_1promise_a99dea8ea4b53faad6b07a7a67534d0aa.html#a99dea8ea4b53faad6b07a7a67534d0aa" title="Reject with exception." alt="" coords="5,107,161,133"/>
+</map>

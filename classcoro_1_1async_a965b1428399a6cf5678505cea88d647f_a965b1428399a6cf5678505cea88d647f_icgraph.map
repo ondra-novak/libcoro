@@ -1,0 +1,5 @@
+<map id="coro::async::defer_start" name="coro::async::defer_start">
+<area shape="rect" id="node1" title="Defer start of coroutine." alt="" coords="219,39,357,80"/>
+<area shape="rect" id="node2" href="$classcoro_1_1async_ae36a2e24973e74c411ca28a69d3c24d6.html#ae36a2e24973e74c411ca28a69d3c24d6" title="direct co_await" alt="" coords="9,5,167,47"/>
+<area shape="rect" id="node3" href="$classcoro_1_1async_aed06566386c53cedb6200d3adea46c83.html#aed06566386c53cedb6200d3adea46c83" title="convert to deferred_future" alt="" coords="5,71,171,112"/>
+</map>

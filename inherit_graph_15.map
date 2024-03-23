@@ -1,0 +1,4 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="node1" href="$classcoro_1_1mutex_1_1awaiter.html" title="awaiter is object used in most of cases by coroutines, however it is building block of this class" alt="" coords="5,13,163,39"/>
+<area shape="rect" id="node2" href="$classcoro_1_1mutex_1_1awaiter__cb.html" title="awaiter with a callback function" alt="" coords="211,5,389,47"/>
+</map>

@@ -1,9 +1,0 @@
-digraph "coro::mutex::awaiter"
-{
- // LATEX_PDF_SIZE
-  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
-  node [fontname="Helvetica",fontsize="10",shape=record];
-  Node1 [label="coro::mutex::awaiter",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black",tooltip="awaiter is object used in most of cases by coroutines, however it is building block of this class"];
-  Node1 -> Node2 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
-  Node2 [label="coro::mutex::awaiter\l_cb\< Fn, static_buffer \>",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classcoro_1_1mutex_1_1awaiter__cb.html",tooltip="awaiter with a callback function"];
-}

@@ -1,0 +1,4 @@
+<map id="coro::scheduler::cancel" name="coro::scheduler::cancel">
+<area shape="rect" id="node1" title="cancel sleep operation prematurally" alt="" coords="217,5,388,32"/>
+<area shape="rect" id="node2" href="$classcoro_1_1scheduler_a599c5e1ebcc4531674f5e9b7bf8dba63.html#a599c5e1ebcc4531674f5e9b7bf8dba63" title="block specified identity to be scheduled" alt="" coords="5,5,169,32"/>
+</map>

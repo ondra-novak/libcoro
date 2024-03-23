@@ -1,0 +1,5 @@
+<map id="coro::thread_pool::join" name="coro::thread_pool::join">
+<area shape="rect" id="node1" title="sync.point &#45; blocks thread until all enqueued functions are finished" alt="" coords="415,13,581,39"/>
+<area shape="rect" id="node2" href="$classcoro_1_1thread__pool_a20e93687b2d2cda44a6a2a12ff58c073.html#a20e93687b2d2cda44a6a2a12ff58c073" title="stop thread pool" alt="" coords="196,13,367,39"/>
+<area shape="rect" id="node3" href="$classcoro_1_1thread__pool_ab0e30d714f8f79fc36d69126e49d5aca.html#ab0e30d714f8f79fc36d69126e49d5aca" title="dtor" alt="" coords="5,5,148,47"/>
+</map>

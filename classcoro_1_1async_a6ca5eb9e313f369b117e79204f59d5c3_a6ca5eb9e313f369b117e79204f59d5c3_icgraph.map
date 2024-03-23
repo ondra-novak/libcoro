@@ -1,0 +1,7 @@
+<map id="coro::async::detach" name="coro::async::detach">
+<area shape="rect" id="node1" title="Run coroutine detached." alt="" coords="428,64,576,91"/>
+<area shape="rect" id="node2" href="$classcoro_1_1async_ae5632c77cf6c16f6d5dacc3f1a63063b.html#ae5632c77cf6c16f6d5dacc3f1a63063b" title="Start coroutine and return future." alt="" coords="245,64,380,91"/>
+<area shape="rect" id="node3" href="$classcoro_1_1async_abb2c47b7d5520cc43e6b64a53f7e575e.html#abb2c47b7d5520cc43e6b64a53f7e575e" title="synchronous wait for value" alt="" coords="5,5,197,32"/>
+<area shape="rect" id="node4" href="$classcoro_1_1async_aac92597c5953737b2e911d8f7d5c88f8.html#aac92597c5953737b2e911d8f7d5c88f8" title="convert to future" alt="" coords="22,57,181,98"/>
+<area shape="rect" id="node5" href="$classcoro_1_1async_a5e257c745ec009aad26b4ad59804398d.html#a5e257c745ec009aad26b4ad59804398d" title="run synchronously" alt="" coords="39,123,164,149"/>
+</map>

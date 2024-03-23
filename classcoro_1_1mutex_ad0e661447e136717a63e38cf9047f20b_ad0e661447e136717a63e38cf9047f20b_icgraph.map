@@ -1,0 +1,7 @@
+<map id="coro::mutex::do_lock" name="coro::mutex::do_lock">
+<area shape="rect" id="node1" title="initiate lock operation" alt="" coords="469,71,628,98"/>
+<area shape="rect" id="node2" href="$classcoro_1_1mutex_1_1awaiter_a588b216c6ab5a4b1841071b28371c919.html#a588b216c6ab5a4b1841071b28371c919" title="coroutine &#45; request the lock and suspend" alt="" coords="245,5,402,47"/>
+<area shape="rect" id="node3" href="$classcoro_1_1mutex_a66fc3958880800e8420a2b2ef34932c1.html#a66fc3958880800e8420a2b2ef34932c1" title="lock and call a function when access is granted" alt="" coords="225,71,421,98"/>
+<area shape="rect" id="node4" href="$classcoro_1_1mutex_1_1awaiter_ac36f60109b6a68c09cad6f89f98e5f41.html#ac36f60109b6a68c09cad6f89f98e5f41" title="perform synchronou wait on lock" alt="" coords="245,123,402,164"/>
+<area shape="rect" id="node5" href="$classcoro_1_1mutex_a0067038a6413cc3c34bfca3a8ef63314.html#a0067038a6413cc3c34bfca3a8ef63314" title="lock synchronously" alt="" coords="5,130,177,157"/>
+</map>

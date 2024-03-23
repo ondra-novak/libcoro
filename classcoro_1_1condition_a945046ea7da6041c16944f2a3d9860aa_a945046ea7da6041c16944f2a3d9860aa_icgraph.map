@@ -1,0 +1,4 @@
+<map id="coro::condition::wait" name="coro::condition::wait">
+<area shape="rect" id="node1" title="Synchronous waiting, allows to condition be used in normal function." alt="" coords="244,5,399,32"/>
+<area shape="rect" id="node2" href="$group__condition_ga7462a3c7fabdbe8f5976c21c59124284.html#ga7462a3c7fabdbe8f5976c21c59124284" title="Perform synchronous waiting with condition." alt="" coords="5,5,196,32"/>
+</map>

@@ -1,0 +1,4 @@
+<map id="coro::semaphore::acquire" name="coro::semaphore::acquire">
+<area shape="rect" id="node1" title="acquire the semaphore" alt="" coords="248,13,435,39"/>
+<area shape="rect" id="node2" href="$classcoro_1_1semaphore_a6161d34c57f6ad901375be98ed33bf48.html#a6161d34c57f6ad901375be98ed33bf48" title="Returns awaiter, so coroutine can co_await on it." alt="" coords="5,5,200,47"/>
+</map>

@@ -1,0 +1,5 @@
+<map id="coro::mutex::awaiter::await_resume" name="coro::mutex::awaiter::await_resume">
+<area shape="rect" id="node1" title="coroutine &#45; retrieve ownership" alt="" coords="431,5,588,47"/>
+<area shape="rect" id="node2" href="$classcoro_1_1mutex_1_1awaiter_ac36f60109b6a68c09cad6f89f98e5f41.html#ac36f60109b6a68c09cad6f89f98e5f41" title="perform synchronou wait on lock" alt="" coords="225,5,383,47"/>
+<area shape="rect" id="node3" href="$classcoro_1_1mutex_a0067038a6413cc3c34bfca3a8ef63314.html#a0067038a6413cc3c34bfca3a8ef63314" title="lock synchronously" alt="" coords="5,13,177,39"/>
+</map>

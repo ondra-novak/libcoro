@@ -1,0 +1,5 @@
+<map id="coro::prepared_coro::symmetric_transfer" name="coro::prepared_coro::symmetric_transfer">
+<area shape="rect" id="node1" title="release handle to be used in function await_suspend()" alt="" coords="212,39,371,80"/>
+<area shape="rect" id="node2" href="$classcoro_1_1future_a37a4846ac351808aff805f36b648211d.html#a37a4846ac351808aff805f36b648211d" title="co_await support, called with suspended coroutine" alt="" coords="14,5,155,47"/>
+<area shape="rect" id="node3" href="$classcoro_1_1promise_1_1notify_a1b2f6001de9c4ebe328173d15231569d.html#a1b2f6001de9c4ebe328173d15231569d" title="deliver the notification with ability to switch to the coroutine" alt="" coords="5,71,164,112"/>
+</map>
