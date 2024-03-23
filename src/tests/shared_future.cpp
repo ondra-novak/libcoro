@@ -22,8 +22,17 @@ int main() {
 
     c2.reset(); //this should crash if hold reference on shared promise doesn't work
 
+    bool called = false;
+
+    auto cc = f;
+    cc.then([&]{
+        called = true;
+    });
+
 
     p(42);
+
+    CHECK(called);
 
     for (int i = 1; i <= 3; ++i) {
         auto z = q.front();

@@ -963,44 +963,46 @@ protected:
 
     template<std::invocable<> Awt, typename ResumeFn >
     RegAwtRes register_awaiter(Awt &&awt, ResumeFn &&resumeFn) {
+        //lock awaiter slot
+        State st = _state.exchange(State::evaluating);
+        switch (st) {
+            //already resolved?
+            case State::resolved: _state.store(st); //restore state
+                                  return RegAwtRes::resolved;
 
-        //determine, whether function returns coroutine_handle
-        if constexpr(std::is_invocable_r_v<std::coroutine_handle<>, Awt>) {
-            //lock awaiter slot
-            State st = _state.exchange(State::evaluating);
-            switch (st) {
-                //already resolved?
-                case State::resolved: _state.store(st); //restore state
-                                      return RegAwtRes::resolved;
+            case State::pending: //<still pending? move awaiter
+                new(&_awaiter) auto(to_awaiter(std::forward<Awt>(awt)));
+                break;
+            default:
+            case State::evaluating:  //<locked - this is error
+                throw still_pending_exception();
+            case State::awaited:   //<already awaited? destroy previous awaiter and construct new one
+                std::destroy_at(&_awaiter);
+                new(&_awaiter) auto(to_awaiter(std::forward<Awt>(awt)));
+                break;
+            case State::deferred: //<deferred ? perform evaluation and try again
+                if (!startDeferredEvaluation(resumeFn)) return RegAwtRes::resolved;
+                return register_awaiter(std::forward<Awt>(awt),std::forward<ResumeFn>(resumeFn));
+        }
+        st = State::evaluating; //replace evaluating with awaited
+        if (!_state.compare_exchange_strong(st, State::awaited)) {
+            //if failed, it should be resolved
+            //mark that awaited must be clean up (always)
+            _awaiter_cleanup = true;
+            return RegAwtRes::constructed_resolved;
+        }
+        //awaiter has been set
+        return RegAwtRes::constructed_ready;
+    }
 
-                case State::pending: //<still pending? move awaiter
-                    std::construct_at(&_awaiter, std::forward<Awt>(awt));
-                    break;
-                default:
-                case State::evaluating:  //<locked - this is error
-                    throw still_pending_exception();
-                case State::awaited:   //<already awaited? destroy previous awaiter and construct new one
-                    std::destroy_at(&_awaiter);
-                    std::construct_at(&_awaiter, std::forward<Awt>(awt));
-                    break;
-                case State::deferred: //<deferred ? perform evaluation and try again
-                    if (!startDeferredEvaluation(resumeFn)) return RegAwtRes::resolved;
-                    return register_awaiter(std::forward<Awt>(awt),std::forward<ResumeFn>(resumeFn));
-            }
-            st = State::evaluating; //replace evaluating with awaited
-            if (!_state.compare_exchange_strong(st, State::awaited)) {
-                //if failed, it should be resolved
-                //mark that awaited must be clean up (always)
-                _awaiter_cleanup = true;
-                return RegAwtRes::constructed_resolved;
-            }
-            //awaiter has been set
-            return RegAwtRes::constructed_ready;
+    template<std::invocable<> Fn>
+    static awaiter_type to_awaiter(Fn &&fn) {
+        if constexpr (std::is_constructible_v<prepared_coro, std::invoke_result_t<Fn> >) {
+            return std::forward<Fn>(fn);
         } else {
-            //if not, wrap the function into function returning empty coroutine handle
-            return register_awaiter([awt = std::move(awt)]() mutable {
-                awt(); return std::coroutine_handle<>();
-            }, std::forward<ResumeFn>(resumeFn));
+            return [fn = std::move(fn)]() -> prepared_coro {
+              fn();return {};
+            };
         }
     }
 
@@ -1268,24 +1270,22 @@ public:
      */
     template<std::invocable<> Fn>
     bool set_callback(Fn &&fn) {
-        using DFn = std::decay_t<Fn>;
-        if constexpr(std::is_same_v<std::invoke_result_t<Fn>, std::coroutine_handle<> >) {
-            auto st = _state.exchange(State::unused);
-            _awaiter.reset();
+        auto st = _state.exchange(State::unused);
+        _awaiter.reset();
+        if constexpr(std::is_constructible_v<prepared_coro, std::invoke_result_t<Fn> >) {
             _awaiter.emplace(std::forward<Fn>(fn));
-            if (st == State::notified) return false;
-            auto st2 = State::unused;
-            if (_state.compare_exchange_strong(st2, State::awaited)) {
-                if (st == State::unused) return _shared_future->register_target(this);
-                return true;
-            }
-            return false;
         } else {
-            return set_callback([fn = DFn(std::forward<Fn>(fn))]() -> std::coroutine_handle<> {
-                fn();
-                return {};
+            _awaiter.emplace([fn = std::move(fn)]()->prepared_coro{
+                fn(); return {};
             });
         }
+        if (st == State::notified) return false;
+        auto st2 = State::unused;
+        if (_state.compare_exchange_strong(st2, State::awaited)) {
+            if (st == State::unused) return _shared_future->register_target(this);
+            return true;
+        }
+        return false;
     }
 
     ///execute callback when future is resolved
@@ -1437,7 +1437,7 @@ protected:
         using future<T>::future;
 
         static void init_callback(std::shared_ptr<Shared> self) {
-            self->then([self]() -> prepared_coro{
+            self->then([self = std::move(self)]() -> prepared_coro{
                 return self->notify_targets();
             });
         }
@@ -1473,7 +1473,7 @@ protected:
 
 
     protected:
-        std::atomic<shared_future *> _await_chain;
+        std::atomic<shared_future *> _await_chain = {};
     };
 
 
