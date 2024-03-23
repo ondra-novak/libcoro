@@ -10,15 +10,15 @@ coro::async<void> test_coro(int id, coro::shared_future<int> fut, std::queue<std
 }
 
 
-
 int main() {
 
+    std::allocator<int> alloc;
     coro::shared_future<int> f;
     std::queue<std::pair<int,int > > q;
     auto p = f.get_promise();
     coro::future<void> c1 = test_coro(1,f,q);
     coro::shared_future<void> c2 = test_coro(2,f,q).shared_start();
-    coro::future<void> c3 = test_coro(3,f,q);
+    coro::shared_future<void> c3 (alloc, [&]{return test_coro(3,f,q).start();});
 
     c2.reset(); //this should crash if hold reference on shared promise doesn't work
 

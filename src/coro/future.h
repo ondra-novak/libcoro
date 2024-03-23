@@ -4,6 +4,9 @@
 #include "exceptions.h"
 
 #include "prepared_coro.h"
+
+#include "allocator.h"
+
 #include <atomic>
 #include <memory>
 #include <optional>
@@ -49,6 +52,12 @@ template<typename T> class coro_promise_base;
 
 template<typename T, typename ... Args>
 concept avoid_same_kind = sizeof...(Args) != 1 || !std::is_same_v<T, std::decay_t<Args>...>;
+
+template<typename Alloc>
+concept is_allocator = requires(Alloc alloc, std::size_t n) {
+    {alloc.allocate(n)} -> std::same_as<typename Alloc::value_type *>;
+};
+
 
 template<typename T>
 using atomic_promise = promise<T, true>;
@@ -1154,34 +1163,109 @@ public:
     using wait_awaiter = _details::wait_awaiter<shared_future>;
     using canceled_awaiter = _details::has_value_awaiter<shared_future,false>;
 
+    ///Construct shared future uninitialized
+    /** Uninitialized object cannot be used immediately, but assignment can be
+     * used to initialize object later
+     */
     shared_future() {}
-    template<typename ... Args>
-    requires (std::constructible_from<future<T>, Args ...> && avoid_same_kind<shared_future, Args...>)
-    shared_future(Args && ...args) {
-        _shared_future = std::make_shared<Shared>(std::forward<Args>(args)...);
-        if (_shared_future->is_pending()) _shared_future->init_callback(_shared_future);
+
+
+    ///Construct shared future initialize it same way asi coro::future
+    /**
+     * @param arg0 first argument. If the first argument is standard allocator (std::allocator)
+     * it uses allocator to allocate shared future instance. If the first argument is not
+     * allocator, the argument is passed as first argument to shared future  instance directly
+     * @param args other arguments
+     *
+     * @note you can use all constructor types in same way as coro::future. If you
+     * need to convert coro::future to coro::shared_future, you need to pass a
+     * lambda function which returns coro::future
+     *
+     * @code
+     * coro::shared_future<int> f([&]()->coro::future<int>{return calc_async();});
+     * @endcode
+     */
+    template<typename Arg0, typename ... Args>
+    requires (!std::is_same_v<std::decay_t<Arg0>, shared_future>)
+    shared_future(Arg0 &&arg0, Args && ...args) {
+        if constexpr(is_allocator<std::decay_t<Arg0> >) {
+            static_assert(std::is_constructible_v<Shared, Args ...>, "Invalid arguments");
+            _shared_future = std::allocate_shared<Shared>(arg0, std::forward<Args>(args)...);
+        } else {
+            static_assert(std::is_constructible_v<Shared, Arg0, Args ...>, "Invalid arguments");
+            _shared_future = std::make_shared<Shared>(arg0, std::forward<Args>(args)...);
+        }
+        _shared_future->init_callback(_shared_future);
     }
 
+    ///shared future is copyable
     shared_future(shared_future &other):_shared_future(other._shared_future) {}
+    ///shared future is copyable
     shared_future(const shared_future &other):_shared_future(other._shared_future) {}
+    ///you can assign
     shared_future &operator=(const shared_future &other) {
         this->_shared_future = other._shared_future;
         _state.store(State::unused, std::memory_order_relaxed);
         return *this;
     }
 
+    ///destructor
     ~shared_future() {
         check_in_progress();
     }
 
+    ///Initialize future and get promise
     promise<T> get_promise() {
         _shared_future = std::make_shared<Shared>();
         promise<T> p = _shared_future->get_promise();
-        _shared_future->init_callback(_shared_future);
-        _state.store(State::unused, std::memory_order_relaxed);
+        init();
         return p;
     }
 
+    ///Initialize future and get promise
+    /**
+     * Initializes future using standard stl allocator
+     * @tparam stl_allocator
+     * @param allocator instance of standard allocator
+     * @return
+     */
+    template<typename stl_allocator>
+    promise<T> get_promise(stl_allocator &&allocator) {
+        _shared_future = std::allocate_shared<Shared>(std::forward<allocator>(allocator));
+        promise<T> p = _shared_future->get_promise();
+        init();
+        return p;
+    }
+
+
+    ///Redirect return value of function returning coro::future to instance of shared_future
+    template<std::invocable<> Fn>
+    void operator<<(Fn &&fn) {
+        static_assert(std::is_invocable_r_v<coro::future<T>, Fn>);
+        _shared_future = std::make_shared<Shared>(std::forward<Fn>(fn));
+        init();
+    }
+
+    ///Redirect return value of function returning coro::future to instance of shared_future
+    /**
+     * @param tpl contains tuple, which carries function and allocator
+     */
+    template<std::invocable<> Fn, typename std_allocator>
+    void operator<<(std::tuple<Fn, std_allocator> && tpl) {
+        static_assert(std::is_invocable_r_v<coro::future<T>, Fn>);
+        _shared_future = std::allocate_shared<Shared>(
+                std::forward<std_allocator>(std::get<std_allocator>(tpl)),
+                std::forward<Fn>(std::get<Fn>(tpl)));
+        init();
+    }
+
+
+    ///set callback which is invoked when future is resolved
+    /**
+     * @param fn function
+     * @retval true callback set
+     * @retval false callback was not set, already resolved
+     */
     template<std::invocable<> Fn>
     bool set_callback(Fn &&fn) {
         using DFn = std::decay_t<Fn>;
@@ -1204,6 +1288,13 @@ public:
         }
     }
 
+    ///execute callback when future is resolved
+    /**
+     * @param fn callback to executed. The callback is always executed.
+     * @retval true, callback will be executed
+     * @retval false callback has been executed during this function, because
+     * the future is already resolved
+     */
     template<std::invocable<> Fn>
     bool then(Fn &&fn) {
         if (!set_callback(std::forward<Fn>(fn))) {
@@ -1213,6 +1304,8 @@ public:
         return true;
     }
 
+
+    ///alias to then()
     template<std::invocable<> Fn>
     bool operator>>(Fn &&fn) {
         return when_resolved(std::forward<Fn>(fn));
@@ -1292,6 +1385,10 @@ public:
     }
 
 
+    ///reset state
+    /**
+     * releases reference and stays uninitialized
+     */
     void reset() {
         _shared_future.reset();
     }
@@ -1340,15 +1437,13 @@ protected:
         using future<T>::future;
 
         static void init_callback(std::shared_ptr<Shared> self) {
-            if (!self->set_callback([self]() -> prepared_coro {
+            self->then([self]() -> prepared_coro{
                 return self->notify_targets();
-            })) {
-                self->_await_chain = disabled_slot;
-            }
+            });
         }
 
         prepared_coro notify_targets() {
-            auto n = _await_chain.exchange(disabled_slot);
+            auto n = _await_chain.exchange(disabled_slot());
             return n?notify_targets(n):prepared_coro{};
         }
 
@@ -1371,16 +1466,17 @@ protected:
 
         bool register_target(shared_future *item) {
             while (!_await_chain.compare_exchange_strong(item->_next, item)) {
-                if (item->_next == disabled_slot) return false;
+                if (item->_next == disabled_slot()) return false;
             }
             return true;
         }
 
 
     protected:
-        static shared_future * disabled_slot;
         std::atomic<shared_future *> _await_chain;
     };
+
+
 
     enum class State: char {
         ///awaiter is not set
@@ -1417,13 +1513,19 @@ protected:
     }
 
 
+    void init() {
+        _shared_future->init_callback(_shared_future);
+        _state.store(State::unused, std::memory_order_relaxed);
+    }
+
 
     friend class _details::wait_awaiter<shared_future>;
 
-};
 
-template<typename T>
-inline shared_future<T> * shared_future<T>::Shared::disabled_slot = reinterpret_cast<shared_future<T> *>(1);
+    static shared_future<T> * disabled_slot() {return reinterpret_cast<shared_future<T> *>(1);}
+
+
+};
 
 
 
