@@ -4,5 +4,5 @@ digraph "Graphical Class Hierarchy"
   edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
   node [fontname="Helvetica",fontsize="10",shape=record];
   rankdir="LR";
-  Node0 [label="coro::thread_pool",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classcoro_1_1thread__pool.html",tooltip="thread pool implementation"];
+  Node0 [label="coro::suspend",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classcoro_1_1suspend.html",tooltip="Suspend current coroutine and switch to another coroutine ready to run."];
 }

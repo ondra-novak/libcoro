@@ -66,6 +66,9 @@ $(function() {
 &#160;
 
 <h3><a id="index_a"></a>- a -</h3><ul>
+<li>acquire()
+: <a class="el" href="classcoro_1_1semaphore_aad974ca5faad2468eeae8fd78dd569fb.html#aad974ca5faad2468eeae8fd78dd569fb">coro::semaphore</a>
+</li>
 <li>alloc()
 : <a class="el" href="classcoro_1_1pool__alloc_a1aacf7aa546e3ed4716680e34b3fdef0.html#a1aacf7aa546e3ed4716680e34b3fdef0">coro::pool_alloc</a>
 </li>
@@ -191,10 +194,12 @@ $(function() {
 </li>
 <li>get()
 : <a class="el" href="classcoro_1_1future_ac32618fc2312bbfc30ccd0f56f10dc60.html#ac32618fc2312bbfc30ccd0f56f10dc60">coro::future&lt; T &gt;</a>
+, <a class="el" href="classcoro_1_1semaphore_af664f0bfee79e710e7b270fc043455d1.html#af664f0bfee79e710e7b270fc043455d1">coro::semaphore</a>
 , <a class="el" href="classcoro_1_1shared__future_ad3f1fb184f6a2fe6ee21e49260d35055.html#ad3f1fb184f6a2fe6ee21e49260d35055">coro::shared_future&lt; T &gt;</a>
 </li>
 <li>get_promise()
 : <a class="el" href="classcoro_1_1future_a1b648cf43f83b46ac3de0e4e868661e3.html#a1b648cf43f83b46ac3de0e4e868661e3">coro::future&lt; T &gt;</a>
+, <a class="el" href="classcoro_1_1shared__future_ae15a9a69ad46e99dece3c3efc844cf3a.html#ae15a9a69ad46e99dece3c3efc844cf3a">coro::shared_future&lt; T &gt;</a>
 </li>
 </ul>
 
@@ -283,6 +288,7 @@ $(function() {
 <li>operator co_await()
 : <a class="el" href="classcoro_1_1async_ae36a2e24973e74c411ca28a69d3c24d6.html#ae36a2e24973e74c411ca28a69d3c24d6">coro::async&lt; T, Alloc &gt;</a>
 , <a class="el" href="classcoro_1_1mutex_acd530af9e366966cc459b81cd4850705.html#acd530af9e366966cc459b81cd4850705">coro::mutex</a>
+, <a class="el" href="classcoro_1_1semaphore_a6161d34c57f6ad901375be98ed33bf48.html#a6161d34c57f6ad901375be98ed33bf48">coro::semaphore</a>
 </li>
 <li>operator const cast_return &amp;()
 : <a class="el" href="classcoro_1_1future_ac2514c122c2f899cbd86fc1cd62d12a2.html#ac2514c122c2f899cbd86fc1cd62d12a2">coro::future&lt; T &gt;</a>
@@ -326,18 +332,21 @@ $(function() {
 </li>
 <li>operator&lt;&lt;()
 : <a class="el" href="classcoro_1_1future_a32c89b07ded9730262013188efeaa01e.html#a32c89b07ded9730262013188efeaa01e">coro::future&lt; T &gt;</a>
+, <a class="el" href="classcoro_1_1shared__future_a568ec89154c714948c3bcd412fef6c8c.html#a568ec89154c714948c3bcd412fef6c8c">coro::shared_future&lt; T &gt;</a>
 </li>
 <li>operator=()
 : <a class="el" href="classcoro_1_1mutex_1_1awaiter_a099baeb4b15803f493b5cf05e9f77d3c.html#a099baeb4b15803f493b5cf05e9f77d3c">coro::mutex::awaiter</a>
 , <a class="el" href="classcoro_1_1mutex_1_1ownership_af6c171ef70fe06ce1a7b8d8764a3b148.html#af6c171ef70fe06ce1a7b8d8764a3b148">coro::mutex::ownership</a>
 , <a class="el" href="classcoro_1_1prepared__coro_a88afc96729d46901c81dfc831033fcf1.html#a88afc96729d46901c81dfc831033fcf1">coro::prepared_coro</a>
 , <a class="el" href="classcoro_1_1promise_ae15d2141df3da33a4470c9fdcd87c90a.html#ae15d2141df3da33a4470c9fdcd87c90a">coro::promise&lt; T, atomic &gt;</a>
+, <a class="el" href="classcoro_1_1shared__future_ae60171dea6698ce8a13491ecd9c98bcf.html#ae60171dea6698ce8a13491ecd9c98bcf">coro::shared_future&lt; T &gt;</a>
 </li>
 <li>operator==()
 : <a class="el" href="classcoro_1_1generator__iterator_adc545c6c4bbcd7c6be5848e07e3e6058.html#adc545c6c4bbcd7c6be5848e07e3e6058">coro::generator_iterator&lt; Src &gt;</a>
 </li>
 <li>operator&gt;&gt;()
 : <a class="el" href="classcoro_1_1future_ac29bb947b5e38514034014373572384f.html#ac29bb947b5e38514034014373572384f">coro::future&lt; T &gt;</a>
+, <a class="el" href="classcoro_1_1shared__future_acce3ecda8e8bff3f05790ae718865348.html#acce3ecda8e8bff3f05790ae718865348">coro::shared_future&lt; T &gt;</a>
 </li>
 <li>ownership()
 : <a class="el" href="classcoro_1_1mutex_1_1ownership_a9b3436c318baa0f994dd7ccf32f951e6.html#a9b3436c318baa0f994dd7ccf32f951e6">coro::mutex::ownership</a>
@@ -383,12 +392,17 @@ $(function() {
 : <a class="el" href="classcoro_1_1mutex_1_1ownership_acfb0b1b61447af6ee622ce814fc6a4d4.html#acfb0b1b61447af6ee622ce814fc6a4d4">coro::mutex::ownership</a>
 , <a class="el" href="classcoro_1_1prepared__coro_ae5f18d128dd8278e59068e2b48eb21e1.html#ae5f18d128dd8278e59068e2b48eb21e1">coro::prepared_coro</a>
 , <a class="el" href="classcoro_1_1promise_a0717c02c0591d87591abe213b87fbcb2.html#a0717c02c0591d87591abe213b87fbcb2">coro::promise&lt; T, atomic &gt;</a>
+, <a class="el" href="classcoro_1_1semaphore_aebda4730d2093c489996930b489b6bc6.html#aebda4730d2093c489996930b489b6bc6">coro::semaphore</a>
 </li>
 <li>reopen()
 : <a class="el" href="classcoro_1_1queue_a5ac9129bb01d87fe60c975cc8bb29509.html#a5ac9129bb01d87fe60c975cc8bb29509">coro::queue&lt; T, QueueImpl &gt;</a>
 </li>
 <li>requires()
 : <a class="el" href="classcoro_1_1future_a16a90525d2f9d753e2f1a30b716ba939.html#a16a90525d2f9d753e2f1a30b716ba939">coro::future&lt; T &gt;</a>
+, <a class="el" href="classcoro_1_1shared__future_a89379a6dac6489e2e8667ecb250690bd.html#a89379a6dac6489e2e8667ecb250690bd">coro::shared_future&lt; T &gt;</a>
+</li>
+<li>reset()
+: <a class="el" href="classcoro_1_1shared__future_ad8a0e538165dab55afb40c77ca10b833.html#ad8a0e538165dab55afb40c77ca10b833">coro::shared_future&lt; T &gt;</a>
 </li>
 <li>run()
 : <a class="el" href="classcoro_1_1async_a5e257c745ec009aad26b4ad59804398d.html#a5e257c745ec009aad26b4ad59804398d">coro::async&lt; T, Alloc &gt;</a>
@@ -400,14 +414,21 @@ $(function() {
 <li>scheduler()
 : <a class="el" href="classcoro_1_1scheduler_a70879fd4f0d658ab48a4f83c2308ef0c.html#a70879fd4f0d658ab48a4f83c2308ef0c">coro::scheduler</a>
 </li>
+<li>semaphore()
+: <a class="el" href="classcoro_1_1semaphore_a3a6489412b4e7c8a5ba343021f875561.html#a3a6489412b4e7c8a5ba343021f875561">coro::semaphore</a>
+</li>
 <li>set_callback()
 : <a class="el" href="classcoro_1_1future_ae8fc744c9f1b8bb90cb5535debd81588.html#ae8fc744c9f1b8bb90cb5535debd81588">coro::future&lt; T &gt;</a>
+, <a class="el" href="classcoro_1_1shared__future_a51448de5eec252c6444e9b8e2c32ae0d.html#a51448de5eec252c6444e9b8e2c32ae0d">coro::shared_future&lt; T &gt;</a>
 </li>
 <li>set_unblock_callback()
 : <a class="el" href="classcoro_1_1thread__pool_a06b76f3b3ff57e24d668663e8cdb1c9e.html#a06b76f3b3ff57e24d668663e8cdb1c9e">coro::thread_pool</a>
 </li>
 <li>setDeferredEvaluation()
 : <a class="el" href="classcoro_1_1future_a3f727444dea9f3e2e4888cf00c6a48e9.html#a3f727444dea9f3e2e4888cf00c6a48e9">coro::future&lt; T &gt;</a>
+</li>
+<li>shared_future()
+: <a class="el" href="classcoro_1_1shared__future_aa742b42e980124afc0b73aeeff9acf63.html#aa742b42e980124afc0b73aeeff9acf63">coro::shared_future&lt; T &gt;</a>
 </li>
 <li>shared_start()
 : <a class="el" href="classcoro_1_1async_ae1b4487261355f4218fd10f5eac64d67.html#ae1b4487261355f4218fd10f5eac64d67">coro::async&lt; T, Alloc &gt;</a>
@@ -445,12 +466,14 @@ $(function() {
 <h3><a id="index_t"></a>- t -</h3><ul>
 <li>then()
 : <a class="el" href="classcoro_1_1future_acebad35adcf2de89b1e95f3639856e11.html#acebad35adcf2de89b1e95f3639856e11">coro::future&lt; T &gt;</a>
+, <a class="el" href="classcoro_1_1shared__future_a1ee746638d78ab0d4c249df3b518dbb4.html#a1ee746638d78ab0d4c249df3b518dbb4">coro::shared_future&lt; T &gt;</a>
 </li>
 <li>thread_pool()
 : <a class="el" href="classcoro_1_1thread__pool_aeda56d4e21ca29fbcd91f725aa5bd11a.html#aeda56d4e21ca29fbcd91f725aa5bd11a">coro::thread_pool</a>
 </li>
 <li>try_acquire()
 : <a class="el" href="classcoro_1_1mutex_ae9c73d87232d3dd22e4dd45c0719206e.html#ae9c73d87232d3dd22e4dd45c0719206e">coro::mutex</a>
+, <a class="el" href="classcoro_1_1semaphore_aa957fccca18b7a274a09383cf65de9d9.html#aa957fccca18b7a274a09383cf65de9d9">coro::semaphore</a>
 </li>
 <li>try_lock()
 : <a class="el" href="classcoro_1_1mutex_a1b5fb2fd2995e2210181de3c4211ca6f.html#a1b5fb2fd2995e2210181de3c4211ca6f">coro::mutex</a>
@@ -497,6 +520,9 @@ $(function() {
 <li>~scheduler()
 : <a class="el" href="classcoro_1_1scheduler_abc6a235c2f3e03acee2f09d76aacc05e.html#abc6a235c2f3e03acee2f09d76aacc05e">coro::scheduler</a>
 </li>
+<li>~shared_future()
+: <a class="el" href="classcoro_1_1shared__future_ad8a5e1ca355132cfb50f0a19b765979f.html#ad8a5e1ca355132cfb50f0a19b765979f">coro::shared_future&lt; T &gt;</a>
+</li>
 <li>~thread_pool()
 : <a class="el" href="classcoro_1_1thread__pool_ab0e30d714f8f79fc36d69126e49d5aca.html#ab0e30d714f8f79fc36d69126e49d5aca">coro::thread_pool</a>
 </li>
@@ -504,7 +530,7 @@ $(function() {
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Mar 19 2024 20:26:06 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+Generated on Sat Mar 23 2024 19:43:08 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
 </small></address>
 </body>
 </html>
