@@ -130,6 +130,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a1b648cf43f83b46ac3de0e4e868661e3 inherit pub_methods_classcoro_1_1future"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classcoro_1_1promise.html">promise_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1future_a1b648cf43f83b46ac3de0e4e868661e3.html#a1b648cf43f83b46ac3de0e4e868661e3">get_promise</a> ()</td></tr>
 <tr class="memdesc:a1b648cf43f83b46ac3de0e4e868661e3 inherit pub_methods_classcoro_1_1future"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieve promise and begin evaluation.  <a href="classcoro_1_1future_a1b648cf43f83b46ac3de0e4e868661e3.html#a1b648cf43f83b46ac3de0e4e868661e3">More...</a><br /></td></tr>
 <tr class="separator:a1b648cf43f83b46ac3de0e4e868661e3 inherit pub_methods_classcoro_1_1future"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af6390721b9fa7818bdab151f11e5ada2 inherit pub_methods_classcoro_1_1future"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classcoro_1_1prepared__coro.html">prepared_coro</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1future_af6390721b9fa7818bdab151f11e5ada2.html#af6390721b9fa7818bdab151f11e5ada2">start</a> ()</td></tr>
+<tr class="memdesc:af6390721b9fa7818bdab151f11e5ada2 inherit pub_methods_classcoro_1_1future"><td class="mdescLeft">&#160;</td><td class="mdescRight">Start deferred execution.  <a href="classcoro_1_1future_af6390721b9fa7818bdab151f11e5ada2.html#af6390721b9fa7818bdab151f11e5ada2">More...</a><br /></td></tr>
+<tr class="separator:af6390721b9fa7818bdab151f11e5ada2 inherit pub_methods_classcoro_1_1future"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae8fc744c9f1b8bb90cb5535debd81588 inherit pub_methods_classcoro_1_1future"><td class="memTemplParams" colspan="2">template&lt;std::invocable&lt;&gt; Fn&gt; </td></tr>
 <tr class="memitem:ae8fc744c9f1b8bb90cb5535debd81588 inherit pub_methods_classcoro_1_1future"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classcoro_1_1future_ae8fc744c9f1b8bb90cb5535debd81588.html#ae8fc744c9f1b8bb90cb5535debd81588">set_callback</a> (Fn &amp;&amp;fn)</td></tr>
 <tr class="memdesc:ae8fc744c9f1b8bb90cb5535debd81588 inherit pub_methods_classcoro_1_1future"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets callback which is called once future is resolved (in future)  <a href="classcoro_1_1future_ae8fc744c9f1b8bb90cb5535debd81588.html#ae8fc744c9f1b8bb90cb5535debd81588">More...</a><br /></td></tr>
@@ -205,14 +208,14 @@ class coro::deferred_future&lt; T &gt;</h3>
 <p>Deferred future is movable unless it is in progress (which results to exception). This type of future is always returned from a function in deferred state, so it can be moved and evaluated after the future is placed to correct place.</p>
 <p>Disadvantage of this future is requirement to store evaluation function inside of the future (which must be movable) and guarantee to keep referneces valid until deferred evaluation is started. , </p>
 
-<p class="definition">Definition at line <a class="el" href="future_8h_source.html#l01019">1019</a> of file <a class="el" href="future_8h_source.html">future.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="future_8h_source.html#l01037">1037</a> of file <a class="el" href="future_8h_source.html">future.h</a>.</p>
 </div><hr/>The documentation for this class was generated from the following file:<ul>
 <li>src/coro/<a class="el" href="future_8h_source.html">future.h</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Mar 23 2024 19:54:42 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+Generated on Wed Mar 27 2024 09:50:00 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
 </small></address>
 </body>
 </html>

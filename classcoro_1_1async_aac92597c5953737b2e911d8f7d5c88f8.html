@@ -77,7 +77,7 @@ $(function() {
           <tr><td class="navtab"><a class="navtab" href="classcoro_1_1async_a965b1428399a6cf5678505cea88d647f.html#a965b1428399a6cf5678505cea88d647f">defer_start</a></td></tr>
           <tr><td class="navtab"><a class="navtab" href="classcoro_1_1async_a6ca5eb9e313f369b117e79204f59d5c3.html#a6ca5eb9e313f369b117e79204f59d5c3">detach</a></td></tr>
           <tr><td class="navtab"><a class="navtab" href="classcoro_1_1async_abb2c47b7d5520cc43e6b64a53f7e575e.html#abb2c47b7d5520cc43e6b64a53f7e575e">operator auto</a></td></tr>
-          <tr><td class="navtab"><a class="navtab" href="classcoro_1_1async_ae36a2e24973e74c411ca28a69d3c24d6.html#ae36a2e24973e74c411ca28a69d3c24d6">operator co_await</a></td></tr>
+          <tr><td class="navtab"><a class="navtab" href="classcoro_1_1async_a5be41dcc7156bd4c642ae4af9a01acbf.html#a5be41dcc7156bd4c642ae4af9a01acbf">operator co_await</a></td></tr>
           <tr><td class="navtab"><a class="navtab" href="classcoro_1_1async_aed06566386c53cedb6200d3adea46c83.html#aed06566386c53cedb6200d3adea46c83">operator deferred_future&lt; T &gt;</a></td></tr>
           <tr><td class="navtabHL"><a class="navtab" href="classcoro_1_1async_aac92597c5953737b2e911d8f7d5c88f8.html#aac92597c5953737b2e911d8f7d5c88f8">operator future&lt; T &gt;</a></td></tr>
           <tr><td class="navtab"><a class="navtab" href="classcoro_1_1async_aa7a81ceb95de36cc94e1d80544d48f42.html#aa7a81ceb95de36cc94e1d80544d48f42">operator shared_future&lt; T &gt;</a></td></tr>
@@ -114,9 +114,10 @@ template&lt;typename T , coro_allocator Alloc = std_allocator&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p>convert to future </p>
+<p>convert coroutine to future, prepare to start </p>
+<p>This function directly converts to future, but doesn't starts it, it actually returns future in deferred state. You need to co_await (or wait on) future to start the coroutine. If you need to start coroutine immediatelly, use <a class="el" href="classcoro_1_1async_ae5632c77cf6c16f6d5dacc3f1a63063b.html#ae5632c77cf6c16f6d5dacc3f1a63063b" title="Start coroutine and return future.">start()</a> function </p>
 
-<p class="definition">Definition at line <a class="el" href="async_8h_source.html#l00129">129</a> of file <a class="el" href="async_8h_source.html">async.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="async_8h_source.html#l00136">136</a> of file <a class="el" href="async_8h_source.html">async.h</a>.</p>
 
 </div>
 </div>
@@ -126,7 +127,7 @@ template&lt;typename T , coro_allocator Alloc = std_allocator&gt; </div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Mar 23 2024 19:54:42 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+Generated on Wed Mar 27 2024 09:50:00 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
 </small></address>
 </body>
 </html>
