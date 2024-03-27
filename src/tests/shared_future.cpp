@@ -16,7 +16,7 @@ int main() {
     coro::shared_future<int> f;
     std::queue<std::pair<int,int > > q;
     auto p = f.get_promise();
-    coro::future<void> c1 = test_coro(1,f,q);
+    coro::future<void> c1 = test_coro(1,f,q).start();
     coro::shared_future<void> c2 = test_coro(2,f,q).shared_start();
     coro::shared_future<void> c3 (alloc, [&]{return test_coro(3,f,q).start();});
 
@@ -42,7 +42,7 @@ int main() {
     }
     CHECK(q.empty());
 
-    coro::future<void> c4 = test_coro(4,f,q);
+    coro::future<void> c4 = test_coro(4,f,q).start();
 
     {
         auto z = q.front();
@@ -55,7 +55,7 @@ int main() {
 
     coro::shared_future<int> g;
     g.get_promise()(56);
-    coro::future<void> c5 = test_coro(5,g,q);
+    coro::future<void> c5 = test_coro(5,g,q).start();
 
     {
         auto z = q.front();

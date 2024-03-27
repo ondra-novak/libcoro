@@ -523,6 +523,23 @@ public:
         return promise_t{this};
     }
 
+    ///Start deferred execution
+    /**
+     * If the future is in deferred state, it initiates deferred evaluation.
+     * When function returns, the future will be in progress. If the future is
+     * not in deferred state, the function does nothing
+     *
+     * @return prepared coroutine, if there is any. You can schedule resumption. Note that future
+     * cannot be finished until return value is destroyed
+     */
+    prepared_coro start() {
+        prepared_coro out;
+        if (is_deferred()) {
+            startDeferredEvaluation([&](auto &&h){out = std::move(h);});
+        }
+        return out;
+    }
+
     ///Sets callback which is called once future is resolved (in future)
     /**
      * The function is called only when future is unresolved in time of set.
@@ -588,6 +605,7 @@ public:
     bool operator>>(Fn &&fn) {
         return then(std::forward<Fn>(fn));
     }
+
 
 
     ///Perform synchronous wait on resolution
