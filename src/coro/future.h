@@ -726,7 +726,11 @@ public:
         if constexpr(std::is_void_v<T>) {
             getInternal();
         } else {
-            return getInternal();
+            if constexpr(std::is_copy_constructible_v<T>) {
+                return getInternal();
+            } else {
+                return std::move(getInternal());
+            }
         }
     }
 
