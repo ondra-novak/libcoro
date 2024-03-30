@@ -13,6 +13,19 @@ coro::async<int> await_coro(int x) {
     co_return co_await int_coro(x);
 }
 
+struct TwoVal {
+    int a;
+    int b;
+    TwoVal(int a, int b):a(a),b(b) {}
+    TwoVal(const TwoVal &) = delete;
+    TwoVal &operator=(const TwoVal &) = delete;
+};
+
+coro::async<TwoVal> await_coro2(int x) {
+    int i =  co_await int_coro(x);
+    co_return coro::construct([i]{return TwoVal(i,i+10);});
+}
+
 struct destruct {
     void operator()(int *x) {
         test_var = *x;
@@ -49,4 +62,8 @@ int main() {
         c.detach();
     }
     CHECK(test_var == 20);
+    coro::future<TwoVal> f = await_coro2(2);
+    const TwoVal &z = f.get();
+    CHECK(z.a == 2);
+    CHECK(z.b == 12);
 }

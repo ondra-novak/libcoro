@@ -151,7 +151,7 @@ public:
     }
 
     ///synchronous wait for value
-    operator auto() {
+    operator decltype(auto) () {
         return start().get();
     }
 

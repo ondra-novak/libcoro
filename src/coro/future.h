@@ -4,8 +4,8 @@
 #include "exceptions.h"
 
 #include "prepared_coro.h"
-
 #include "allocator.h"
+#include "construct.h"
 
 #include <atomic>
 #include <memory>
@@ -57,6 +57,9 @@ template<typename Alloc>
 concept is_allocator = requires(Alloc alloc, std::size_t n) {
     {alloc.allocate(n)} -> std::same_as<typename Alloc::value_type *>;
 };
+
+template<typename T, typename Ret, typename ... Args>
+concept invocable_r_exact = std::is_same_v<std::invoke_result_t<T, Args...>, Ret>;
 
 
 template<typename T>
@@ -453,8 +456,7 @@ public:
         setDeferredEvaluation(std::forward<Fn>(fn));
     }
 
-    template<typename Fn>
-    requires std::is_invocable_r_v<future, Fn>
+    template<invocable_r_exact<future<T> > Fn>
     future(Fn &&fn) {
         new(this) future(fn());
     }
@@ -488,8 +490,7 @@ public:
      * @endcode
      *
      */
-    template<typename Fn>
-    requires std::is_invocable_r_v<future, Fn>
+    template<invocable_r_exact<future> Fn>
     future &operator << (Fn &&fn) {
         std::destroy_at(this);
         try {
@@ -618,23 +619,18 @@ public:
      */
     wait_awaiter wait() noexcept {return this;}
 
-    ///Retrieves value, performs synchronous wait
-    T get() && {
-        wait();
-        if constexpr(std::is_void_v<T>) {
-            getInternal();
-        } else  {
-            return std::forward<T>(getInternal());
-        }
-    }
 
     ///Retrieves value, performs synchronous wait
-    T get() & {
+    decltype(auto) get() {
         wait();
         if constexpr(std::is_void_v<T>) {
             getInternal();
         } else {
-            return getInternal();
+            if constexpr(std::is_copy_constructible_v<T>) {
+                return getInternal();
+            } else {
+                return std::move(getInternal());
+            }
         }
     }
 
@@ -713,16 +709,7 @@ public:
     }
 
     ////@b co_await support, called by resumed coroutine to retrieve a value
-    T await_resume() && {
-        if constexpr(std::is_void_v<T>) {
-            getInternal();
-        } else {
-            return std::forward<T>(getInternal());
-        }
-    }
-
-    ////@b co_await support, called by resumed coroutine to retrieve a value
-    T await_resume() & {
+    decltype(auto) await_resume() {
         if constexpr(std::is_void_v<T>) {
             getInternal();
         } else {
@@ -827,6 +814,7 @@ protected:
     union {
         value_store_type _value;
         std::exception_ptr _exception;
+        coro::function<T(), std::max(sizeof(value_store_type),sizeof(void *)*2)> _lambda;
     };
 
 
@@ -861,6 +849,7 @@ protected:
                 } else {
                     return _value;
                 }
+
             case Result::exception: std::rethrow_exception(_exception); break;
             default: break;
         }
@@ -1123,11 +1112,11 @@ public:
 template<typename T>
 class coro_promise: public coro_promise_base<T> {
 public:
+
     template<std::convertible_to<T> Arg>
     void return_value(Arg &&arg) {
         this->set_value(std::forward<Arg>(arg));
     }
-
 };
 
 template<>
