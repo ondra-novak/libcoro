@@ -96,9 +96,10 @@ $(function() {
 <div id="dynsection-1-content" class="dyncontent" style="display:none;">
 <div class="center"><img src="classcoro_1_1future__coll__graph.png" border="0" usemap="#acoro_1_1future_3_01_t_01_4_coll__map" alt="Collaboration graph"/></div>
 <map name="acoro_1_1future_3_01_t_01_4_coll__map" id="acoro_1_1future_3_01_t_01_4_coll__map">
-<area shape="rect" title="Contains future value of T, can be co_awaited in coroutine." alt="" coords="134,109,269,136"/>
+<area shape="rect" title="Contains future value of T, can be co_awaited in coroutine." alt="" coords="304,93,439,119"/>
 <area shape="rect" href="classcoro_1_1function.html" title=" " alt="" coords="5,5,189,47"/>
-<area shape="rect" href="classcoro_1_1function.html" title=" " alt="" coords="213,5,397,47"/>
+<area shape="rect" href="classcoro_1_1function.html" title=" " alt="" coords="6,71,189,141"/>
+<area shape="rect" href="classcoro_1_1function.html" title=" " alt="" coords="5,165,189,207"/>
 </map>
 <center><span class="legend">[<a href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
@@ -119,10 +120,10 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:afeafb6c2b70d942a550e6244dd344472"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1future_afeafb6c2b70d942a550e6244dd344472.html#afeafb6c2b70d942a550e6244dd344472">~future</a> ()</td></tr>
 <tr class="memdesc:afeafb6c2b70d942a550e6244dd344472"><td class="mdescLeft">&#160;</td><td class="mdescRight">dtor  <a href="classcoro_1_1future_afeafb6c2b70d942a550e6244dd344472.html#afeafb6c2b70d942a550e6244dd344472">More...</a><br /></td></tr>
 <tr class="separator:afeafb6c2b70d942a550e6244dd344472"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a32c89b07ded9730262013188efeaa01e"><td class="memTemplParams" colspan="2">template&lt;typename Fn &gt; </td></tr>
-<tr class="memitem:a32c89b07ded9730262013188efeaa01e"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="classcoro_1_1future_a16a90525d2f9d753e2f1a30b716ba939.html#a16a90525d2f9d753e2f1a30b716ba939">requires</a> std::is_invocable_r_v&lt; <a class="el" href="classcoro_1_1future.html">future</a>, Fn &gt; <a class="el" href="classcoro_1_1future.html">future</a> &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classcoro_1_1future_a32c89b07ded9730262013188efeaa01e.html#a32c89b07ded9730262013188efeaa01e">operator&lt;&lt;</a> (Fn &amp;&amp;fn)</td></tr>
-<tr class="memdesc:a32c89b07ded9730262013188efeaa01e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Store result future in already declared value.  <a href="classcoro_1_1future_a32c89b07ded9730262013188efeaa01e.html#a32c89b07ded9730262013188efeaa01e">More...</a><br /></td></tr>
-<tr class="separator:a32c89b07ded9730262013188efeaa01e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a12b153b4e2c17acb5299ea408f2b7123"><td class="memTemplParams" colspan="2">template&lt;invocable_r_exact&lt; future &gt; Fn&gt; </td></tr>
+<tr class="memitem:a12b153b4e2c17acb5299ea408f2b7123"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="classcoro_1_1future.html">future</a> &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classcoro_1_1future_a12b153b4e2c17acb5299ea408f2b7123.html#a12b153b4e2c17acb5299ea408f2b7123">operator&lt;&lt;</a> (Fn &amp;&amp;fn)</td></tr>
+<tr class="memdesc:a12b153b4e2c17acb5299ea408f2b7123"><td class="mdescLeft">&#160;</td><td class="mdescRight">Store result future in already declared value.  <a href="classcoro_1_1future_a12b153b4e2c17acb5299ea408f2b7123.html#a12b153b4e2c17acb5299ea408f2b7123">More...</a><br /></td></tr>
+<tr class="separator:a12b153b4e2c17acb5299ea408f2b7123"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1b648cf43f83b46ac3de0e4e868661e3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classcoro_1_1promise.html">promise_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1future_a1b648cf43f83b46ac3de0e4e868661e3.html#a1b648cf43f83b46ac3de0e4e868661e3">get_promise</a> ()</td></tr>
 <tr class="memdesc:a1b648cf43f83b46ac3de0e4e868661e3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieve promise and begin evaluation.  <a href="classcoro_1_1future_a1b648cf43f83b46ac3de0e4e868661e3.html#a1b648cf43f83b46ac3de0e4e868661e3">More...</a><br /></td></tr>
 <tr class="separator:a1b648cf43f83b46ac3de0e4e868661e3"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -144,12 +145,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ac40e99f6a067392f23e87cbca808c84c"><td class="memItemLeft" align="right" valign="top">wait_awaiter&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1future_ac40e99f6a067392f23e87cbca808c84c.html#ac40e99f6a067392f23e87cbca808c84c">wait</a> () noexcept</td></tr>
 <tr class="memdesc:ac40e99f6a067392f23e87cbca808c84c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Perform synchronous wait on resolution.  <a href="classcoro_1_1future_ac40e99f6a067392f23e87cbca808c84c.html#ac40e99f6a067392f23e87cbca808c84c">More...</a><br /></td></tr>
 <tr class="separator:ac40e99f6a067392f23e87cbca808c84c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac32618fc2312bbfc30ccd0f56f10dc60"><td class="memItemLeft" align="right" valign="top">T&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1future_ac32618fc2312bbfc30ccd0f56f10dc60.html#ac32618fc2312bbfc30ccd0f56f10dc60">get</a> () &amp;&amp;</td></tr>
-<tr class="memdesc:ac32618fc2312bbfc30ccd0f56f10dc60"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieves value, performs synchronous wait.  <a href="classcoro_1_1future_ac32618fc2312bbfc30ccd0f56f10dc60.html#ac32618fc2312bbfc30ccd0f56f10dc60">More...</a><br /></td></tr>
-<tr class="separator:ac32618fc2312bbfc30ccd0f56f10dc60"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aafefc85577cef6a4f6c00b34cfd23a4c"><td class="memItemLeft" align="right" valign="top">T&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1future_aafefc85577cef6a4f6c00b34cfd23a4c.html#aafefc85577cef6a4f6c00b34cfd23a4c">get</a> () &amp;</td></tr>
-<tr class="memdesc:aafefc85577cef6a4f6c00b34cfd23a4c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieves value, performs synchronous wait.  <a href="classcoro_1_1future_aafefc85577cef6a4f6c00b34cfd23a4c.html#aafefc85577cef6a4f6c00b34cfd23a4c">More...</a><br /></td></tr>
-<tr class="separator:aafefc85577cef6a4f6c00b34cfd23a4c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adf06689a147d5f78124cdbf61c55d524"><td class="memItemLeft" align="right" valign="top">decltype(auto)&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1future_adf06689a147d5f78124cdbf61c55d524.html#adf06689a147d5f78124cdbf61c55d524">get</a> ()</td></tr>
+<tr class="memdesc:adf06689a147d5f78124cdbf61c55d524"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieves value, performs synchronous wait.  <a href="classcoro_1_1future_adf06689a147d5f78124cdbf61c55d524.html#adf06689a147d5f78124cdbf61c55d524">More...</a><br /></td></tr>
+<tr class="separator:adf06689a147d5f78124cdbf61c55d524"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6828d9d513cfc33621eaaf543281395f"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1future_a6828d9d513cfc33621eaaf543281395f.html#a6828d9d513cfc33621eaaf543281395f">operator cast_return</a> () &amp;&amp;</td></tr>
 <tr class="memdesc:a6828d9d513cfc33621eaaf543281395f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieves value, performs synchronous wait.  <a href="classcoro_1_1future_a6828d9d513cfc33621eaaf543281395f.html#a6828d9d513cfc33621eaaf543281395f">More...</a><br /></td></tr>
 <tr class="separator:a6828d9d513cfc33621eaaf543281395f"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -207,14 +205,14 @@ class coro::future&lt; T &gt;</h3>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="future_8h_source.html#l00382">382</a> of file <a class="el" href="future_8h_source.html">future.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="future_8h_source.html#l00385">385</a> of file <a class="el" href="future_8h_source.html">future.h</a>.</p>
 </div><hr/>The documentation for this class was generated from the following file:<ul>
 <li>src/coro/<a class="el" href="future_8h_source.html">future.h</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Mar 29 2024 20:42:35 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+Generated on Sat Mar 30 2024 11:31:57 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
 </small></address>
 </body>
 </html>
