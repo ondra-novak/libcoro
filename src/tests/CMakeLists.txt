@@ -14,6 +14,7 @@ set(testFiles all_compile.cpp
                stackful.cpp
                pool_alloc.cpp
                semaphore.cpp
+               any.cpp
                 )
 foreach (testFile ${testFiles})
     string(REGEX MATCH "([^\/]+$)" filename ${testFile})

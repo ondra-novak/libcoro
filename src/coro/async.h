@@ -150,9 +150,11 @@ public:
         return shared_start();
     }
 
+
     ///synchronous wait for value
-    operator decltype(auto) () {
-        return start().get();
+    template<std::constructible_from<T> U>
+    operator U () {
+        return U(start().get());
     }
 
     ///run synchronously

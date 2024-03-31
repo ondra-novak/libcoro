@@ -26,6 +26,13 @@ template<typename T, typename RetVal, bool nx, typename ... Args>
 concept IsFunctionConstructible = (nx?std::is_nothrow_invocable_r_v<RetVal,T, Args...>:std::is_invocable_r_v<RetVal, T, Args...>);
 
 
+template<typename T, typename ToObj>
+concept hasnt_cast_operator = !requires(T t) {
+    {t.operator ToObj()};
+};
+
+
+
 
 template<typename RetVal, typename ... Args, bool nx, unsigned int reserved_space>
 class function<RetVal(Args...) noexcept(nx), reserved_space> {
@@ -199,7 +206,7 @@ public:
     }
 
     ///Call the function
-    RetVal operator()(Args && ... args) {
+RetVal operator()(Args && ... args) {
         return ref().call(std::forward<Args>(args)...);
     }
 
@@ -227,6 +234,154 @@ protected:
         ref().~Abstract();
     }
 
+};
+
+///Movable any replacement with small object optimization - uses coro::function
+/**
+ *
+ * @tparam reserved_space specifies reserved space for small objects, default value is
+ * 4 pointers. Note that there is always 1 pointer reserved for type information
+ */
+template<unsigned int reserved_space = 4*sizeof(void *)>
+class any {
+public:
+
+    ///Contains information about stored content
+    struct content {
+        ///reference to type information
+        const std::type_info &type;
+        ///pointer to memory, where  content is located.
+        void *ptr;
+        ///size in bytes
+        std::size_t size;
+    };
+
+    ///Construct any instance
+    /**
+     * @param arg value moved into storage
+     * The Arg must be move_constructible
+     */
+    template<hasnt_cast_operator<any> Arg>
+    any(Arg &&arg):_storage([v = Arg(std::forward<Arg>(arg))]()mutable -> content{
+        return {
+            typeid(v),
+            &v,
+            sizeof(v)
+        };
+    }) {}
+
+
+    ///Construct empty
+    any():_storage([]()mutable->content{
+        return {typeid(nullptr),nullptr,0};
+    }) {}
+
+    ///Retrieve information about the content
+    /**
+     * @return information as content
+     * @exception std::bad_function_call - object is empty
+     */
+    const content get_info() const {
+        return _storage();
+    }
+    ///Retrieve information about the content
+    /**
+     * @return information as content
+     * @exception std::bad_function_call - object is empty
+     */
+    content get_info() {
+        return _storage();
+    }
+
+    ///Get as pointer
+    /**
+     *
+     * @tparam T expected type
+     * @return returns pointer to held variable, or nullptr if T mismatch
+     *
+     * doesn't throw exception
+     */
+
+    template<typename T>
+    const T *get_ptr() const noexcept {
+        auto ctx = get_info();
+        if (ctx.type != typeid(T)) return nullptr;
+        return reinterpret_cast<const T *>(ctx.ptr);
+    }
+    ///Get as pointer
+    /**
+     *
+     * @tparam T expected type
+     * @return returns pointer to held variable, or nullptr if T mismatch
+     *
+     * doesn't throw exception
+     */
+    template<typename T>
+    T *get_ptr() noexcept  {
+        auto ctx = get_info();
+        if (ctx.type != typeid(T)) return nullptr;
+        return reinterpret_cast<T *>(ctx.ptr);
+    }
+
+    ///Get as reference
+    /**
+     *
+     * @tparam T expected type
+     * @return returns reference to held variable
+     * @exception bad_cast T type mismatch
+     */
+    template<typename T>
+    const T &get() const {
+        auto ptr = get_ptr<T>();
+        if (ptr == nullptr) throw std::bad_cast();
+        return *ptr;
+    }
+    ///Get as reference
+    /**
+     *
+     * @tparam T expected type
+     * @return returns reference to held variable
+     * @exception bad_cast T type mismatch
+     */
+    template<typename T>
+    T &get()  {
+        auto ptr = get_ptr<T>();
+        if (ptr == nullptr) throw std::bad_cast();
+        return *ptr;
+    }
+
+    ///Determines whether object is empty
+    /**
+     * @retval true empty
+     * @retval false not empty
+     */
+
+    bool empty() const noexcept {
+        return get_info().ptr == nullptr;
+    }
+
+    ///Determines validity
+    /**
+     * @retval true valid (not empty)
+     * @retval false invalid (empty)
+     */
+    operator bool() const noexcept {
+        return get_info().ptr != nullptr;
+    }
+
+    ///Tests whether object contains given type
+    /**
+     * @tparam T expected type
+     * @retval true contains
+     * @retval false doesn't contains
+     */
+    template<typename T>
+    bool contains() const noexcept {
+        return  get_info().type ==  typeid(T);
+    }
+
+protected:
+    mutable function<content()> _storage;
 };
 
 

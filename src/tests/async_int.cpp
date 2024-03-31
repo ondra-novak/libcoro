@@ -41,9 +41,11 @@ coro::async<int> int_coro2(std::unique_ptr<int, destruct> x) {
 int main() {
     int_coro(1).detach();
     CHECK(test_var == 1);
-    CHECK(int_coro(2) == 2);
+    int tmp = int_coro(2);
+    CHECK(tmp == 2);
     CHECK(int_coro(3).start().get() == 3);
-    CHECK(await_coro(4) == 4);
+    tmp = await_coro(4);
+    CHECK(tmp == 4);
     coro::future<int> v;
     int_coro(5).start(v.get_promise());
     CHECK(v.get() == 5);
