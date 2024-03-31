@@ -47,7 +47,11 @@ public:
         ~ownership() {release();}
         ///releases ownership exlicitly (unlock)
         void release() {
-            if (_inst) _inst->unlock();
+            if (_inst) {
+                auto tmp = _inst;
+                _inst = nullptr;
+                tmp->unlock();
+            }
         }
         ///test whether ownership is held
         /**
@@ -95,9 +99,9 @@ public:
         ~awaiter() {
             switch (_mode) {
                 default: break;
-                case coroutine: std::destroy_at(&_coro);
-                case sync: std::destroy_at(&_sync);
-                case callback: std::destroy_at(&_resume_cb);
+                case coroutine: std::destroy_at(&_coro); break;
+                case sync: std::destroy_at(&_sync);break;
+                case callback: std::destroy_at(&_resume_cb);break;
             }
         }
 
@@ -195,7 +199,7 @@ public:
 
         static void cb_entry(awaiter *me) {
             auto self = static_cast<awaiter_cb *>(me);
-
+            self->resume();
         }
     };
 
