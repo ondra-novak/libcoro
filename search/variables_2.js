@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['standard_5fallocator_312',['standard_allocator',['../group__allocators_ga74db1a79f7510e368f9f297fdcb7ce61.html#ga74db1a79f7510e368f9f297fdcb7ce61',1,'coro']]]
+  ['ptr_327',['ptr',['../structcoro_1_1any_1_1content_a28495380c52283fd27d712504e4e2864.html#a28495380c52283fd27d712504e4e2864',1,'coro::any::content']]]
 ];

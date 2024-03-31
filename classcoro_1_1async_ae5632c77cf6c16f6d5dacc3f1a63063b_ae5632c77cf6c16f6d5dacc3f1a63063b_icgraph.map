@@ -1,5 +1,5 @@
 <map id="coro::async::start" name="coro::async::start">
-<area shape="rect" id="node1" title="Start coroutine and return future." alt="" coords="187,31,321,57"/>
-<area shape="rect" id="node2" href="$classcoro_1_1async_ab07c2410d6b8fdd46a5beb1a5af6be2b.html#ab07c2410d6b8fdd46a5beb1a5af6be2b" title="synchronous wait for value" alt="" coords="5,5,139,32"/>
-<area shape="rect" id="node3" href="$classcoro_1_1async_a5e257c745ec009aad26b4ad59804398d.html#a5e257c745ec009aad26b4ad59804398d" title="run synchronously" alt="" coords="9,56,135,83"/>
+<area shape="rect" id="node1" title="Start coroutine and return future." alt="" coords="227,31,361,57"/>
+<area shape="rect" id="node2" href="$classcoro_1_1async_a0b1b09a1dfe8297aeaed5f2defaeeb84.html#a0b1b09a1dfe8297aeaed5f2defaeeb84" title="synchronous wait for value" alt="" coords="5,5,179,32"/>
+<area shape="rect" id="node3" href="$classcoro_1_1async_a5e257c745ec009aad26b4ad59804398d.html#a5e257c745ec009aad26b4ad59804398d" title="run synchronously" alt="" coords="29,56,155,83"/>
 </map>

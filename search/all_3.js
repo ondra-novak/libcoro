@@ -9,9 +9,11 @@ var searchData=
   ['condition_27',['condition',['../classcoro_1_1condition_a5205f58eb4e2bd68c1c5e505b1cf434e.html#a5205f58eb4e2bd68c1c5e505b1cf434e',1,'coro::condition::condition()'],['../classcoro_1_1condition.html',1,'coro::condition&lt; T, Pred &gt;']]],
   ['condition_5fsync_5fwait_28',['condition_sync_wait',['../group__condition_ga7462a3c7fabdbe8f5976c21c59124284.html#ga7462a3c7fabdbe8f5976c21c59124284',1,'coro']]],
   ['construct_5fusing_29',['construct_using',['../classcoro_1_1construct__using.html',1,'coro']]],
-  ['cooperative_30',['Cooperative',['../group__cooperative.html',1,'']]],
-  ['coro_31',['coro',['../namespacecoro.html',1,'']]],
-  ['coro_5fallocator_5fhelper_32',['coro_allocator_helper',['../classcoro_1_1coro__allocator__helper.html',1,'coro']]],
-  ['coroutine_33',['coroutine',['../group___coroutines_gaa0bb63fe4aa91a6b3c0bd1a2440e0c53.html#gaa0bb63fe4aa91a6b3c0bd1a2440e0c53',1,'coro']]],
-  ['coroutines_34',['Coroutines',['../group___coroutines.html',1,'']]]
+  ['contains_30',['contains',['../classcoro_1_1any_a0d549755e3757100e12a4d1bce990151.html#a0d549755e3757100e12a4d1bce990151',1,'coro::any']]],
+  ['content_31',['content',['../structcoro_1_1any_1_1content.html',1,'coro::any']]],
+  ['cooperative_32',['Cooperative',['../group__cooperative.html',1,'']]],
+  ['coro_33',['coro',['../namespacecoro.html',1,'']]],
+  ['coro_5fallocator_5fhelper_34',['coro_allocator_helper',['../classcoro_1_1coro__allocator__helper.html',1,'coro']]],
+  ['coroutine_35',['coroutine',['../group___coroutines_gaa0bb63fe4aa91a6b3c0bd1a2440e0c53.html#gaa0bb63fe4aa91a6b3c0bd1a2440e0c53',1,'coro']]],
+  ['coroutines_36',['Coroutines',['../group___coroutines.html',1,'']]]
 ];
