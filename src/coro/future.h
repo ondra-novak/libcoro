@@ -61,6 +61,8 @@ concept is_allocator = requires(Alloc alloc, std::size_t n) {
 template<typename T, typename Ret, typename ... Args>
 concept invocable_r_exact = std::is_same_v<std::invoke_result_t<T, Args...>, Ret>;
 
+template<typename T, typename ... U>
+concept future_constructible = ((sizeof...(U) == 1 && (invocable_r_exact<U, T> && ...)) || std::is_constructible_v<T, U...>);
 
 template<typename T>
 using atomic_promise = promise<T, true>;
@@ -202,7 +204,7 @@ public:
     template<typename ... Args>
     notify operator()(Args && ... args) {
         static_assert((std::is_void_v<T> && sizeof...(Args) == 0)
-                        || std::is_constructible_v<T, Args ...>, "Value is not constructible from arguments");
+                        || future_constructible<T, Args ...>, "Value is not constructible from arguments");
         auto fut = claim();
         if (fut) fut->set_value(std::forward<Args>(args)...);
         return fut;
@@ -920,6 +922,8 @@ protected:
             clearStorage();
             if constexpr(std::is_reference_v<T>) {
                std::construct_at(&_value, &args...);
+            } else if constexpr(sizeof...(Args) == 1 && (invocable_r_exact<Args, value_store_type> && ...)) {
+               new (&_value) value_store_type(args()...);
             } else {
                std::construct_at(&_value, std::forward<Args>(args)...);
             }
@@ -1101,6 +1105,8 @@ protected:
     void set_value(Args && ... args) const {
         if (fut) fut->set_value(std::forward<Args>(args)...);
     }
+
+
 public:
     void unhandled_exception() {
         if (fut) fut->set_exception(std::current_exception());
@@ -1113,10 +1119,13 @@ template<typename T>
 class coro_promise: public coro_promise_base<T> {
 public:
 
-    template<std::convertible_to<T> Arg>
+    template<typename Arg>
+    requires future_constructible<T, Arg>
     void return_value(Arg &&arg) {
         this->set_value(std::forward<Arg>(arg));
     }
+
+
 };
 
 template<>

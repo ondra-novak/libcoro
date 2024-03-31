@@ -23,7 +23,8 @@ struct TwoVal {
 
 coro::async<TwoVal> await_coro2(int x) {
     int i =  co_await int_coro(x);
-    co_return coro::construct([i]{return TwoVal(i,i+10);});
+    co_return [i]{return TwoVal(i,i+10);};
+//    co_return coro::construct_using([i]{return TwoVal(i,i+10);});
 }
 
 struct destruct {
