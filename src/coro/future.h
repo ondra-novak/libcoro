@@ -863,7 +863,7 @@ protected:
     bool startDeferredEvaluation(ResumeFn &&resume_fn) noexcept {
         //lock awaiter state (should be deferred previously)
         State new_state = State::evaluating;
-        _state.store(new_state, std::memory_order_acquire);
+        _state.exchange(new_state, std::memory_order_acquire);
         //call the deferred function and pass promise, pass coroutine to resume_fn
         resume_fn(_deferred(promise_t(this)));
         //destroy deferred function to leave place for awaiter
