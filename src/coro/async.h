@@ -90,6 +90,16 @@ public:
         h.resume();
     }
 
+    ///detach coroutine using symmetric transfer
+    /**
+     * @return coroutine handle of coroutine to be resumed. Use
+     * return value as result of await_suspend();
+     */
+    std::coroutine_handle<> detach_on_await_suspend() {
+        auto p = _promise_ptr.release();
+        return std::coroutine_handle<promise_type>::from_promise(*p);
+    }
+
     ///Start coroutine and return future
     future<T> start() {
         return future<T>([me = std::move(*this)](auto promise) mutable {
@@ -108,7 +118,7 @@ public:
     deferred_future<T> defer_start() {
         return [me = std::move(*this)](auto promise) mutable {
             me._promise_ptr->attach(promise);
-            me.detach();
+            return me.detach_on_await_suspend();
         };
     }
 
@@ -136,7 +146,7 @@ public:
     operator future<T>() {
         return future<T>(deferred, [me = std::move(*this)](auto promise) mutable {
             me._promise_ptr->attach(promise);
-            me.detach();
+            return me.detach_on_await_suspend();
         });
     }
 
