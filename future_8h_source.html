@@ -677,7 +677,7 @@ $(function() {
 <div class="line"><a name="l00863"></a><span class="lineno"><a class="line" href="classcoro_1_1future_a19d310ef5cce45110afeb688e41712fa.html#a19d310ef5cce45110afeb688e41712fa">  863</a></span>&#160;    <span class="keywordtype">bool</span> <a class="code" href="classcoro_1_1future_a19d310ef5cce45110afeb688e41712fa.html#a19d310ef5cce45110afeb688e41712fa">startDeferredEvaluation</a>(ResumeFn &amp;&amp;resume_fn) noexcept {</div>
 <div class="line"><a name="l00864"></a><span class="lineno">  864</span>&#160;        <span class="comment">//lock awaiter state (should be deferred previously)</span></div>
 <div class="line"><a name="l00865"></a><span class="lineno">  865</span>&#160;        State new_state = State::evaluating;</div>
-<div class="line"><a name="l00866"></a><span class="lineno">  866</span>&#160;        _state.store(new_state, std::memory_order_acquire);</div>
+<div class="line"><a name="l00866"></a><span class="lineno">  866</span>&#160;        _state.exchange(new_state, std::memory_order_acquire);</div>
 <div class="line"><a name="l00867"></a><span class="lineno">  867</span>&#160;        <span class="comment">//call the deferred function and pass promise, pass coroutine to resume_fn</span></div>
 <div class="line"><a name="l00868"></a><span class="lineno">  868</span>&#160;        resume_fn(_deferred(<a class="code" href="classcoro_1_1promise.html">promise_t</a>(<span class="keyword">this</span>)));</div>
 <div class="line"><a name="l00869"></a><span class="lineno">  869</span>&#160;        <span class="comment">//destroy deferred function to leave place for awaiter</span></div>
@@ -1314,7 +1314,7 @@ $(function() {
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Apr 1 2024 14:37:21 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+Generated on Mon Apr 1 2024 14:57:46 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
 </small></address>
 </body>
 </html>
