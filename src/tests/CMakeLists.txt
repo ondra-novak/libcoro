@@ -16,6 +16,7 @@ set(testFiles all_compile.cpp
                semaphore.cpp
                any.cpp
                mutex.cpp
+               future_move.cpp
                 )
 foreach (testFile ${testFiles})
     string(REGEX MATCH "([^\/]+$)" filename ${testFile})

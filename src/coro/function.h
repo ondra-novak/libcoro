@@ -238,7 +238,7 @@ protected:
 
 ///Movable any replacement with small object optimization - uses coro::function
 /**
- * @ingroop tools
+ * @ingroup tools
  *
  * @tparam reserved_space specifies reserved space for small objects, default value is
  * 4 pointers. Note that there is always 1 pointer reserved for type information

@@ -628,22 +628,18 @@ public:
         if constexpr(std::is_void_v<T>) {
             getInternal();
         } else {
-            if constexpr(std::is_copy_constructible_v<T>) {
-                return getInternal();
-            } else {
-                return std::move(getInternal());
-            }
+            return getInternal();
         }
     }
 
     ///Retrieves value, performs synchronous wait
     operator cast_return() && {
         wait();
-        return std::forward<cast_return>(getInternal());
+        return cast_return(std::move(getInternal()));
     }
 
     ///Retrieves value, performs synchronous wait
-    operator const cast_return &() & {
+    operator cast_return &() & {
         wait();
         return getInternal();
     }
@@ -715,11 +711,7 @@ public:
         if constexpr(std::is_void_v<T>) {
             getInternal();
         } else {
-            if constexpr(std::is_copy_constructible_v<T>) {
-                return getInternal();
-            } else {
-                return std::move(getInternal());
-            }
+            return getInternal();
         }
     }
 
@@ -843,7 +835,7 @@ protected:
         }
     }
 
-    auto &getInternal() {
+    cast_return &getInternal() {
         switch (_result) {
             case Result::value:
                 if constexpr(std::is_reference_v<T>) {
@@ -1181,6 +1173,7 @@ public:
 
     using value_type = typename future<T>::value_type;
     using value_store_type = typename future<T>::value_store_type;
+    using cast_return = typename future<T>::cast_return;
     using awaiter_cb = function<prepared_coro()>;
     using wait_awaiter = _details::wait_awaiter<shared_future>;
     using canceled_awaiter = _details::has_value_awaiter<shared_future,false>;
@@ -1340,14 +1333,14 @@ public:
 
 
     ///Retrieves value, performs synchronous wait
-    T get() {
+    decltype(auto) get() {
         wait();
         return _shared_future->get();
     }
 
 
     ///Retrieves value, performs synchronous wait
-    operator value_store_type(){
+    operator cast_return &(){
         wait();
         return *_shared_future;
     }
