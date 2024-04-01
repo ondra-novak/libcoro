@@ -1450,8 +1450,10 @@ protected:
         using future<T>::future;
 
         static void init_callback(std::shared_ptr<Shared> self) {
-            self->then([self = std::move(self)]() -> prepared_coro{
-                return self->notify_targets();
+            self->then([self = std::move(self)]() mutable -> prepared_coro{
+                auto r = self->notify_targets();
+                self.reset();
+                return r;
             });
         }
 
