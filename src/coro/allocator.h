@@ -1,6 +1,7 @@
 #pragma once
 
 #include <concepts>
+#include <stdexcept>
 
 
 namespace coro {
@@ -92,24 +93,40 @@ template<coro_allocator_local Alloc>
 class coro_allocator_helper<Alloc> {
 public:
 
+
+    void operator delete(void *ptr, std::size_t sz) {
+        Alloc::dealloc(ptr, sz);
+    }
+
     template<typename ... Args>
     void *operator new(std::size_t sz, Alloc &a, Args  && ...) {
         return a.alloc(sz);
     }
+
+    template<typename ... Args>
+    void operator delete(void *ptr, Alloc &a, Args  && ...) {
+        throw std::logic_error("unreachable");
+    }
+
+
     template<typename This, typename ... Args>
     void *operator new(std::size_t sz, This &, Alloc &a, Args && ...) {
         return a.alloc(sz);
     }
 
-    void operator delete(void *ptr, std::size_t sz) {
-        Alloc::dealloc(ptr, sz);
+    template<typename This, typename ... Args>
+    void operator delete(void *ptr, This &, Alloc &a, Args && ...) {
+        throw std::logic_error("unreachable");
     }
+
 #ifndef __clang__
     //clang 15+ doesn't like operator new declared as private
     //so we left it undefined. This ensures that standard allocator will not be used
 private:
 #endif
     void *operator new(std::size_t sz);
+
+
 
 };
 

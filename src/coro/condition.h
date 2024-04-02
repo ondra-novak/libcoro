@@ -25,14 +25,14 @@ public:
     prepared_coro notify() noexcept {
         n.store(true, std::memory_order_relaxed);
         n.notify_all();
-        return prepared_coro(h);
+        return prepared_coro(_h);
     }
     virtual bool test(const void *addr) noexcept  = 0;
     virtual const void *get_addr() noexcept = 0;
     virtual ~abstract_condition_awaiter() = default;
     abstract_condition_awaiter *_next = nullptr;
 protected:
-    std::coroutine_handle<> h;
+    std::coroutine_handle<> _h;
     std::atomic<bool> n = {false};
 };
 
@@ -232,7 +232,7 @@ public:
     ///@b co_await support
     /** called by @b co_await when coroutine is suspened */
     bool await_suspend(std::coroutine_handle<> h) {
-        this->h = h;
+        this->_h = h;
         return _details::awaiter_map::instance.reg_awaiter(&_variable, this);
     }
 
