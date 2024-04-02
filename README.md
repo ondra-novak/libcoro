@@ -37,6 +37,16 @@ Because the library is **header only** you can just an include everywhere you ne
 Doxygen: [https://ondra-novak.github.io/libcoro/](https://ondra-novak.github.io/libcoro/)
 
 
+## Supported compilers
+
+* gcc-12
+* clang-16
+* msvc 19.40 (Visual Studio 2022 17.10 preview) - partial support 
+    - custom allocators are not supported in Release builds (Internal Compiler Error)
+    - workaround for symmetric transfer for coro::async (Compiler bug)
+    
+
+
 ## Short guide
 
 ### Writing coroutine
