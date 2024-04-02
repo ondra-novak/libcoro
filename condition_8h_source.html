@@ -93,14 +93,14 @@ $(function() {
 <div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;    prepared_coro notify() noexcept {</div>
 <div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;        n.store(<span class="keyword">true</span>, std::memory_order_relaxed);</div>
 <div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;        n.notify_all();</div>
-<div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;        <span class="keywordflow">return</span> prepared_coro(h);</div>
+<div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;        <span class="keywordflow">return</span> prepared_coro(_h);</div>
 <div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;    }</div>
 <div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;    <span class="keyword">virtual</span> <span class="keywordtype">bool</span> test(<span class="keyword">const</span> <span class="keywordtype">void</span> *addr) noexcept  = 0;</div>
 <div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;    <span class="keyword">virtual</span> <span class="keyword">const</span> <span class="keywordtype">void</span> *get_addr() noexcept = 0;</div>
 <div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;    virtual ~abstract_condition_awaiter() = default;</div>
 <div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;    abstract_condition_awaiter *_next = <span class="keywordtype">nullptr</span>;</div>
 <div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;protected:</div>
-<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;    std::coroutine_handle&lt;&gt; h;</div>
+<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;    std::coroutine_handle&lt;&gt; _h;</div>
 <div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;    std::atomic&lt;<span class="keywordtype">bool</span>&gt; n = {<span class="keyword">false</span>};</div>
 <div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;};</div>
 <div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160; </div>
@@ -264,7 +264,7 @@ $(function() {
 <div class="line"><a name="l00231"></a><span class="lineno">  231</span>&#160; </div>
 <div class="line"><a name="l00233"></a><span class="lineno">  233</span>&#160; </div>
 <div class="line"><a name="l00234"></a><span class="lineno"><a class="line" href="classcoro_1_1condition_a4af423ab8217ca7df5715c8ada626c8e.html#a4af423ab8217ca7df5715c8ada626c8e">  234</a></span>&#160;    <span class="keywordtype">bool</span> <a class="code" href="classcoro_1_1condition_a4af423ab8217ca7df5715c8ada626c8e.html#a4af423ab8217ca7df5715c8ada626c8e">await_suspend</a>(std::coroutine_handle&lt;&gt; h) {</div>
-<div class="line"><a name="l00235"></a><span class="lineno">  235</span>&#160;        this-&gt;h = h;</div>
+<div class="line"><a name="l00235"></a><span class="lineno">  235</span>&#160;        this-&gt;_h = h;</div>
 <div class="line"><a name="l00236"></a><span class="lineno">  236</span>&#160;        <span class="keywordflow">return</span> _details::awaiter_map::instance.reg_awaiter(&amp;_variable, <span class="keyword">this</span>);</div>
 <div class="line"><a name="l00237"></a><span class="lineno">  237</span>&#160;    }</div>
 <div class="line"><a name="l00238"></a><span class="lineno">  238</span>&#160; </div>
@@ -337,7 +337,7 @@ $(function() {
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Apr 1 2024 15:09:30 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+Generated on Tue Apr 2 2024 15:08:00 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
 </small></address>
 </body>
 </html>
