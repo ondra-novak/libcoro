@@ -4,6 +4,18 @@ file(GLOB SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
 
 file(MAKE_DIRECTORY ${CMAKE_HEADER_OUTPUT_DIRECTORY})
 
+if (MSVC)
+
+add_custom_command(
+    OUTPUT "${CMAKE_HEADER_OUTPUT_DIRECTORY}/coro.h"  
+    COMMAND to_single_header ARGS coro_single.h ${CMAKE_HEADER_OUTPUT_DIRECTORY}/coro.h 
+    DEPENDS ${SOURCES} 
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMENT "Generating single header"
+    VERBATIM
+)
+
+else()
 
 add_custom_command(
     OUTPUT "${CMAKE_HEADER_OUTPUT_DIRECTORY}/coro.h"  
@@ -22,6 +34,8 @@ add_custom_command(
     COMMENT "Generating single header"
     VERBATIM
 )
+
+endif()
 
 # Vytvoření cíle pro spuštění vlastního příkazu
 add_custom_target(libcoro_single_header ALL DEPENDS 

@@ -40,9 +40,9 @@ void processLine(const std::filesystem::path &dir, const std::string& line, Stat
 
             if (std::filesystem::exists(pathname)) {
 
-                if (state.processedFiles.find(pathname) == state.processedFiles.end()) {
+                if (state.processedFiles.find(pathname.string()) == state.processedFiles.end()) {
                     // Soubor ještě nebyl zpracován
-                    state.processedFiles.insert(pathname);
+                    state.processedFiles.insert(pathname.string());
                     if (!processFile(pathname, state, out)) {
                         out << line << std::endl;
                     }

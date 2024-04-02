@@ -118,7 +118,7 @@ public:
             return do_alloc(sz);
         }
         void *ptr = top._segment->space + top._usage;
-        top._usage += need;
+        top._usage += static_cast<unsigned int>(need);
         auto ref = reinterpret_cast<stackful_allocator **>(reinterpret_cast<char *>(ptr)+sz);
         *ref= this;
         return ptr;
@@ -157,7 +157,7 @@ public:
         if (top._usage < sz) throw std::runtime_error("[coro::stackful fatal] Stack is corrupted: (size > usage)");
         void *ref_ptr = top._segment->space + top._usage - need;
         if (ref_ptr != ptr) return false;
-        top._usage -= need;
+        top._usage -= static_cast<unsigned int>(need);
         if (top._usage == 0) {
             if (_top_segment == 0) {
                 _hold.reset();

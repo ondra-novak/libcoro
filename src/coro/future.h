@@ -635,7 +635,7 @@ public:
     ///Retrieves value, performs synchronous wait
     operator cast_return() && {
         wait();
-        return cast_return(std::move(getInternal()));
+        return cast_return(std::forward<cast_return>(getInternal()));
     }
 
     ///Retrieves value, performs synchronous wait

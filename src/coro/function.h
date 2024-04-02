@@ -22,9 +22,13 @@ namespace coro {
 template<typename Prototype, unsigned int reserved_space = 4*sizeof(void *)>
 class function;
 
+#ifdef _MSC_VER 
+template<typename T, typename RetVal, typename ... Args>
+concept IsFunctionConstructible = std::is_invocable_r_v<RetVal, T, Args...>;
+#else
 template<typename T, typename RetVal, bool nx, typename ... Args>
 concept IsFunctionConstructible = (nx?std::is_nothrow_invocable_r_v<RetVal,T, Args...>:std::is_invocable_r_v<RetVal, T, Args...>);
-
+#endif
 
 template<typename T, typename ToObj>
 concept hasnt_cast_operator = !requires(T t) {
@@ -33,9 +37,13 @@ concept hasnt_cast_operator = !requires(T t) {
 
 
 
-
+#ifdef _MSC_VER 
+template<typename RetVal, typename ... Args,  unsigned int reserved_space>
+class function<RetVal(Args...) , reserved_space> {
+#else
 template<typename RetVal, typename ... Args, bool nx, unsigned int reserved_space>
 class function<RetVal(Args...) noexcept(nx), reserved_space> {
+#endif
 
     /*
     +------------------+
@@ -124,14 +132,25 @@ class function<RetVal(Args...) noexcept(nx), reserved_space> {
         virtual bool valid() const override {return false;}
     };
 
+#ifdef _MSC_VER 
+    ///used to test size of WrapFnLarge in static_assert
+    struct TestCallable {
+        RetVal operator()(Args ...);
+    };
+#else
     ///used to test size of WrapFnLarge in static_assert
     struct TestCallable {
         RetVal operator()(Args ...) noexcept(nx);
     };
-
+#endif
 public:
+#ifdef _MSC_VER 
+    ///Test validity of the concept
+    static_assert(IsFunctionConstructible<TestCallable, RetVal, Args ...>);
+#else
     ///Test validity of the concept
     static_assert(IsFunctionConstructible<TestCallable, RetVal, nx, Args ...>);
+#endif
     ///Test size of reserved space
     static_assert(sizeof(WrapFnLarge<TestCallable>) <= reserved_space, "Reserved space is too small");
 
@@ -144,7 +163,11 @@ public:
     /**
      * @param fn callable object/lambda function/etc
      */
+    #ifdef _MSC_VER 
+    template<IsFunctionConstructible<RetVal, Args...> Fn>
+    #else
     template<IsFunctionConstructible<RetVal, nx, Args...> Fn>
+    #endif
     function(Fn &&fn) {
         using Small = WrapFnSmall<std::decay_t<Fn> >;
         using Large = WrapFnLarge<std::decay_t<Fn> >;

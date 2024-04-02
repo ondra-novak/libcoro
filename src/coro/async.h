@@ -53,12 +53,22 @@ public:
         struct final_awaiter {
             bool detached;
             bool await_ready() const noexcept {return detached;}
+            #ifdef _MSC_VER 
+            void await_suspend(std::coroutine_handle<promise_type> h) const noexcept {
+                promise_type &self = h.promise();
+                std::coroutine_handle<> retval = self.set_resolved();
+                h.destroy();
+                retval.resume();    //MSVC 19.40.33617.1 - still not fixed - symmetric transfer isn't possible when coroutine is destroyed
+                                    //hope tail call optimization can handle this
+            }
+            #else
             std::coroutine_handle<>  await_suspend(std::coroutine_handle<promise_type> h) const noexcept {
                 promise_type &self = h.promise();
                 std::coroutine_handle<> retval = self.set_resolved();
                 h.destroy();
                 return retval;
             }
+            #endif
 
             void await_resume() const noexcept {}
         };
