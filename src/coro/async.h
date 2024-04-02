@@ -6,6 +6,94 @@
 
 namespace coro {
 
+#ifdef _MSC_VER
+
+namespace _msc_details {
+
+    //Helps to handle symmetric transfer while coroutine is already destroyed
+    /* 
+     * HACK
+     *   
+     * Reason: MSC has a bug, which prevents to use symmetric transfer when coroutine frame is destroyed inside of await_suspend of the final
+     * suspend operation. The function must be finished while frame is still valid. However we need to destroy the frame before transfering to
+     * next coroutine. So this class implements transfering coroutine, which handles this situation
+     * 
+     *
+     * it is inifnite and empty generator. It is thread local allocated. You just need to call prepare_jump to set jump handle, and destroy handle.
+     * Return value is handle to jump;
+     * 
+     * The generator's promise_type handles destruction of previous coroutine frame and jump to next coroutine. 
+     *
+     * There is actually double jump
+     * 
+     * (finished_coro) -> SymmTransGen -> (coroutine to resume)
+     * 
+     * while frame of finished coroutine is destroyed in process
+     * 
+     * NOTE: There is no promise that this is effective fast solution. It only garantee that
+     * this solution performs true symmetric transfer (with no extra frame allocation).
+     * Please ask Microsoft to fix this bug
+     */
+    class SymmTransGen {
+    public:
+
+        struct promise_type {
+            std::suspend_always initial_suspend() {return {};}
+            std::suspend_never final_suspend() noexcept {return {};}
+            void return_void() {}
+            void unhandled_exception() {}
+            SymmTransGen get_return_object() {return this;}          
+
+            std::coroutine_handle<> _next_handle = {};
+            std::coroutine_handle<> _destroy_handle = {};
+
+            struct yield_suspend: std::suspend_always {
+                std::coroutine_handle<> await_suspend(std::coroutine_handle<promise_type> me) {
+                    promise_type &self = me.promise();
+                    self._destroy_handle.destroy();
+                    return self._next_handle;
+                }
+            };
+
+            yield_suspend yield_value(std::nullptr_t) {return {};}
+        };
+
+        /// @brief prepares symmetric transfer jump while destroying the frame of finished coroutine
+        /// @param destroy_handle handle of coroutine to destroy
+        /// @param jump_handle handle of coroutine to resume
+        /// @return handle of coroutine to transfer from final_awaiter of finished coroutine
+        std::coroutine_handle<> prepare_jump(std::coroutine_handle<> destroy_handle, std::coroutine_handle<> jump_handle) {
+            _prom->_next_handle = jump_handle;
+            _prom->_destroy_handle = destroy_handle;
+            return std::coroutine_handle<promise_type>::from_promise(*_prom);
+        }
+
+    /// @brief every thread as own generator
+    static thread_local SymmTransGen instance;
+
+    protected:
+        SymmTransGen(promise_type *prom):_prom(prom) {}
+
+        struct Deleter {
+            void operator()(promise_type *x) {
+                return std::coroutine_handle<promise_type>::from_promise(*x).destroy();
+            }
+        };
+        std::unique_ptr<promise_type,Deleter> _prom;
+
+    };
+
+    /// @brief only valid function for this generator
+    /// @return instance of SymmTransGen
+    inline SymmTransGen symmTransGen() {while (true) {co_yield nullptr;}}
+
+    /// @brief initializes SymmTransGen instance
+    inline  thread_local SymmTransGen SymmTransGen::instance = symmTransGen();
+}
+
+#endif
+
+
 ///COROUTINE: Coroutine for asynchronous operation.
 /**
  * This represents a coroutine which can return a value. The object
@@ -47,28 +135,24 @@ template<typename T, coro_allocator Alloc = std_allocator>
 class async {
 public:
 
+    
     class promise_type: public _details::coro_promise<T>, public coro_allocator_helper<Alloc> {
     public:
+
 
         struct final_awaiter {
             bool detached;
             bool await_ready() const noexcept {return detached;}
-            #ifdef _MSC_VER 
-            void await_suspend(std::coroutine_handle<promise_type> h) const noexcept {
+            std::coroutine_handle<>  await_suspend(std::coroutine_handle<promise_type> h) const noexcept {                
                 promise_type &self = h.promise();
                 std::coroutine_handle<> retval = self.set_resolved();
+                #ifdef _MSC_VER
+                retval = _msc_details::SymmTransGen::instance.prepare_jump(h, retval);
+                #else
                 h.destroy();
-                retval.resume();    //MSVC 19.40.33617.1 - still not fixed - symmetric transfer isn't possible when coroutine is destroyed
-                                    //hope tail call optimization can handle this
-            }
-            #else
-            std::coroutine_handle<>  await_suspend(std::coroutine_handle<promise_type> h) const noexcept {
-                promise_type &self = h.promise();
-                std::coroutine_handle<> retval = self.set_resolved();
-                h.destroy();
+                #endif
                 return retval;
             }
-            #endif
 
             void await_resume() const noexcept {}
         };

@@ -42,7 +42,7 @@ int main() {
 #ifdef _MSC_VER
     CHECK_EQUAL(constructor, 1);
     CHECK_EQUAL(destructor, 5);
-    CHECK_EQUAL(move, 4);
+    CHECK_EQUAL(move, 4);  //MSC generates extra move for the lambda expression!!!!!
 #else
     CHECK_EQUAL(constructor, 1);
     CHECK_EQUAL(destructor, 4);
