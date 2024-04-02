@@ -25,6 +25,11 @@ template class coro::generator<int>;
 template class coro::generator<int &>;
 template class coro::queue<int>;
 template class coro::distributor<int>;
+template class coro::function<int(int) noexcept>;
+template class coro::function<int(int)>;
+
+static_assert(coro::function<int(int) noexcept>::is_noexcept);
+static_assert(!coro::function<int(int)>::is_noexcept);
 
 
 struct X {

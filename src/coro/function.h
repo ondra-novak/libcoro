@@ -21,6 +21,9 @@ namespace coro {
  */
 template<typename Prototype, unsigned int reserved_space = 4*sizeof(void *)>
 class function;
+template<typename Prototype, bool nx, unsigned int reserved_space = 4*sizeof(void *)>
+class function_impl;
+
 
 template<typename T, typename RetVal, bool nx, typename ... Args>
 concept IsFunctionConstructible = (nx?std::is_nothrow_invocable_r_v<RetVal,T, Args...>:std::is_invocable_r_v<RetVal, T, Args...>);
@@ -34,8 +37,8 @@ concept hasnt_cast_operator = !requires(T t) {
 
 
 
-template<typename RetVal, typename ... Args, bool nx, unsigned int reserved_space>
-class function<RetVal(Args...) noexcept(nx), reserved_space> {
+template<typename RetVal, bool nx, typename ... Args, unsigned int reserved_space>
+class function_impl<RetVal(Args...), nx, reserved_space> {
 
     /*
     +------------------+
@@ -136,7 +139,7 @@ public:
     static_assert(sizeof(WrapFnLarge<TestCallable>) <= reserved_space, "Reserved space is too small");
 
     ///Construct default state (unassigned) function - it is not callable
-    function() {
+    function_impl() {
         //allocate object in reserved space
         new(_reserved) InvalidFn();
     }
@@ -145,7 +148,7 @@ public:
      * @param fn callable object/lambda function/etc
      */
     template<IsFunctionConstructible<RetVal, nx, Args...> Fn>
-    function(Fn &&fn) {
+    function_impl(Fn &&fn) {
         using Small = WrapFnSmall<std::decay_t<Fn> >;
         using Large = WrapFnLarge<std::decay_t<Fn> >;
         if constexpr(sizeof(Small) <= reserved_space) {
@@ -165,12 +168,12 @@ public:
      * The source function can still be callable, this depends on how the move constructor
      * of the callable is implemented
      */
-    function(function &&other) {
+    function_impl(function_impl &&other) {
         //move to current reserved space
         other.ref().move(_reserved);
     }
     ///dtor
-    ~function() {
+    ~function_impl() {
         destroy();
     }
     ///Assignment by move
@@ -183,7 +186,7 @@ public:
      * of the callable is implemented
      */
 
-    function &operator=(function &&other) {
+    function_impl &operator=(function_impl &&other) {
         if (this != &other) {
             destroy();
             //move to current reserved space
@@ -197,7 +200,7 @@ public:
      * @param nullptr nullptr
      * @return this
      */
-    function &operator=(std::nullptr_t) {
+    function_impl &operator=(std::nullptr_t) {
         if (*this) {
             destroy();
             new(_reserved) InvalidFn();
@@ -206,7 +209,7 @@ public:
     }
 
     ///Call the function
-RetVal operator()(Args && ... args) {
+    RetVal operator()(Args && ... args) noexcept(nx) {
         return ref().call(std::forward<Args>(args)...);
     }
 
@@ -218,6 +221,9 @@ RetVal operator()(Args && ... args) {
     explicit operator bool() const {
         return ref().valid();
     }
+
+    static constexpr bool is_noexcept = nx;
+    using value_type = RetVal;
 
 
 protected:
@@ -235,6 +241,21 @@ protected:
     }
 
 };
+
+
+template<typename RetVal, typename ... Args, unsigned int reserved_space>
+class function<RetVal(Args...) noexcept(false), reserved_space>: public function_impl<RetVal(Args...), false, reserved_space> {
+public:
+    using function_impl<RetVal(Args...), false, reserved_space>::function_impl;
+};
+
+template<typename RetVal, typename ... Args, unsigned int reserved_space>
+class function<RetVal(Args...) noexcept(true), reserved_space>: public function_impl<RetVal(Args...), true, reserved_space> {
+public:
+    using function_impl<RetVal(Args...), true, reserved_space>::function_impl;
+};
+
+
 
 ///Movable any replacement with small object optimization - uses coro::function
 /**
