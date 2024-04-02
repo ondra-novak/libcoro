@@ -1284,7 +1284,6 @@ public:
     template<std::invocable<> Fn>
     bool set_callback(Fn &&fn) {
         auto st = _state.exchange(State::unused);
-        _awaiter.reset();
         if constexpr(std::is_constructible_v<prepared_coro, std::invoke_result_t<Fn> >) {
             _awaiter.emplace(std::forward<Fn>(fn));
         } else {
