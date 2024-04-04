@@ -13,7 +13,15 @@ namespace coro {
 
 ///thread pool implementation
 /**
- * @ingroup awaitable
+ *
+ * This is generic thread pool with custom condition variable
+ *
+ * @tparam CondVar implementation of condition variable. It must be compatible
+ * with std::condition_variable. Custom condition variable allows implement more
+ * featureful managment of idle threads
+ *
+ *
+ * @see thread_pool
  */
 template<typename CondVar>
 class thread_pool_t {
@@ -209,6 +217,14 @@ template<typename CondVar>
 inline thread_local thread_pool_t<CondVar> *thread_pool_t<CondVar>::_current = nullptr;
 
 
+///Thread pool implementation
+/**
+ * @ingroup awaitable
+ *
+ * This is alias to thread_pool_t with std::condition_variable as condition
+ * variable.
+ *
+ */
 using thread_pool = thread_pool_t<std::condition_variable>;
 
 }

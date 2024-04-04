@@ -46,8 +46,29 @@ Doxygen: [https://ondra-novak.github.io/libcoro/](https://ondra-novak.github.io/
     - workaround for symmetric transfer for coro::async (Compiler bug)
     
 
+## MT Safety
+
+Most classes are considered MT-Unsafe, except when the class provides communication between (two) threads. In this case, MT safety is guaranteed for this type of communication, but accessing one side of the interface via multiple threads at the same time is still MT-Unsafe
+
+MT Safe classes:
+ * **scheduler_t / scheduler** - Scheduling and running tasks
+ * **thread_pool_t / thread_pool_t** - Scheduling and running tasks, join()
+ * **mutex**
+ * **semaphore**
+ * **queue**
+ * **distributor** - you need to specify LOCK
+ * **atomic_promise** - uses atomic variables
+
+Parial MT Safety (two threads)
+ * **generator** - coroutine can be asynchronous
+ * **future/promise** - even though these objects are linked, access to each object can be from different threads. 
+ * **shared_future** - accessing shared state is MT-Safe, accessing single instance from multiple threads at the same time is not MT-Safe
+ *
+
 
 ## Short guide
+
+
 
 ### Writing coroutine
 

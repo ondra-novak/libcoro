@@ -13,9 +13,12 @@ namespace coro {
 /**
  * Implements co_awaitable sleep_for and sleep_until
  *
- * @ingroup awaitable
+ * @tparam CondVar custom condition variable implementation - compatible API with
+ *  std::condition_variable
+ *
  */
-class scheduler {
+template<typename CondVar>
+class scheduler_t {
 public:
 
     using notify_t = promise<void>::notify;
@@ -30,11 +33,25 @@ public:
     /**
      * The scheduler in this state can be used for scheduling, however no awaiting
      * coroutine is awaken until the scheduler is started
+     *
+     * @see start, run
      */
-    scheduler() = default;
+    scheduler_t() = default;
+
+    ///initialize the scheduler. It is not started, you must start it manually
+    /**
+     * The scheduler in this state can be used for scheduling, however no awaiting
+     * coroutine is awaken until the scheduler is started
+     *
+     * @param cfg CondVar configuration
+     *
+     * @see start, run
+     */
+    template<std::convertible_to<CondVar> CondVarCfg>
+    explicit scheduler_t(CondVarCfg &&cfg):_cond(std::forward<CondVarCfg>(cfg)) {}
 
     ///stop and destroy scheduler
-    ~scheduler(){
+    ~scheduler_t(){
         stop();
     }
 
@@ -195,11 +212,11 @@ public:
         std::unique_lock lk(_mx);
         _stop = true;
         lk.unlock();
-        if (scheduler::_current != this) {
+        if (scheduler_t::_current != this) {
             notify();
             if (_thr.joinable()) _thr.join();
         } else {
-            scheduler::_current = nullptr;
+            scheduler_t::_current = nullptr;
             if (_thr.joinable()) _thr.detach();
         }
     }
@@ -211,7 +228,7 @@ public:
      * a different thread.
      * @return
      */
-    static scheduler * current() {return _current;}
+    static scheduler_t * current() {return _current;}
 
 
     ///While this object is held, cancel is in effect
@@ -219,17 +236,17 @@ public:
     private:
         struct deleter {
             ident_t _ident;
-            void operator()(scheduler *sch) {
+            void operator()(scheduler_t *sch) {
                 sch->_blk.erase(std::remove(sch->_blk.begin(),sch->_blk.end(), _ident), sch->_blk.end());
             }
         };
 
-        std::unique_ptr<scheduler, deleter> _ptr;
+        std::unique_ptr<scheduler_t, deleter> _ptr;
 
-        pending_cancel(scheduler &sch, ident_t ident)
+        pending_cancel(scheduler_t &sch, ident_t ident)
             :_ptr(&sch, {ident}) {};
 
-        friend class scheduler;
+        friend class scheduler_t;
     };
 
     ///Cancel scheduled operation
@@ -262,11 +279,11 @@ protected:
     }
 
     std::mutex _mx;
-    std::condition_variable _cond;
+    CondVar _cond;
     std::vector<item_t> _items;
     std::vector<ident_t> _blk;
     bool _stop = false;
-    static thread_local scheduler *_current;
+    static thread_local scheduler_t *_current;
     std::thread _thr;
 
     void notify() {
@@ -331,8 +348,16 @@ protected:
 
 
 };
+///scheduler for coroutines
+/**
+ * Implements co_awaitable sleep_for and sleep_until
+ *
+ * @ingroup awaitable
+ */
+using scheduler = scheduler_t<std::condition_variable>;
 
-inline thread_local scheduler *scheduler::_current = nullptr;
+template<typename CondVar>
+inline thread_local scheduler_t<CondVar> *scheduler_t<CondVar>::_current = nullptr;
 
 }
 
