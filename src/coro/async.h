@@ -7,6 +7,12 @@
 namespace coro {
 
 #ifdef _MSC_VER
+#ifdef _DEBUG
+///defined in MSC DEBUG configuration as the symmetric transfer doesn't work here (compiler bug)
+#define LIBCORO_MSC_FAILED_SYMMETRIC_TRANSFER 
+#endif
+#endif
+#ifdef LIBCORO_MSC_FAILED_SYMMETRIC_TRANSFER 
 
 namespace _msc_details {
 
@@ -145,8 +151,8 @@ public:
             bool await_ready() const noexcept {return detached;}
             std::coroutine_handle<>  await_suspend(std::coroutine_handle<promise_type> h) const noexcept {                
                 promise_type &self = h.promise();
-                std::coroutine_handle<> retval = self.set_resolved();
-                #ifdef _MSC_VER
+                std::coroutine_handle<> retval = self.set_resolved();                
+                #ifdef LIBCORO_MSC_FAILED_SYMMETRIC_TRANSFER
                 retval = _msc_details::SymmTransGen::instance.prepare_jump(h, retval);
                 #else
                 h.destroy();
