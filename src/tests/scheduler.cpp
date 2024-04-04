@@ -2,104 +2,116 @@
 
 #include "../coro/async.h"
 #include "../coro/future.h"
+#include "../coro/queue.h"
 #include "check.h"
 
 #include <iostream>
 
-
-coro::future<int> co_test(coro::scheduler &pool) {
-
-    std::thread::id id1, id2, id3, id4, id5;
-    auto example_fn = [&]() {
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        id3 = std::this_thread::get_id();
-        return 42;
-    };
-    id1 = std::this_thread::get_id();
-    co_await pool;
-    id2 = std::this_thread::get_id();
-    auto f = pool.run(example_fn);;
-    id4 = std::this_thread::get_id();
-    CHECK_EQUAL(id2,id4);
-    int r = co_await f;
-    CHECK_NOT_EQUAL(id1,id2);
-    id5 = std::this_thread::get_id();
-    CHECK_EQUAL(id5,id3);
-    auto t1 = std::chrono::system_clock::now();
-    co_await pool.sleep_for(std::chrono::milliseconds(200));
-    auto t2 = std::chrono::system_clock::now();
-    CHECK_GREATER_EQUAL(std::chrono::duration_cast<std::chrono::milliseconds>(t2-t1).count(), 200);
-
-    co_return r;
-}
-
-coro::future<void> co_test2(typename coro::future<int>::promise &p, int w, std::thread::id id, bool eq) {
-    coro::future<int> f;
-    p = f.get_promise();
-    int v = co_await f;
-    CHECK_EQUAL(v,w);
-    auto id1 = std::this_thread::get_id();
-    if (eq) {
-        CHECK_EQUAL(id, id1);
-    } else {
-        CHECK_NOT_EQUAL(id, id1);
+coro::async<void> test_cycle_coro(coro::scheduler &sch, coro::promise<void> endflag, const void *ident) {
+    try {
+        int pos = 0;
+        while (pos < 20) {
+            if (pos == 5) endflag();
+            co_await sch.sleep_for(std::chrono::milliseconds(100), ident);
+            ++pos;
+        }
+    } catch (coro::await_canceled_exception &) {
+        //empty
     }
 }
 
-coro::async<std::thread::id> get_id_coro() {
-    co_return std::this_thread::get_id();
+
+void test_cycle() {
+    coro::future<void> wflag;
+    coro::scheduler sch;
+    sch.start();
+    auto tm1 = std::chrono::system_clock::now();
+    auto fut = test_cycle_coro(sch, wflag.get_promise(), &wflag).start();
+    wflag.wait();
+    auto blk = sch.cancel(&wflag);
+    fut.wait();
+    auto tm2 = std::chrono::system_clock::now();
+    CHECK_BETWEEN(400,std::chrono::duration_cast<std::chrono::milliseconds>(tm2-tm1).count(),600);
 }
 
-coro::async<void> cancel_coro(coro::scheduler &pool, void *id) {
-    co_await pool.sleep_for(std::chrono::seconds(2), id);
+
+coro::future<void> test_thread_pool_coro(coro::scheduler &sch,
+        int id, unsigned int mswait1, unsigned int mswait2,
+        coro::queue<int> &started, coro::queue<int> &finished) {
+
+    co_await sch.sleep_for(std::chrono::milliseconds(mswait1));
+    started.push(id);
+    std::this_thread::sleep_for(std::chrono::milliseconds(mswait2));
+    finished.push(id);
+
+
 }
 
-int main(int, char **) {
-    coro::future<void> ff;
-    {
-        coro::scheduler pool(5);
-        int r = co_test(pool).get();
-        CHECK_EQUAL(r,42);
+void test_thread_pool() {
+    coro::scheduler sch;
+    sch.start(coro::scheduler::thread_pool(4));
+    coro::queue<int> started;
+    coro::queue<int> finished;
+    auto f1 = test_thread_pool_coro(sch, 1, 100, 500, started, finished);
+    auto f2 = test_thread_pool_coro(sch, 2, 200, 300, started, finished);
+    auto f3 = test_thread_pool_coro(sch, 3, 150, 300, started, finished);
+    auto f4 = test_thread_pool_coro(sch, 4, 250, 1, started, finished);
+    int started_res[] = {1,3,2,4};
+    int finished_res[] = {4,3,2,1};
 
-        {
-            typename coro::future<int>::promise p;
-            auto f = co_test2( p, 12,std::this_thread::get_id(), true);
-            p(12);
-            f.wait();
-        }
-
-        {
-            typename coro::future<int>::promise p;
-            auto f = co_test2( p, 34,std::this_thread::get_id(), false);
-            pool >>  p(34);
-            f.wait();
-        }
-
-        {
-            auto id1 = pool.execute(get_id_coro()).get();
-            auto id2 = std::this_thread::get_id();
-            CHECK_NOT_EQUAL(id1,id2);
-        }
-
-        {
-            coro::future<int> f;
-            auto p = f.get_promise();
-            auto t1 = std::chrono::system_clock::now();
-            pool.schedule_after(std::chrono::milliseconds(100), [&]{
-                p(42);
-            });
-            CHECK_EQUAL(f.get(), 42);
-            auto t2 = std::chrono::system_clock::now();
-            CHECK_GREATER_EQUAL(std::chrono::duration_cast<std::chrono::milliseconds>(t2-t1).count(), 100);
-        }
-        {
-            coro::future<void> z = cancel_coro(pool, &pool);
-            pool.cancel(&pool);
-            CHECK_EXCEPTION(coro::broken_promise_exception, z.get());
-        }
-        {
-            ff << [&]{return cancel_coro(pool, nullptr).start();};
-        }
+    f1.start();
+    f2.start();
+    f3.start();
+    f4.start();
+    f1.wait();
+    f2.wait();
+    f3.wait();
+    f4.wait();
+    for (auto &x: started_res) {
+        int r = started.pop();
+        CHECK_EQUAL(r,x);
     }
-    CHECK_EXCEPTION(coro::broken_promise_exception, ff.get());
+    for (auto &x: finished_res) {
+        int r = finished.pop();
+        CHECK_EQUAL(r,x);
+    }
+
+}
+
+
+coro::future<int> test_signle_thread_scheduler(coro::scheduler &sch) {
+    co_await sch.sleep_for(std::chrono::milliseconds(100));
+    co_return 42;
+}
+
+void test_signle_thread_scheduler() {
+    coro::scheduler sch;
+    auto tm1 = std::chrono::system_clock::now();
+    auto f = test_signle_thread_scheduler(sch);
+    int res = sch.run(f);
+    CHECK_EQUAL(res, 42);
+    auto tm2 = std::chrono::system_clock::now();
+    CHECK_BETWEEN(90,std::chrono::duration_cast<std::chrono::milliseconds>(tm2-tm1).count(),110);
+}
+
+
+coro::future<void> scheduler_killer(std::unique_ptr<coro::scheduler> sch) {
+    co_await sch->sleep_for(std::chrono::milliseconds(100));
+    sch.reset();    //killed in scheduler's thread
+}
+
+void test_kill_scheduler() {
+    std::unique_ptr<coro::scheduler> sch = std::make_unique<coro::scheduler>();
+    sch->start();
+    auto f = scheduler_killer(std::move(sch));
+    f.get();
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+}
+
+int main() {
+    test_cycle();
+    test_thread_pool();
+    test_signle_thread_scheduler();
+    test_kill_scheduler();
+
 }

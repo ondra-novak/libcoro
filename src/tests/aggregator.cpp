@@ -37,7 +37,7 @@ coro::generator<int, Alloc> fibo(Alloc &, int count) {
 
 }
 
-coro::coroutine test_async_fibo(coro::scheduler &sch) {
+ coro::future<void> test_async_fibo(coro::scheduler &sch) {
     auto aggr = coro::aggregator(async_fibo(sch, 8, 5), async_fibo(sch,12,6), async_fibo(sch,3,7));
     std::ostringstream sout;
     std::set<int> res;
@@ -51,11 +51,10 @@ coro::coroutine test_async_fibo(coro::scheduler &sch) {
     for (int c:values ) {
         CHECK_PRINT(res.find(c) != res.end(),c);
     }
-    sch.stop();
 
 }
 
-coro::coroutine test_async_fibo_intr(coro::scheduler &sch) {
+coro::future<void> test_async_fibo_intr(coro::scheduler &sch) {
     {
         auto aggr = coro::aggregator(async_fibo(sch, 8, 5), async_fibo(sch,12,6), async_fibo(sch,3,7));
         std::ostringstream sout;
@@ -72,7 +71,7 @@ coro::coroutine test_async_fibo_intr(coro::scheduler &sch) {
             CHECK_PRINT(res.find(c) != res.end(),c);
         }
     }
-    sch.stop();
+
 
 }
 
@@ -93,10 +92,8 @@ int main() {
 
     CHECK_EQUAL(sout.str(), "1,1,1,1,1,1,2,2,2,3,3,5,5,8,8,13,13,21,21,34,55,89,144,");
 
-    test_async_fibo(sch);
-    sch.start();
-    test_async_fibo_intr(sch);
-    sch.start();
+    sch.run(test_async_fibo(sch));
+    sch.run(test_async_fibo_intr(sch));
 
 
 
