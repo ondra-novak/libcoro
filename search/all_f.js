@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['pending_5fcancel_105',['pending_cancel',['../classcoro_1_1scheduler_1_1pending__cancel.html',1,'coro::scheduler']]],
+  ['pending_5fcancel_105',['pending_cancel',['../classcoro_1_1scheduler__t_1_1pending__cancel.html',1,'coro::scheduler_t']]],
   ['pool_5falloc_106',['pool_alloc',['../classcoro_1_1pool__alloc.html',1,'coro']]],
   ['pop_107',['pop',['../classcoro_1_1filtered__update__queue_ab34d049d88f2e7bbf40ec7189f57bf72.html#ab34d049d88f2e7bbf40ec7189f57bf72',1,'coro::filtered_update_queue::pop()'],['../classcoro_1_1queue_ae321b0dc8ffdd2186362013edb885cc7.html#ae321b0dc8ffdd2186362013edb885cc7',1,'coro::queue::pop()'],['../classcoro_1_1queue_a1875f8e5f4d570fd99544eaa6702a5e9.html#a1875f8e5f4d570fd99544eaa6702a5e9',1,'coro::queue::pop(promise&lt; T &gt; &amp;prom)']]],
   ['prepared_5fcoro_108',['prepared_coro',['../classcoro_1_1prepared__coro.html',1,'coro::prepared_coro'],['../classcoro_1_1prepared__coro_a94a111157a092058e8d5f844679f799f.html#a94a111157a092058e8d5f844679f799f',1,'coro::prepared_coro::prepared_coro(std::coroutine_handle&lt;&gt; h)'],['../classcoro_1_1prepared__coro_a1a74f25d9b8ac50f15fd84c543286547.html#a1a74f25d9b8ac50f15fd84c543286547',1,'coro::prepared_coro::prepared_coro(prepared_coro &amp;&amp;other)'],['../classcoro_1_1prepared__coro_adcdfe5d794fbdc6a74c0a8498557234e.html#adcdfe5d794fbdc6a74c0a8498557234e',1,'coro::prepared_coro::prepared_coro()=default']]],

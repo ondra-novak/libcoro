@@ -1,0 +1,4 @@
+<map id="coro::scheduler_t::stop" name="coro::scheduler_t::stop">
+<area shape="rect" id="node1" title="stop the running scheduler" alt="" coords="195,13,364,39"/>
+<area shape="rect" id="node2" href="$classcoro_1_1scheduler__t_a1b5c505a34bfc6d96dcee87d74be4c15.html#a1b5c505a34bfc6d96dcee87d74be4c15" title="stop and destroy scheduler" alt="" coords="5,5,147,47"/>
+</map>

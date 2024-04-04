@@ -72,7 +72,7 @@ $(function() {
 <a href="#pub-static-methods">Static Public Member Functions</a> &#124;
 <a href="classcoro_1_1thread__pool__t-members.html">List of all members</a>  </div>
   <div class="headertitle">
-<div class="title">coro::thread_pool_t&lt; CondVar &gt; Class Template Reference<div class="ingroups"><a class="el" href="group__awaitable.html">Awaitables</a></div></div>  </div>
+<div class="title">coro::thread_pool_t&lt; CondVar &gt; Class Template Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
 
@@ -133,15 +133,23 @@ Static Public Member Functions</h2></td></tr>
 class coro::thread_pool_t&lt; CondVar &gt;</h3>
 
 <p>thread pool implementation </p>
+<p>This is generic thread pool with custom condition variable</p>
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">CondVar</td><td>implementation of condition variable. It must be compatible with std::condition_variable. Custom condition variable allows implement more featureful managment of idle threads</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="group__awaitable_ga02b71f38fffb35f0bbb5aad59ca2c3b3.html#ga02b71f38fffb35f0bbb5aad59ca2c3b3" title="Thread pool implementation.">thread_pool</a> </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="thread__pool_8h_source.html#l00019">19</a> of file <a class="el" href="thread__pool_8h_source.html">thread_pool.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="thread__pool_8h_source.html#l00027">27</a> of file <a class="el" href="thread__pool_8h_source.html">thread_pool.h</a>.</p>
 </div><hr/>The documentation for this class was generated from the following file:<ul>
 <li>src/coro/<a class="el" href="thread__pool_8h_source.html">thread_pool.h</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Apr 4 2024 12:10:53 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+Generated on Thu Apr 4 2024 12:38:53 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
 </small></address>
 </body>
 </html>

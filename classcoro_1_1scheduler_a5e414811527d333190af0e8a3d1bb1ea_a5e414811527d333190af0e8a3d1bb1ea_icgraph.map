@@ -1,4 +1,0 @@
-<map id="coro::scheduler::run" name="coro::scheduler::run">
-<area shape="rect" id="node1" title="run the scheduler in signle thread mode, stop when future is ready" alt="" coords="204,5,355,32"/>
-<area shape="rect" id="node2" href="$classcoro_1_1scheduler_ae2739e15fac39f13b238a92f33030a56.html#ae2739e15fac39f13b238a92f33030a56" title="run the scheduler in signle thread mode, stop when future is ready" alt="" coords="5,5,156,32"/>
-</map>

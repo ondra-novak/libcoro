@@ -1,0 +1,4 @@
+<map id="coro::scheduler_t::sleep_until" name="coro::scheduler_t::sleep_until">
+<area shape="rect" id="node1" title="sleep until specified time point" alt="" coords="195,5,336,47"/>
+<area shape="rect" id="node2" href="$classcoro_1_1scheduler__t_ac88c7dcc62d3557ec89cb198eea8c078.html#ac88c7dcc62d3557ec89cb198eea8c078" title="sleep for specified duration" alt="" coords="5,5,147,47"/>
+</map>

@@ -153,8 +153,8 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1queue.html">queue</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Implements asychronous queue with support for coroutines.  <a href="classcoro_1_1queue.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1scheduler.html">scheduler</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">scheduler for coroutines  <a href="classcoro_1_1scheduler.html#details">More...</a><br /></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1scheduler__t.html">scheduler_t</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">scheduler for coroutines  <a href="classcoro_1_1scheduler__t.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1semaphore.html">semaphore</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Implements semaphore for coroutines.  <a href="classcoro_1_1semaphore.html#details">More...</a><br /></td></tr>
@@ -171,6 +171,12 @@ Typedefs</h2></td></tr>
 <tr class="memitem:gaa0bb63fe4aa91a6b3c0bd1a2440e0c53"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___coroutines_gaa0bb63fe4aa91a6b3c0bd1a2440e0c53.html#gaa0bb63fe4aa91a6b3c0bd1a2440e0c53">coroutine</a> = <a class="el" href="classcoro_1_1basic__coroutine.html">basic_coroutine</a>&lt; <a class="el" href="classcoro_1_1std__allocator.html">std_allocator</a> &gt;</td></tr>
 <tr class="memdesc:gaa0bb63fe4aa91a6b3c0bd1a2440e0c53"><td class="mdescLeft">&#160;</td><td class="mdescRight">COROUTINE: Basic coroutine, always detached, with no return value.  <a href="group___coroutines_gaa0bb63fe4aa91a6b3c0bd1a2440e0c53.html#gaa0bb63fe4aa91a6b3c0bd1a2440e0c53">More...</a><br /></td></tr>
 <tr class="separator:gaa0bb63fe4aa91a6b3c0bd1a2440e0c53"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gac822630e28d046b157cd80416f2c6889"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__awaitable_gac822630e28d046b157cd80416f2c6889.html#gac822630e28d046b157cd80416f2c6889">scheduler</a> = <a class="el" href="classcoro_1_1scheduler__t.html">scheduler_t</a>&lt; std::condition_variable &gt;</td></tr>
+<tr class="memdesc:gac822630e28d046b157cd80416f2c6889"><td class="mdescLeft">&#160;</td><td class="mdescRight">scheduler for coroutines  <a href="group__awaitable_gac822630e28d046b157cd80416f2c6889.html#gac822630e28d046b157cd80416f2c6889">More...</a><br /></td></tr>
+<tr class="separator:gac822630e28d046b157cd80416f2c6889"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga02b71f38fffb35f0bbb5aad59ca2c3b3"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__awaitable_ga02b71f38fffb35f0bbb5aad59ca2c3b3.html#ga02b71f38fffb35f0bbb5aad59ca2c3b3">thread_pool</a> = <a class="el" href="classcoro_1_1thread__pool__t.html">thread_pool_t</a>&lt; std::condition_variable &gt;</td></tr>
+<tr class="memdesc:ga02b71f38fffb35f0bbb5aad59ca2c3b3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Thread pool implementation.  <a href="group__awaitable_ga02b71f38fffb35f0bbb5aad59ca2c3b3.html#ga02b71f38fffb35f0bbb5aad59ca2c3b3">More...</a><br /></td></tr>
+<tr class="separator:ga02b71f38fffb35f0bbb5aad59ca2c3b3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
@@ -179,7 +185,7 @@ Functions</h2></td></tr>
 <tr class="memdesc:ga9f0555789cbd22148a9e7cc76ee95692"><td class="mdescLeft">&#160;</td><td class="mdescRight">notifies variable about change in the condition.  <a href="group__condition_ga9f0555789cbd22148a9e7cc76ee95692.html#ga9f0555789cbd22148a9e7cc76ee95692">More...</a><br /></td></tr>
 <tr class="separator:ga9f0555789cbd22148a9e7cc76ee95692"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga1f6fb6ccd5b93f0c1bda62595565adb8"><td class="memTemplParams" colspan="2">template&lt;typename T , std::invocable&lt; prepared_coro &gt; Fn&gt; </td></tr>
-<tr class="memitem:ga1f6fb6ccd5b93f0c1bda62595565adb8"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="group__condition_ga1f6fb6ccd5b93f0c1bda62595565adb8.html#ga1f6fb6ccd5b93f0c1bda62595565adb8">notify_condition</a> (const T &amp;var, Fn &amp;&amp;<a class="el" href="classcoro_1_1scheduler.html">scheduler</a>) noexcept</td></tr>
+<tr class="memitem:ga1f6fb6ccd5b93f0c1bda62595565adb8"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="group__condition_ga1f6fb6ccd5b93f0c1bda62595565adb8.html#ga1f6fb6ccd5b93f0c1bda62595565adb8">notify_condition</a> (const T &amp;var, Fn &amp;&amp;<a class="el" href="group__awaitable_gac822630e28d046b157cd80416f2c6889.html#gac822630e28d046b157cd80416f2c6889">scheduler</a>) noexcept</td></tr>
 <tr class="memdesc:ga1f6fb6ccd5b93f0c1bda62595565adb8"><td class="mdescLeft">&#160;</td><td class="mdescRight">notifies variable about change in the condition.  <a href="group__condition_ga1f6fb6ccd5b93f0c1bda62595565adb8.html#ga1f6fb6ccd5b93f0c1bda62595565adb8">More...</a><br /></td></tr>
 <tr class="separator:ga1f6fb6ccd5b93f0c1bda62595565adb8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga7462a3c7fabdbe8f5976c21c59124284"><td class="memTemplParams" colspan="2">template&lt;typename T , typename Pred &gt; </td></tr>
@@ -215,7 +221,7 @@ Variables</h2></td></tr>
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Apr 4 2024 12:10:53 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+Generated on Thu Apr 4 2024 12:38:53 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
 </small></address>
 </body>
 </html>
