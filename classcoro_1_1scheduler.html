@@ -68,8 +68,9 @@ $(function() {
 </div><!-- top -->
 <div class="header">
   <div class="summary">
-<a href="#nested-classes">Classes</a> &#124;
+<a href="#pub-types">Public Types</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pub-static-methods">Static Public Member Functions</a> &#124;
 <a href="classcoro_1_1scheduler-members.html">List of all members</a>  </div>
   <div class="headertitle">
 <div class="title">coro::scheduler Class Reference<div class="ingroups"><a class="el" href="group__awaitable.html">Awaitables</a></div></div>  </div>
@@ -91,20 +92,17 @@ $(function() {
 </map>
 <center><span class="legend">[<a href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
-Classes</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1scheduler_1_1blocked.html">blocked</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">an object which holds blocking status for specified identity  <a href="classcoro_1_1scheduler_1_1blocked.html#details">More...</a><br /></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
+Public Types</h2></td></tr>
+<tr class="memitem:ab4385391253b8be52bf957fb0bb7076b"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1scheduler_ab4385391253b8be52bf957fb0bb7076b.html#ab4385391253b8be52bf957fb0bb7076b">resume_cb</a> = <a class="el" href="classcoro_1_1function.html">function</a>&lt; void(notify_t)&gt;</td></tr>
+<tr class="memdesc:ab4385391253b8be52bf957fb0bb7076b"><td class="mdescLeft">&#160;</td><td class="mdescRight">A function responsible to resume scheduled coroutine.  <a href="classcoro_1_1scheduler_ab4385391253b8be52bf957fb0bb7076b.html#ab4385391253b8be52bf957fb0bb7076b">More...</a><br /></td></tr>
+<tr class="separator:ab4385391253b8be52bf957fb0bb7076b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:abb4b0356a30fdd453f76f7f5a7e82c2f"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1scheduler_abb4b0356a30fdd453f76f7f5a7e82c2f.html#abb4b0356a30fdd453f76f7f5a7e82c2f">scheduler</a> ()=default</td></tr>
 <tr class="memdesc:abb4b0356a30fdd453f76f7f5a7e82c2f"><td class="mdescLeft">&#160;</td><td class="mdescRight">initialize the scheduler. It is not started, you must start it manually  <a href="classcoro_1_1scheduler_abb4b0356a30fdd453f76f7f5a7e82c2f.html#abb4b0356a30fdd453f76f7f5a7e82c2f">More...</a><br /></td></tr>
 <tr class="separator:abb4b0356a30fdd453f76f7f5a7e82c2f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a70879fd4f0d658ab48a4f83c2308ef0c"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1scheduler_a70879fd4f0d658ab48a4f83c2308ef0c.html#a70879fd4f0d658ab48a4f83c2308ef0c">scheduler</a> (<a class="el" href="classcoro_1_1thread__pool.html">thread_pool</a> &amp;pool)</td></tr>
-<tr class="memdesc:a70879fd4f0d658ab48a4f83c2308ef0c"><td class="mdescLeft">&#160;</td><td class="mdescRight">initialize the scheduler to run in specified thread pool  <a href="classcoro_1_1scheduler_a70879fd4f0d658ab48a4f83c2308ef0c.html#a70879fd4f0d658ab48a4f83c2308ef0c">More...</a><br /></td></tr>
-<tr class="separator:a70879fd4f0d658ab48a4f83c2308ef0c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abc6a235c2f3e03acee2f09d76aacc05e"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1scheduler_abc6a235c2f3e03acee2f09d76aacc05e.html#abc6a235c2f3e03acee2f09d76aacc05e">~scheduler</a> ()</td></tr>
 <tr class="memdesc:abc6a235c2f3e03acee2f09d76aacc05e"><td class="mdescLeft">&#160;</td><td class="mdescRight">stop and destroy scheduler  <a href="classcoro_1_1scheduler_abc6a235c2f3e03acee2f09d76aacc05e.html#abc6a235c2f3e03acee2f09d76aacc05e">More...</a><br /></td></tr>
 <tr class="separator:abc6a235c2f3e03acee2f09d76aacc05e"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -115,21 +113,44 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a3978238c9a009e39c463c3c06bd545c6"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="classcoro_1_1future.html">future</a>&lt; void &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classcoro_1_1scheduler_a3978238c9a009e39c463c3c06bd545c6.html#a3978238c9a009e39c463c3c06bd545c6">sleep_for</a> (std::chrono::duration&lt; A, B &gt; dur, ident_t ident=nullptr)</td></tr>
 <tr class="memdesc:a3978238c9a009e39c463c3c06bd545c6"><td class="mdescLeft">&#160;</td><td class="mdescRight">sleep for specified duration  <a href="classcoro_1_1scheduler_a3978238c9a009e39c463c3c06bd545c6.html#a3978238c9a009e39c463c3c06bd545c6">More...</a><br /></td></tr>
 <tr class="separator:a3978238c9a009e39c463c3c06bd545c6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2e0b4227b5c04629300636c7a63e3944"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classcoro_1_1promise.html">promise</a>&lt; void &gt;::notify&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1scheduler_a2e0b4227b5c04629300636c7a63e3944.html#a2e0b4227b5c04629300636c7a63e3944">cancel</a> (ident_t ident)</td></tr>
-<tr class="memdesc:a2e0b4227b5c04629300636c7a63e3944"><td class="mdescLeft">&#160;</td><td class="mdescRight">cancel sleep operation prematurally  <a href="classcoro_1_1scheduler_a2e0b4227b5c04629300636c7a63e3944.html#a2e0b4227b5c04629300636c7a63e3944">More...</a><br /></td></tr>
-<tr class="separator:a2e0b4227b5c04629300636c7a63e3944"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1aa3e15de2e7afe9c922b22cb2d7818c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1scheduler_a1aa3e15de2e7afe9c922b22cb2d7818c.html#a1aa3e15de2e7afe9c922b22cb2d7818c">start</a> ()</td></tr>
-<tr class="memdesc:a1aa3e15de2e7afe9c922b22cb2d7818c"><td class="mdescLeft">&#160;</td><td class="mdescRight">start the scheduler in single thread mode  <a href="classcoro_1_1scheduler_a1aa3e15de2e7afe9c922b22cb2d7818c.html#a1aa3e15de2e7afe9c922b22cb2d7818c">More...</a><br /></td></tr>
-<tr class="separator:a1aa3e15de2e7afe9c922b22cb2d7818c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af3d9980ed5bcadf126a56d657d04236f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1scheduler_af3d9980ed5bcadf126a56d657d04236f.html#af3d9980ed5bcadf126a56d657d04236f">start</a> (<a class="el" href="classcoro_1_1thread__pool.html">thread_pool</a> &amp;pool)</td></tr>
-<tr class="memdesc:af3d9980ed5bcadf126a56d657d04236f"><td class="mdescLeft">&#160;</td><td class="mdescRight">start the scheduler inside thread pool  <a href="classcoro_1_1scheduler_af3d9980ed5bcadf126a56d657d04236f.html#af3d9980ed5bcadf126a56d657d04236f">More...</a><br /></td></tr>
-<tr class="separator:af3d9980ed5bcadf126a56d657d04236f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5e414811527d333190af0e8a3d1bb1ea"><td class="memTemplParams" colspan="2">template&lt;typename T , std::invocable&lt; notify_t &gt; ResumeCB&gt; </td></tr>
+<tr class="memitem:a5e414811527d333190af0e8a3d1bb1ea"><td class="memTemplItemLeft" align="right" valign="top">decltype(auto)&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classcoro_1_1scheduler_a5e414811527d333190af0e8a3d1bb1ea.html#a5e414811527d333190af0e8a3d1bb1ea">run</a> (<a class="el" href="classcoro_1_1future.html">future</a>&lt; T &gt; &amp;fut, ResumeCB &amp;&amp;cb)</td></tr>
+<tr class="memdesc:a5e414811527d333190af0e8a3d1bb1ea"><td class="mdescLeft">&#160;</td><td class="mdescRight">run the scheduler in signle thread mode, stop when future is ready  <a href="classcoro_1_1scheduler_a5e414811527d333190af0e8a3d1bb1ea.html#a5e414811527d333190af0e8a3d1bb1ea">More...</a><br /></td></tr>
+<tr class="separator:a5e414811527d333190af0e8a3d1bb1ea"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae2739e15fac39f13b238a92f33030a56"><td class="memTemplParams" colspan="2">template&lt;typename T , std::invocable&lt; notify_t &gt; ResumeCB&gt; </td></tr>
+<tr class="memitem:ae2739e15fac39f13b238a92f33030a56"><td class="memTemplItemLeft" align="right" valign="top">decltype(auto)&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classcoro_1_1scheduler_ae2739e15fac39f13b238a92f33030a56.html#ae2739e15fac39f13b238a92f33030a56">run</a> (<a class="el" href="classcoro_1_1future.html">future</a>&lt; T &gt; &amp;&amp;fut, ResumeCB &amp;&amp;cb)</td></tr>
+<tr class="memdesc:ae2739e15fac39f13b238a92f33030a56"><td class="mdescLeft">&#160;</td><td class="mdescRight">run the scheduler in signle thread mode, stop when future is ready  <a href="classcoro_1_1scheduler_ae2739e15fac39f13b238a92f33030a56.html#ae2739e15fac39f13b238a92f33030a56">More...</a><br /></td></tr>
+<tr class="separator:ae2739e15fac39f13b238a92f33030a56"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a53edc4e12a9557454fee531f4a6d5612"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
+<tr class="memitem:a53edc4e12a9557454fee531f4a6d5612"><td class="memTemplItemLeft" align="right" valign="top">decltype(auto)&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classcoro_1_1scheduler_a53edc4e12a9557454fee531f4a6d5612.html#a53edc4e12a9557454fee531f4a6d5612">run</a> (<a class="el" href="classcoro_1_1future.html">future</a>&lt; T &gt; &amp;fut)</td></tr>
+<tr class="memdesc:a53edc4e12a9557454fee531f4a6d5612"><td class="mdescLeft">&#160;</td><td class="mdescRight">run the scheduler in signle thread mode, stop when future is ready  <a href="classcoro_1_1scheduler_a53edc4e12a9557454fee531f4a6d5612.html#a53edc4e12a9557454fee531f4a6d5612">More...</a><br /></td></tr>
+<tr class="separator:a53edc4e12a9557454fee531f4a6d5612"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7e0950355c730e30e9bd0f90f3c5a3e1"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
+<tr class="memitem:a7e0950355c730e30e9bd0f90f3c5a3e1"><td class="memTemplItemLeft" align="right" valign="top">decltype(auto)&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classcoro_1_1scheduler_a7e0950355c730e30e9bd0f90f3c5a3e1.html#a7e0950355c730e30e9bd0f90f3c5a3e1">run</a> (<a class="el" href="classcoro_1_1future.html">future</a>&lt; T &gt; &amp;&amp;fut)</td></tr>
+<tr class="memdesc:a7e0950355c730e30e9bd0f90f3c5a3e1"><td class="mdescLeft">&#160;</td><td class="mdescRight">run the scheduler in signle thread mode, stop when future is ready  <a href="classcoro_1_1scheduler_a7e0950355c730e30e9bd0f90f3c5a3e1.html#a7e0950355c730e30e9bd0f90f3c5a3e1">More...</a><br /></td></tr>
+<tr class="separator:a7e0950355c730e30e9bd0f90f3c5a3e1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6857b3fd8a1f02db73375cb7f5a347af"><td class="memTemplParams" colspan="2">template&lt;std::invocable&lt; notify_t &gt; ResumeCB&gt; </td></tr>
+<tr class="memitem:a6857b3fd8a1f02db73375cb7f5a347af"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classcoro_1_1scheduler_a6857b3fd8a1f02db73375cb7f5a347af.html#a6857b3fd8a1f02db73375cb7f5a347af">start</a> (ResumeCB &amp;&amp;resumecb)</td></tr>
+<tr class="memdesc:a6857b3fd8a1f02db73375cb7f5a347af"><td class="mdescLeft">&#160;</td><td class="mdescRight">Start scheduler at background.  <a href="classcoro_1_1scheduler_a6857b3fd8a1f02db73375cb7f5a347af.html#a6857b3fd8a1f02db73375cb7f5a347af">More...</a><br /></td></tr>
+<tr class="separator:a6857b3fd8a1f02db73375cb7f5a347af"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa614954a2619b2669960f896dfff324d"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1scheduler_aa614954a2619b2669960f896dfff324d.html#aa614954a2619b2669960f896dfff324d">start</a> ()</td></tr>
+<tr class="memdesc:aa614954a2619b2669960f896dfff324d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Start scheduler at background.  <a href="classcoro_1_1scheduler_aa614954a2619b2669960f896dfff324d.html#aa614954a2619b2669960f896dfff324d">More...</a><br /></td></tr>
+<tr class="separator:aa614954a2619b2669960f896dfff324d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0f037d6555d47ad52e3ba8d0de1a694d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1scheduler_a0f037d6555d47ad52e3ba8d0de1a694d.html#a0f037d6555d47ad52e3ba8d0de1a694d">stop</a> ()</td></tr>
 <tr class="memdesc:a0f037d6555d47ad52e3ba8d0de1a694d"><td class="mdescLeft">&#160;</td><td class="mdescRight">stop the running scheduler  <a href="classcoro_1_1scheduler_a0f037d6555d47ad52e3ba8d0de1a694d.html#a0f037d6555d47ad52e3ba8d0de1a694d">More...</a><br /></td></tr>
 <tr class="separator:a0f037d6555d47ad52e3ba8d0de1a694d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a599c5e1ebcc4531674f5e9b7bf8dba63"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classcoro_1_1scheduler_1_1blocked.html">blocked</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1scheduler_a599c5e1ebcc4531674f5e9b7bf8dba63.html#a599c5e1ebcc4531674f5e9b7bf8dba63">block</a> (ident_t ident)</td></tr>
-<tr class="memdesc:a599c5e1ebcc4531674f5e9b7bf8dba63"><td class="mdescLeft">&#160;</td><td class="mdescRight">block specified identity to be scheduled  <a href="classcoro_1_1scheduler_a599c5e1ebcc4531674f5e9b7bf8dba63.html#a599c5e1ebcc4531674f5e9b7bf8dba63">More...</a><br /></td></tr>
-<tr class="separator:a599c5e1ebcc4531674f5e9b7bf8dba63"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
+Static Public Member Functions</h2></td></tr>
+<tr class="memitem:ae0caf6569d473dfdd95ea88fa713120d"><td class="memItemLeft" align="right" valign="top">static auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1scheduler_ae0caf6569d473dfdd95ea88fa713120d.html#ae0caf6569d473dfdd95ea88fa713120d">thread_pool</a> (unsigned int threads)</td></tr>
+<tr class="memdesc:ae0caf6569d473dfdd95ea88fa713120d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a thread pool for the scheduler.  <a href="classcoro_1_1scheduler_ae0caf6569d473dfdd95ea88fa713120d.html#ae0caf6569d473dfdd95ea88fa713120d">More...</a><br /></td></tr>
+<tr class="separator:ae0caf6569d473dfdd95ea88fa713120d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2ead7db28830a5479fb3f7c558c9205a"><td class="memItemLeft" align="right" valign="top">static auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1scheduler_a2ead7db28830a5479fb3f7c558c9205a.html#a2ead7db28830a5479fb3f7c558c9205a">thread_pool</a> (std::shared_ptr&lt; <a class="el" href="classcoro_1_1thread__pool.html">coro::thread_pool</a> &gt; pool)</td></tr>
+<tr class="memdesc:a2ead7db28830a5479fb3f7c558c9205a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Attach a thread pool to the scheduler.  <a href="classcoro_1_1scheduler_a2ead7db28830a5479fb3f7c558c9205a.html#a2ead7db28830a5479fb3f7c558c9205a">More...</a><br /></td></tr>
+<tr class="separator:a2ead7db28830a5479fb3f7c558c9205a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7e598d32f736e9bb0dfc99eb86e40e27"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="classcoro_1_1scheduler.html">scheduler</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1scheduler_a7e598d32f736e9bb0dfc99eb86e40e27.html#a7e598d32f736e9bb0dfc99eb86e40e27">current</a> ()</td></tr>
+<tr class="memdesc:a7e598d32f736e9bb0dfc99eb86e40e27"><td class="mdescLeft">&#160;</td><td class="mdescRight">returns current scheduler (for the current thread)  <a href="classcoro_1_1scheduler_a7e598d32f736e9bb0dfc99eb86e40e27.html#a7e598d32f736e9bb0dfc99eb86e40e27">More...</a><br /></td></tr>
+<tr class="separator:a7e598d32f736e9bb0dfc99eb86e40e27"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>scheduler for coroutines </p>
@@ -142,7 +163,7 @@ Public Member Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Apr 2 2024 15:23:39 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+Generated on Thu Apr 4 2024 09:03:26 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
 </small></address>
 </body>
 </html>

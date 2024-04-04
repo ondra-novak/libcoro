@@ -1,4 +1,0 @@
-<map id="coro::scheduler::start" name="coro::scheduler::start">
-<area shape="rect" id="node1" title="start the scheduler in single thread mode" alt="" coords="245,5,404,32"/>
-<area shape="rect" id="node2" href="$classcoro_1_1scheduler_a70879fd4f0d658ab48a4f83c2308ef0c.html#a70879fd4f0d658ab48a4f83c2308ef0c" title="initialize the scheduler to run in specified thread pool" alt="" coords="5,5,197,32"/>
-</map>
