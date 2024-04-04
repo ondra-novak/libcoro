@@ -206,7 +206,7 @@ $(function() {
 <div class="line"><a name="l00174"></a><span class="lineno">  174</span>&#160;            joined += _joins.front()._prom;</div>
 <div class="line"><a name="l00175"></a><span class="lineno">  175</span>&#160;            std::pop_heap(_joins.begin(), _joins.end());</div>
 <div class="line"><a name="l00176"></a><span class="lineno">  176</span>&#160;            _joins.pop_back();</div>
-<div class="line"><a name="l00177"></a><span class="lineno">  177</span>&#160;        } <span class="keywordflow">while</span> (!_joins.empty() &amp;&amp; _joins.front()._target &gt; _finished);</div>
+<div class="line"><a name="l00177"></a><span class="lineno">  177</span>&#160;        } <span class="keywordflow">while</span> (!_joins.empty() &amp;&amp; _joins.front()._target &lt;= _finished);</div>
 <div class="line"><a name="l00178"></a><span class="lineno">  178</span>&#160;        lk.unlock();</div>
 <div class="line"><a name="l00179"></a><span class="lineno">  179</span>&#160;        joined();</div>
 <div class="line"><a name="l00180"></a><span class="lineno">  180</span>&#160;        lk.lock();</div>
@@ -277,7 +277,7 @@ $(function() {
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Apr 4 2024 13:04:00 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+Generated on Thu Apr 4 2024 13:04:54 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
 </small></address>
 </body>
 </html>
