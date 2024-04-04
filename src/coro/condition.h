@@ -119,6 +119,7 @@ protected:
         abstract_condition_awaiter *done_lst = nullptr;
 
         std::lock_guard _(_mx);
+        if (_hashtable.size() == 0) return nullptr;
         auto &b = map_address(addr);
         abstract_condition_awaiter *lst = b;
         if (lst == nullptr) return nullptr;
@@ -244,8 +245,11 @@ public:
      *
      * @return
      */
-    T &wait() const {
-        this->n.wait(false);
+    T &wait() {
+        if (!await_ready() &&
+             _details::awaiter_map::instance.reg_awaiter(&_variable, this)) {
+            this->n.wait(false);
+        }
         return await_resume();
     }
 

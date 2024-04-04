@@ -2,7 +2,7 @@
 #include "function.h"
 #include "prepared_coro.h"
 #include "exceptions.h"
-
+#include "future.h"
 #include <condition_variable>
 #include <mutex>
 #include <queue>
@@ -15,34 +15,8 @@ namespace coro {
 /**
  * @ingroup awaitable
  */
-class thread_pool {
-
-    class abstract_unblocker {
-    public:
-        abstract_unblocker() = default;
-        abstract_unblocker(const abstract_unblocker &) = delete;
-        abstract_unblocker &operator=(const abstract_unblocker &) = delete;
-
-        virtual ~abstract_unblocker() = default;
-        virtual void unblock(bool running) = 0;
-    };
-
-    template<typename Fn>
-    class unblocker: public abstract_unblocker {
-    public:
-        unblocker(Fn &&fn, thread_pool &owner):_owner(owner), _fn(std::forward<Fn>(fn)) {
-            _owner.set_unblock(this);
-        }
-        virtual void unblock(bool running) {_fn(running);}
-        virtual ~unblocker() {
-            _owner.unset_unblock(this);
-        }
-    protected:
-        thread_pool &_owner;
-        Fn _fn;
-    };
-
-
+template<typename CondVar>
+class thread_pool_t {
 public:
 
 
@@ -52,8 +26,14 @@ public:
      *
      * @note treads are not created immediately. They are started with requests
      */
-    thread_pool(unsigned int threads):_to_start(threads) {
+    thread_pool_t(unsigned int threads):_to_start(threads) {
         _thr.reserve(threads);
+    }
+
+    template<std::convertible_to<CondVar> CondVarInit>
+    thread_pool_t(unsigned int threads, CondVarInit &&cinit)
+        :_to_start(threads),_cond(std::forward<CondVarInit>(cinit)) {
+
     }
 
     ///enqueue function
@@ -84,8 +64,6 @@ public:
             _stop = true;
             _to_start = 0;
             std::swap(_thr, tmp);
-            for (auto &blk: _unblk) blk->unblock(false);
-            _unblk.clear();
         }
         _cond.notify_all();
         auto this_thr = std::this_thread::get_id();
@@ -102,7 +80,7 @@ public:
     }
 
     ///dtor
-    ~thread_pool() {
+    ~thread_pool_t() {
         stop();
     }
 
@@ -129,18 +107,22 @@ public:
         }
     }
 
-    ///sync.point - blocks thread until all enqueued functions are finished
-    void join() {
-        long cnt;
-        {
+    ///wait to process all enqueued tasks
+    /**
+     * @return future is resolved, once all tasks enqueued previously are finished
+     *
+     * @note tasks enqueued after this call are not counted
+     */
+    future<void> join() {
+        return [&](auto promise) {
             std::lock_guard lk(_mx);
-            cnt = _enqueued;
-        }
-        long finished = _finished.load(std::memory_order_acquire);
-        while (finished-cnt < 0) {
-            _finished.wait(finished);
-            finished = _finished.load(std::memory_order_acquire);
-        }
+            if (_enqueued == _finished) {
+                promise();
+            } else {
+                _joins.push_back({_enqueued, std::move(promise)});
+                std::push_heap(_joins.begin(), _joins.end());
+            }
+        };
     }
 
     ///test whether is stopped
@@ -148,55 +130,56 @@ public:
         std::lock_guard lk(_mx);
         return _stop;
     }
-
-    ///install unblock function
-    /**
-     * Unblock function is a custom function which is called, when thread pool needs
-     * to unblock a managed thread, which is waiting on blocking operation (for example
-     * a scheduler, which sleeps until time point is reached).
-     *
-     * @param fn function which is called to unblock current thread.
-     * @return an object (no-copy, no-move) which must be held while unblock function
-     * is active. To uninstall the funciton, destroy returned object
-     */
-    template<std::invocable<bool> Fn>
-    [[nodiscard]] auto set_unblock_callback(Fn &&fn) {
-        return unblocker<Fn>(std::forward<Fn>(fn), *this);
-    }
-
-
-    static thread_pool *current() {return _current;}
+    ///returns current thread pool (in context of managed thread)
+    static thread_pool_t *current() {return _current;}
 
 protected:
 
 
     std::vector<std::thread> _thr;
     mutable std::mutex _mx;
-    std::condition_variable _cond;
+    CondVar _cond;
     std::queue<function<void()> > _que;
-    std::vector<abstract_unblocker *> _unblk;
-    std::atomic<long> _finished = {0};
+    long _finished = 0;
     long _enqueued = 0;
     unsigned int _to_start = 0;
-    unsigned int _waiting = 0;
     bool _stop = false;
 
-    static thread_local thread_pool *_current;
+    struct join_info {
+        long _target;
+        promise<void> _prom;
+        int operator<=>(const join_info &other) const {
+            return other._target - _target;
+        }
+    };
 
+    std::vector<join_info> _joins;
+
+    static thread_local thread_pool_t *_current;
+
+    void check_join(std::unique_lock<std::mutex> &lk) {
+        promise<void> joined;
+        lk.lock();
+        ++_finished;
+        if (_joins.empty() || _joins.front()._target > _finished) return;
+        do {
+            joined += _joins.front()._prom;
+            std::pop_heap(_joins.begin(), _joins.end());
+            _joins.pop_back();
+        } while (!_joins.empty() && _joins.front()._target > _finished);
+        lk.unlock();
+        joined();
+        lk.lock();
+    }
 
     void notify(std::unique_lock<std::mutex> &mx) {
         if (_to_start) {
-            _thr.emplace_back([](thread_pool *me){me->worker();}, this);
+            _thr.emplace_back([](thread_pool_t *me){me->worker();}, this);
             --_to_start;
             mx.unlock();
-        } else if (_waiting){
+        } else {
             mx.unlock();
             _cond.notify_one();
-        } else if (!_unblk.empty()) {
-            auto x = _unblk.back();
-            _unblk.pop_back();
-            mx.unlock();
-            x->unblock(true);
         }
     }
 
@@ -205,9 +188,7 @@ protected:
         std::unique_lock lk(_mx);
         while (!_stop) {
             if (_que.empty()) {
-                ++_waiting;
                 _cond.wait(lk);
-                --_waiting;
             } else {
                 {
                     auto fn = std::move(_que.front());
@@ -216,34 +197,19 @@ protected:
                     fn();
                     if (_current != this) return;
                 }
-                _finished.fetch_add(1, std::memory_order_release);
-                _finished.notify_all();
-                lk.lock();
+                check_join(lk);
+
             }
         }
     }
 
-    void set_unblock(abstract_unblocker *x) {
-        std::lock_guard lk(_mx);
-        if (_stop) {
-            x->unblock(false);
-            return;
-        }
-        if (_waiting == 0 && !_que.empty()) {
-            x->unblock(true);
-            return;
-        }
-        _unblk.push_back(x);
-    }
-    void unset_unblock(abstract_unblocker *x) {
-        std::lock_guard lk(_mx);
-        auto iter = std::remove(_unblk.begin(), _unblk.end(), x);
-        _unblk.erase(iter, _unblk.end());
-    }
 };
 
-inline thread_local thread_pool *thread_pool::_current = nullptr;
+template<typename CondVar>
+inline thread_local thread_pool_t<CondVar> *thread_pool_t<CondVar>::_current = nullptr;
 
+
+using thread_pool = thread_pool_t<std::condition_variable>;
 
 }
 

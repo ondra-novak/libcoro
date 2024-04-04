@@ -214,22 +214,32 @@ public:
     static scheduler * current() {return _current;}
 
 
+    ///While this object is held, cancel is in effect
     class pending_cancel {
-    public:
-        ~pending_cancel() {
-            _sch._blk.erase(std::remove(_sch._blk.begin(), _sch._blk.end(), _ident), _sch._blk.end());
-        }
-        pending_cancel(const pending_cancel &) = delete;
-        pending_cancel &operator=(const pending_cancel &) = delete;
     private:
-        pending_cancel(scheduler &sch, ident_t ident):_sch(sch),_ident(ident) {
-            _sch._blk.push_back(_ident);
-        }
-        scheduler &_sch;
-        ident_t _ident;
+        struct deleter {
+            ident_t _ident;
+            void operator()(scheduler *sch) {
+                sch->_blk.erase(std::remove(sch->_blk.begin(),sch->_blk.end(), _ident), sch->_blk.end());
+            }
+        };
+
+        std::unique_ptr<scheduler, deleter> _ptr;
+
+        pending_cancel(scheduler &sch, ident_t ident)
+            :_ptr(&sch, {ident}) {};
+
         friend class scheduler;
     };
 
+    ///Cancel scheduled operation
+    /**
+     * @param ident identity of the scheduled operation
+     * @return an object, which must be held in order to prevent futher attempts to
+     * schedule an operation under the same identity. This helps to synchronize with
+     * loops.
+     *
+     */
     pending_cancel cancel(ident_t ident) {
         promise<void>::notify d;
         std::lock_guard lk(_mx);
