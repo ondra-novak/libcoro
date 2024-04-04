@@ -1086,17 +1086,29 @@ namespace _details {
 template<typename T>
 class coro_promise_base {
 protected:
+
     future<T> *fut = nullptr;
 
-    std::coroutine_handle<> set_resolved() const {
+    std::coroutine_handle<> set_resolved()  {
         prepared_coro ret;
-        fut->set_resolved([&](auto &&fn){ret = fn();});
+        auto tmp = std::exchange(fut, nullptr);
+        tmp->set_resolved([&](auto &&fn){ret = fn();});
         return ret.symmetric_transfer();
     }
     template<typename ... Args>
     void set_value(Args && ... args) const {
         if (fut) fut->set_value(std::forward<Args>(args)...);
     }
+
+    coro_promise_base() = default;
+    coro_promise_base(const coro_promise_base &x) = delete;
+    coro_promise_base &operator=(const coro_promise_base &) = delete;
+    ~coro_promise_base() {
+        if (fut) fut->set_resolved([](auto &&){});
+    }
+
+
+
 
 
 public:
