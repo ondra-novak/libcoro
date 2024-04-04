@@ -174,7 +174,7 @@ protected:
             joined += _joins.front()._prom;
             std::pop_heap(_joins.begin(), _joins.end());
             _joins.pop_back();
-        } while (!_joins.empty() && _joins.front()._target > _finished);
+        } while (!_joins.empty() && _joins.front()._target <= _finished);
         lk.unlock();
         joined();
         lk.lock();
