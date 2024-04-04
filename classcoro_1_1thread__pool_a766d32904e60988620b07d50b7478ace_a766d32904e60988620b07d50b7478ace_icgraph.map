@@ -1,4 +1,0 @@
-<map id="coro::thread_pool::enqueue" name="coro::thread_pool::enqueue">
-<area shape="rect" id="node1" title="enqueue function" alt="" coords="196,5,339,47"/>
-<area shape="rect" id="node2" href="$classcoro_1_1thread__pool_a8f2d544a0c08e94effdc7814c482e131.html#a8f2d544a0c08e94effdc7814c482e131" title="co_await support &#45; resumes the coroutine inside of thread_pool" alt="" coords="5,5,148,47"/>
-</map>

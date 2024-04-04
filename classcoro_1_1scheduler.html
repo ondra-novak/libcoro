@@ -68,6 +68,7 @@ $(function() {
 </div><!-- top -->
 <div class="header">
   <div class="summary">
+<a href="#nested-classes">Classes</a> &#124;
 <a href="#pub-types">Public Types</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="#pub-static-methods">Static Public Member Functions</a> &#124;
@@ -92,6 +93,12 @@ $(function() {
 </map>
 <center><span class="legend">[<a href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
+Classes</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1scheduler_1_1pending__cancel.html">pending_cancel</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">While this object is held, cancel is in effect.  <a href="classcoro_1_1scheduler_1_1pending__cancel.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
 Public Types</h2></td></tr>
 <tr class="memitem:ab4385391253b8be52bf957fb0bb7076b"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1scheduler_ab4385391253b8be52bf957fb0bb7076b.html#ab4385391253b8be52bf957fb0bb7076b">resume_cb</a> = <a class="el" href="classcoro_1_1function.html">function</a>&lt; void(notify_t)&gt;</td></tr>
@@ -139,13 +146,16 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a0f037d6555d47ad52e3ba8d0de1a694d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1scheduler_a0f037d6555d47ad52e3ba8d0de1a694d.html#a0f037d6555d47ad52e3ba8d0de1a694d">stop</a> ()</td></tr>
 <tr class="memdesc:a0f037d6555d47ad52e3ba8d0de1a694d"><td class="mdescLeft">&#160;</td><td class="mdescRight">stop the running scheduler  <a href="classcoro_1_1scheduler_a0f037d6555d47ad52e3ba8d0de1a694d.html#a0f037d6555d47ad52e3ba8d0de1a694d">More...</a><br /></td></tr>
 <tr class="separator:a0f037d6555d47ad52e3ba8d0de1a694d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a76fcc6d2a256fdee438e356ef138ea0b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classcoro_1_1scheduler_1_1pending__cancel.html">pending_cancel</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1scheduler_a76fcc6d2a256fdee438e356ef138ea0b.html#a76fcc6d2a256fdee438e356ef138ea0b">cancel</a> (ident_t ident)</td></tr>
+<tr class="memdesc:a76fcc6d2a256fdee438e356ef138ea0b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Cancel scheduled operation.  <a href="classcoro_1_1scheduler_a76fcc6d2a256fdee438e356ef138ea0b.html#a76fcc6d2a256fdee438e356ef138ea0b">More...</a><br /></td></tr>
+<tr class="separator:a76fcc6d2a256fdee438e356ef138ea0b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
 <tr class="memitem:ae0caf6569d473dfdd95ea88fa713120d"><td class="memItemLeft" align="right" valign="top">static auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1scheduler_ae0caf6569d473dfdd95ea88fa713120d.html#ae0caf6569d473dfdd95ea88fa713120d">thread_pool</a> (unsigned int threads)</td></tr>
 <tr class="memdesc:ae0caf6569d473dfdd95ea88fa713120d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a thread pool for the scheduler.  <a href="classcoro_1_1scheduler_ae0caf6569d473dfdd95ea88fa713120d.html#ae0caf6569d473dfdd95ea88fa713120d">More...</a><br /></td></tr>
 <tr class="separator:ae0caf6569d473dfdd95ea88fa713120d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2ead7db28830a5479fb3f7c558c9205a"><td class="memItemLeft" align="right" valign="top">static auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1scheduler_a2ead7db28830a5479fb3f7c558c9205a.html#a2ead7db28830a5479fb3f7c558c9205a">thread_pool</a> (std::shared_ptr&lt; <a class="el" href="classcoro_1_1thread__pool.html">coro::thread_pool</a> &gt; pool)</td></tr>
+<tr class="memitem:a2ead7db28830a5479fb3f7c558c9205a"><td class="memItemLeft" align="right" valign="top">static auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1scheduler_a2ead7db28830a5479fb3f7c558c9205a.html#a2ead7db28830a5479fb3f7c558c9205a">thread_pool</a> (std::shared_ptr&lt; <a class="el" href="classcoro_1_1thread__pool__t.html">coro::thread_pool</a> &gt; pool)</td></tr>
 <tr class="memdesc:a2ead7db28830a5479fb3f7c558c9205a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Attach a thread pool to the scheduler.  <a href="classcoro_1_1scheduler_a2ead7db28830a5479fb3f7c558c9205a.html#a2ead7db28830a5479fb3f7c558c9205a">More...</a><br /></td></tr>
 <tr class="separator:a2ead7db28830a5479fb3f7c558c9205a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7e598d32f736e9bb0dfc99eb86e40e27"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="classcoro_1_1scheduler.html">scheduler</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1scheduler_a7e598d32f736e9bb0dfc99eb86e40e27.html#a7e598d32f736e9bb0dfc99eb86e40e27">current</a> ()</td></tr>
@@ -163,7 +173,7 @@ Static Public Member Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Apr 4 2024 09:03:26 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+Generated on Thu Apr 4 2024 12:10:53 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
 </small></address>
 </body>
 </html>

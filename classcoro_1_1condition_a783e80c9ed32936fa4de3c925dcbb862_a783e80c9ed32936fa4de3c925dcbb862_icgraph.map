@@ -1,5 +1,5 @@
 <map id="coro::condition::await_resume" name="coro::condition::await_resume">
 <area shape="rect" id="node1" title="co_await support" alt="" coords="447,5,609,47"/>
-<area shape="rect" id="node2" href="$classcoro_1_1condition_a945046ea7da6041c16944f2a3d9860aa.html#a945046ea7da6041c16944f2a3d9860aa" title="Synchronous waiting, allows to condition be used in normal function." alt="" coords="244,13,399,39"/>
+<area shape="rect" id="node2" href="$classcoro_1_1condition_a796394cb0f1e14d56efde0e371691c0c.html#a796394cb0f1e14d56efde0e371691c0c" title="Synchronous waiting, allows to condition be used in normal function." alt="" coords="244,13,399,39"/>
 <area shape="rect" id="node3" href="$group__condition_ga7462a3c7fabdbe8f5976c21c59124284.html#ga7462a3c7fabdbe8f5976c21c59124284" title="Perform synchronous waiting with condition." alt="" coords="5,13,196,39"/>
 </map>

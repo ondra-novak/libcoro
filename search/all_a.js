@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['join_74',['join',['../classcoro_1_1thread__pool_a9c712346ef693dfd061d9b4fe7cda803.html#a9c712346ef693dfd061d9b4fe7cda803',1,'coro::thread_pool']]]
+  ['join_74',['join',['../classcoro_1_1thread__pool__t_a7dab26283499b79783cc8f3695564deb.html#a7dab26283499b79783cc8f3695564deb',1,'coro::thread_pool_t']]]
 ];

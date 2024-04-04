@@ -152,7 +152,7 @@ $(function() {
 <div class="line"><a name="l00132"></a><span class="lineno">  132</span>&#160;        <span class="keywordflow">return</span> <a class="code" href="classcoro_1_1scheduler_a5e414811527d333190af0e8a3d1bb1ea.html#a5e414811527d333190af0e8a3d1bb1ea">run</a>(fut);</div>
 <div class="line"><a name="l00133"></a><span class="lineno">  133</span>&#160;    }</div>
 <div class="line"><a name="l00134"></a><span class="lineno">  134</span>&#160; </div>
-<div class="line"><a name="l00135"></a><span class="lineno">  135</span>&#160;    <span class="keyword">using</span> thread_pool_t = <a class="code" href="classcoro_1_1thread__pool.html">coro::thread_pool</a>;</div>
+<div class="line"><a name="l00135"></a><span class="lineno">  135</span>&#160;    <span class="keyword">using</span> <a class="code" href="classcoro_1_1thread__pool__t.html">thread_pool_t</a> = <a class="code" href="classcoro_1_1thread__pool__t.html">coro::thread_pool</a>;</div>
 <div class="line"><a name="l00136"></a><span class="lineno">  136</span>&#160; </div>
 <div class="line"><a name="l00138"></a><span class="lineno">  138</span>&#160; </div>
 <div class="line"><a name="l00143"></a><span class="lineno"><a class="line" href="classcoro_1_1scheduler_ae0caf6569d473dfdd95ea88fa713120d.html#ae0caf6569d473dfdd95ea88fa713120d">  143</a></span>&#160;    <span class="keyword">static</span> <span class="keyword">auto</span> <a class="code" href="classcoro_1_1scheduler_ae0caf6569d473dfdd95ea88fa713120d.html#ae0caf6569d473dfdd95ea88fa713120d">thread_pool</a>(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> threads) {</div>
@@ -201,139 +201,143 @@ $(function() {
 <div class="line"><a name="l00214"></a><span class="lineno"><a class="line" href="classcoro_1_1scheduler_a7e598d32f736e9bb0dfc99eb86e40e27.html#a7e598d32f736e9bb0dfc99eb86e40e27">  214</a></span>&#160;    <span class="keyword">static</span> <a class="code" href="classcoro_1_1scheduler.html">scheduler</a> * <a class="code" href="classcoro_1_1scheduler_a7e598d32f736e9bb0dfc99eb86e40e27.html#a7e598d32f736e9bb0dfc99eb86e40e27">current</a>() {<span class="keywordflow">return</span> _current;}</div>
 <div class="line"><a name="l00215"></a><span class="lineno">  215</span>&#160; </div>
 <div class="line"><a name="l00216"></a><span class="lineno">  216</span>&#160; </div>
-<div class="line"><a name="l00217"></a><span class="lineno">  217</span>&#160;    <span class="keyword">class </span>pending_cancel {</div>
-<div class="line"><a name="l00218"></a><span class="lineno">  218</span>&#160;    <span class="keyword">public</span>:</div>
-<div class="line"><a name="l00219"></a><span class="lineno">  219</span>&#160;        ~pending_cancel() {</div>
-<div class="line"><a name="l00220"></a><span class="lineno">  220</span>&#160;            _sch._blk.erase(std::remove(_sch._blk.begin(), _sch._blk.end(), _ident), _sch._blk.end());</div>
-<div class="line"><a name="l00221"></a><span class="lineno">  221</span>&#160;        }</div>
-<div class="line"><a name="l00222"></a><span class="lineno">  222</span>&#160;        pending_cancel(<span class="keyword">const</span> pending_cancel &amp;) = <span class="keyword">delete</span>;</div>
-<div class="line"><a name="l00223"></a><span class="lineno">  223</span>&#160;        pending_cancel &amp;operator=(<span class="keyword">const</span> pending_cancel &amp;) = <span class="keyword">delete</span>;</div>
-<div class="line"><a name="l00224"></a><span class="lineno">  224</span>&#160;    <span class="keyword">private</span>:</div>
-<div class="line"><a name="l00225"></a><span class="lineno">  225</span>&#160;        pending_cancel(<a class="code" href="classcoro_1_1scheduler_abb4b0356a30fdd453f76f7f5a7e82c2f.html#abb4b0356a30fdd453f76f7f5a7e82c2f">scheduler</a> &amp;sch, ident_t ident):_sch(sch),_ident(ident) {</div>
-<div class="line"><a name="l00226"></a><span class="lineno">  226</span>&#160;            _sch._blk.push_back(_ident);</div>
-<div class="line"><a name="l00227"></a><span class="lineno">  227</span>&#160;        }</div>
-<div class="line"><a name="l00228"></a><span class="lineno">  228</span>&#160;        <a class="code" href="classcoro_1_1scheduler_abb4b0356a30fdd453f76f7f5a7e82c2f.html#abb4b0356a30fdd453f76f7f5a7e82c2f">scheduler</a> &amp;_sch;</div>
-<div class="line"><a name="l00229"></a><span class="lineno">  229</span>&#160;        ident_t _ident;</div>
-<div class="line"><a name="l00230"></a><span class="lineno">  230</span>&#160;        <span class="keyword">friend</span> <span class="keyword">class </span><a class="code" href="classcoro_1_1scheduler_abb4b0356a30fdd453f76f7f5a7e82c2f.html#abb4b0356a30fdd453f76f7f5a7e82c2f">scheduler</a>;</div>
-<div class="line"><a name="l00231"></a><span class="lineno">  231</span>&#160;    };</div>
-<div class="line"><a name="l00232"></a><span class="lineno">  232</span>&#160; </div>
-<div class="line"><a name="l00233"></a><span class="lineno">  233</span>&#160;    pending_cancel cancel(ident_t ident) {</div>
-<div class="line"><a name="l00234"></a><span class="lineno">  234</span>&#160;        promise&lt;void&gt;::notify d;</div>
-<div class="line"><a name="l00235"></a><span class="lineno">  235</span>&#160;        std::lock_guard lk(_mx);</div>
-<div class="line"><a name="l00236"></a><span class="lineno">  236</span>&#160;        d = cancel_lk(ident);</div>
-<div class="line"><a name="l00237"></a><span class="lineno">  237</span>&#160;        <span class="keywordflow">return</span> pending_cancel(*<span class="keyword">this</span>, ident);</div>
-<div class="line"><a name="l00238"></a><span class="lineno">  238</span>&#160;    }</div>
-<div class="line"><a name="l00239"></a><span class="lineno">  239</span>&#160; </div>
-<div class="line"><a name="l00240"></a><span class="lineno">  240</span>&#160; </div>
-<div class="line"><a name="l00241"></a><span class="lineno">  241</span>&#160; </div>
-<div class="line"><a name="l00242"></a><span class="lineno">  242</span>&#160;<span class="keyword">protected</span>:</div>
-<div class="line"><a name="l00243"></a><span class="lineno">  243</span>&#160; </div>
-<div class="line"><a name="l00244"></a><span class="lineno">  244</span>&#160;    <span class="keyword">struct </span>item_t {</div>
-<div class="line"><a name="l00245"></a><span class="lineno">  245</span>&#160;        promise_t _prom;</div>
-<div class="line"><a name="l00246"></a><span class="lineno">  246</span>&#160;        std::chrono::system_clock::time_point _tp;</div>
-<div class="line"><a name="l00247"></a><span class="lineno">  247</span>&#160;        ident_t _ident;</div>
-<div class="line"><a name="l00248"></a><span class="lineno">  248</span>&#160;    };</div>
+<div class="line"><a name="l00218"></a><span class="lineno"><a class="line" href="classcoro_1_1scheduler_1_1pending__cancel.html">  218</a></span>&#160;    <span class="keyword">class </span><a class="code" href="classcoro_1_1scheduler_1_1pending__cancel.html">pending_cancel</a> {</div>
+<div class="line"><a name="l00219"></a><span class="lineno">  219</span>&#160;    <span class="keyword">private</span>:</div>
+<div class="line"><a name="l00220"></a><span class="lineno">  220</span>&#160;        <span class="keyword">struct </span>deleter {</div>
+<div class="line"><a name="l00221"></a><span class="lineno">  221</span>&#160;            ident_t _ident;</div>
+<div class="line"><a name="l00222"></a><span class="lineno">  222</span>&#160;            <span class="keywordtype">void</span> operator()(<a class="code" href="classcoro_1_1scheduler.html">scheduler</a> *sch) {</div>
+<div class="line"><a name="l00223"></a><span class="lineno">  223</span>&#160;                sch-&gt;_blk.erase(std::remove(sch-&gt;_blk.begin(),sch-&gt;_blk.end(), _ident), sch-&gt;_blk.end());</div>
+<div class="line"><a name="l00224"></a><span class="lineno">  224</span>&#160;            }</div>
+<div class="line"><a name="l00225"></a><span class="lineno">  225</span>&#160;        };</div>
+<div class="line"><a name="l00226"></a><span class="lineno">  226</span>&#160; </div>
+<div class="line"><a name="l00227"></a><span class="lineno">  227</span>&#160;        std::unique_ptr&lt;scheduler, deleter&gt; _ptr;</div>
+<div class="line"><a name="l00228"></a><span class="lineno">  228</span>&#160; </div>
+<div class="line"><a name="l00229"></a><span class="lineno">  229</span>&#160;        <a class="code" href="classcoro_1_1scheduler_1_1pending__cancel.html">pending_cancel</a>(<a class="code" href="classcoro_1_1scheduler.html">scheduler</a> &amp;sch, ident_t ident)</div>
+<div class="line"><a name="l00230"></a><span class="lineno">  230</span>&#160;            :_ptr(&amp;sch, {ident}) {};</div>
+<div class="line"><a name="l00231"></a><span class="lineno">  231</span>&#160; </div>
+<div class="line"><a name="l00232"></a><span class="lineno">  232</span>&#160;        <span class="keyword">friend</span> <span class="keyword">class </span><a class="code" href="classcoro_1_1scheduler.html">scheduler</a>;</div>
+<div class="line"><a name="l00233"></a><span class="lineno">  233</span>&#160;    };</div>
+<div class="line"><a name="l00234"></a><span class="lineno">  234</span>&#160; </div>
+<div class="line"><a name="l00236"></a><span class="lineno">  236</span>&#160; </div>
+<div class="line"><a name="l00243"></a><span class="lineno"><a class="line" href="classcoro_1_1scheduler_a76fcc6d2a256fdee438e356ef138ea0b.html#a76fcc6d2a256fdee438e356ef138ea0b">  243</a></span>&#160;    <a class="code" href="classcoro_1_1scheduler_1_1pending__cancel.html">pending_cancel</a> <a class="code" href="classcoro_1_1scheduler_a76fcc6d2a256fdee438e356ef138ea0b.html#a76fcc6d2a256fdee438e356ef138ea0b">cancel</a>(ident_t ident) {</div>
+<div class="line"><a name="l00244"></a><span class="lineno">  244</span>&#160;        <a class="code" href="classcoro_1_1promise.html">promise&lt;void&gt;::notify</a> d;</div>
+<div class="line"><a name="l00245"></a><span class="lineno">  245</span>&#160;        std::lock_guard lk(_mx);</div>
+<div class="line"><a name="l00246"></a><span class="lineno">  246</span>&#160;        d = cancel_lk(ident);</div>
+<div class="line"><a name="l00247"></a><span class="lineno">  247</span>&#160;        <span class="keywordflow">return</span> <a class="code" href="classcoro_1_1scheduler_1_1pending__cancel.html">pending_cancel</a>(*<span class="keyword">this</span>, ident);</div>
+<div class="line"><a name="l00248"></a><span class="lineno">  248</span>&#160;    }</div>
 <div class="line"><a name="l00249"></a><span class="lineno">  249</span>&#160; </div>
-<div class="line"><a name="l00250"></a><span class="lineno">  250</span>&#160;    <span class="keyword">static</span> <span class="keywordtype">bool</span> compare_items(<span class="keyword">const</span> item_t &amp;a, <span class="keyword">const</span> item_t &amp;b) {</div>
-<div class="line"><a name="l00251"></a><span class="lineno">  251</span>&#160;        <span class="keywordflow">return</span> a._tp &gt; b._tp;</div>
-<div class="line"><a name="l00252"></a><span class="lineno">  252</span>&#160;    }</div>
+<div class="line"><a name="l00250"></a><span class="lineno">  250</span>&#160; </div>
+<div class="line"><a name="l00251"></a><span class="lineno">  251</span>&#160; </div>
+<div class="line"><a name="l00252"></a><span class="lineno">  252</span>&#160;<span class="keyword">protected</span>:</div>
 <div class="line"><a name="l00253"></a><span class="lineno">  253</span>&#160; </div>
-<div class="line"><a name="l00254"></a><span class="lineno">  254</span>&#160;    std::mutex _mx;</div>
-<div class="line"><a name="l00255"></a><span class="lineno">  255</span>&#160;    std::condition_variable _cond;</div>
-<div class="line"><a name="l00256"></a><span class="lineno">  256</span>&#160;    std::vector&lt;item_t&gt; _items;</div>
-<div class="line"><a name="l00257"></a><span class="lineno">  257</span>&#160;    std::vector&lt;ident_t&gt; _blk;</div>
-<div class="line"><a name="l00258"></a><span class="lineno">  258</span>&#160;    <span class="keywordtype">bool</span> _stop = <span class="keyword">false</span>;</div>
-<div class="line"><a name="l00259"></a><span class="lineno">  259</span>&#160;    <span class="keyword">static</span> thread_local <a class="code" href="classcoro_1_1scheduler_abb4b0356a30fdd453f76f7f5a7e82c2f.html#abb4b0356a30fdd453f76f7f5a7e82c2f">scheduler</a> *_current;</div>
-<div class="line"><a name="l00260"></a><span class="lineno">  260</span>&#160;    std::thread _thr;</div>
-<div class="line"><a name="l00261"></a><span class="lineno">  261</span>&#160; </div>
-<div class="line"><a name="l00262"></a><span class="lineno">  262</span>&#160;    <span class="keywordtype">void</span> notify() {</div>
-<div class="line"><a name="l00263"></a><span class="lineno">  263</span>&#160;        _cond.notify_all();</div>
-<div class="line"><a name="l00264"></a><span class="lineno">  264</span>&#160;    }</div>
-<div class="line"><a name="l00265"></a><span class="lineno">  265</span>&#160; </div>
-<div class="line"><a name="l00266"></a><span class="lineno">  266</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> ResumeCB&gt;</div>
-<div class="line"><a name="l00267"></a><span class="lineno">  267</span>&#160;    <span class="keywordtype">void</span> worker(ResumeCB &amp;&amp;rcb, <span class="keywordtype">bool</span> &amp;stop_flag) noexcept {</div>
-<div class="line"><a name="l00268"></a><span class="lineno">  268</span>&#160;        std::unique_lock lk(_mx);</div>
-<div class="line"><a name="l00269"></a><span class="lineno">  269</span>&#160; </div>
-<div class="line"><a name="l00270"></a><span class="lineno">  270</span>&#160;        _current = <span class="keyword">this</span>;</div>
+<div class="line"><a name="l00254"></a><span class="lineno">  254</span>&#160;    <span class="keyword">struct </span>item_t {</div>
+<div class="line"><a name="l00255"></a><span class="lineno">  255</span>&#160;        promise_t _prom;</div>
+<div class="line"><a name="l00256"></a><span class="lineno">  256</span>&#160;        std::chrono::system_clock::time_point _tp;</div>
+<div class="line"><a name="l00257"></a><span class="lineno">  257</span>&#160;        ident_t _ident;</div>
+<div class="line"><a name="l00258"></a><span class="lineno">  258</span>&#160;    };</div>
+<div class="line"><a name="l00259"></a><span class="lineno">  259</span>&#160; </div>
+<div class="line"><a name="l00260"></a><span class="lineno">  260</span>&#160;    <span class="keyword">static</span> <span class="keywordtype">bool</span> compare_items(<span class="keyword">const</span> item_t &amp;a, <span class="keyword">const</span> item_t &amp;b) {</div>
+<div class="line"><a name="l00261"></a><span class="lineno">  261</span>&#160;        <span class="keywordflow">return</span> a._tp &gt; b._tp;</div>
+<div class="line"><a name="l00262"></a><span class="lineno">  262</span>&#160;    }</div>
+<div class="line"><a name="l00263"></a><span class="lineno">  263</span>&#160; </div>
+<div class="line"><a name="l00264"></a><span class="lineno">  264</span>&#160;    std::mutex _mx;</div>
+<div class="line"><a name="l00265"></a><span class="lineno">  265</span>&#160;    std::condition_variable _cond;</div>
+<div class="line"><a name="l00266"></a><span class="lineno">  266</span>&#160;    std::vector&lt;item_t&gt; _items;</div>
+<div class="line"><a name="l00267"></a><span class="lineno">  267</span>&#160;    std::vector&lt;ident_t&gt; _blk;</div>
+<div class="line"><a name="l00268"></a><span class="lineno">  268</span>&#160;    <span class="keywordtype">bool</span> _stop = <span class="keyword">false</span>;</div>
+<div class="line"><a name="l00269"></a><span class="lineno">  269</span>&#160;    <span class="keyword">static</span> thread_local <a class="code" href="classcoro_1_1scheduler_abb4b0356a30fdd453f76f7f5a7e82c2f.html#abb4b0356a30fdd453f76f7f5a7e82c2f">scheduler</a> *_current;</div>
+<div class="line"><a name="l00270"></a><span class="lineno">  270</span>&#160;    std::thread _thr;</div>
 <div class="line"><a name="l00271"></a><span class="lineno">  271</span>&#160; </div>
-<div class="line"><a name="l00272"></a><span class="lineno">  272</span>&#160;        <span class="keywordflow">while</span> (!stop_flag) {</div>
-<div class="line"><a name="l00273"></a><span class="lineno">  273</span>&#160;            <span class="keyword">auto</span> now = std::chrono::system_clock::now();</div>
-<div class="line"><a name="l00274"></a><span class="lineno">  274</span>&#160;            <span class="keywordflow">if</span> (!_items.empty() &amp;&amp; _items.front()._tp &lt; now) {</div>
-<div class="line"><a name="l00275"></a><span class="lineno">  275</span>&#160;                <span class="keyword">auto</span> d = _items.front()._prom();</div>
-<div class="line"><a name="l00276"></a><span class="lineno">  276</span>&#160;                std::pop_heap(_items.begin(),_items.end(), compare_items);</div>
-<div class="line"><a name="l00277"></a><span class="lineno">  277</span>&#160;                _items.pop_back();</div>
-<div class="line"><a name="l00278"></a><span class="lineno">  278</span>&#160;                lk.unlock();</div>
-<div class="line"><a name="l00279"></a><span class="lineno">  279</span>&#160;                rcb(std::move(d));</div>
-<div class="line"><a name="l00280"></a><span class="lineno">  280</span>&#160;                <span class="keywordflow">if</span> (_current != <span class="keyword">this</span>) <span class="keywordflow">return</span>;</div>
-<div class="line"><a name="l00281"></a><span class="lineno">  281</span>&#160;                lk.lock();</div>
-<div class="line"><a name="l00282"></a><span class="lineno">  282</span>&#160;            } <span class="keywordflow">else</span> {</div>
-<div class="line"><a name="l00283"></a><span class="lineno">  283</span>&#160;                wait_next(lk);</div>
-<div class="line"><a name="l00284"></a><span class="lineno">  284</span>&#160;            }</div>
-<div class="line"><a name="l00285"></a><span class="lineno">  285</span>&#160;        }</div>
-<div class="line"><a name="l00286"></a><span class="lineno">  286</span>&#160; </div>
-<div class="line"><a name="l00287"></a><span class="lineno">  287</span>&#160;        _current = <span class="keyword">nullptr</span>;</div>
-<div class="line"><a name="l00288"></a><span class="lineno">  288</span>&#160; </div>
-<div class="line"><a name="l00289"></a><span class="lineno">  289</span>&#160; </div>
-<div class="line"><a name="l00290"></a><span class="lineno">  290</span>&#160;    }</div>
-<div class="line"><a name="l00291"></a><span class="lineno">  291</span>&#160; </div>
-<div class="line"><a name="l00292"></a><span class="lineno">  292</span>&#160;    <span class="keywordtype">void</span> wait_next(std::unique_lock&lt;std::mutex&gt; &amp;lk) {</div>
-<div class="line"><a name="l00293"></a><span class="lineno">  293</span>&#160;        <span class="keywordflow">if</span> (!_items.empty()) {</div>
-<div class="line"><a name="l00294"></a><span class="lineno">  294</span>&#160;            _cond.wait_until(lk, _items.front()._tp);</div>
-<div class="line"><a name="l00295"></a><span class="lineno">  295</span>&#160;        } <span class="keywordflow">else</span> {</div>
-<div class="line"><a name="l00296"></a><span class="lineno">  296</span>&#160;            _cond.wait(lk);</div>
-<div class="line"><a name="l00297"></a><span class="lineno">  297</span>&#160;        }</div>
-<div class="line"><a name="l00298"></a><span class="lineno">  298</span>&#160;    }</div>
+<div class="line"><a name="l00272"></a><span class="lineno">  272</span>&#160;    <span class="keywordtype">void</span> notify() {</div>
+<div class="line"><a name="l00273"></a><span class="lineno">  273</span>&#160;        _cond.notify_all();</div>
+<div class="line"><a name="l00274"></a><span class="lineno">  274</span>&#160;    }</div>
+<div class="line"><a name="l00275"></a><span class="lineno">  275</span>&#160; </div>
+<div class="line"><a name="l00276"></a><span class="lineno">  276</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> ResumeCB&gt;</div>
+<div class="line"><a name="l00277"></a><span class="lineno">  277</span>&#160;    <span class="keywordtype">void</span> worker(ResumeCB &amp;&amp;rcb, <span class="keywordtype">bool</span> &amp;stop_flag) noexcept {</div>
+<div class="line"><a name="l00278"></a><span class="lineno">  278</span>&#160;        std::unique_lock lk(_mx);</div>
+<div class="line"><a name="l00279"></a><span class="lineno">  279</span>&#160; </div>
+<div class="line"><a name="l00280"></a><span class="lineno">  280</span>&#160;        _current = <span class="keyword">this</span>;</div>
+<div class="line"><a name="l00281"></a><span class="lineno">  281</span>&#160; </div>
+<div class="line"><a name="l00282"></a><span class="lineno">  282</span>&#160;        <span class="keywordflow">while</span> (!stop_flag) {</div>
+<div class="line"><a name="l00283"></a><span class="lineno">  283</span>&#160;            <span class="keyword">auto</span> now = std::chrono::system_clock::now();</div>
+<div class="line"><a name="l00284"></a><span class="lineno">  284</span>&#160;            <span class="keywordflow">if</span> (!_items.empty() &amp;&amp; _items.front()._tp &lt; now) {</div>
+<div class="line"><a name="l00285"></a><span class="lineno">  285</span>&#160;                <span class="keyword">auto</span> d = _items.front()._prom();</div>
+<div class="line"><a name="l00286"></a><span class="lineno">  286</span>&#160;                std::pop_heap(_items.begin(),_items.end(), compare_items);</div>
+<div class="line"><a name="l00287"></a><span class="lineno">  287</span>&#160;                _items.pop_back();</div>
+<div class="line"><a name="l00288"></a><span class="lineno">  288</span>&#160;                lk.unlock();</div>
+<div class="line"><a name="l00289"></a><span class="lineno">  289</span>&#160;                rcb(std::move(d));</div>
+<div class="line"><a name="l00290"></a><span class="lineno">  290</span>&#160;                <span class="keywordflow">if</span> (_current != <span class="keyword">this</span>) <span class="keywordflow">return</span>;</div>
+<div class="line"><a name="l00291"></a><span class="lineno">  291</span>&#160;                lk.lock();</div>
+<div class="line"><a name="l00292"></a><span class="lineno">  292</span>&#160;            } <span class="keywordflow">else</span> {</div>
+<div class="line"><a name="l00293"></a><span class="lineno">  293</span>&#160;                wait_next(lk);</div>
+<div class="line"><a name="l00294"></a><span class="lineno">  294</span>&#160;            }</div>
+<div class="line"><a name="l00295"></a><span class="lineno">  295</span>&#160;        }</div>
+<div class="line"><a name="l00296"></a><span class="lineno">  296</span>&#160; </div>
+<div class="line"><a name="l00297"></a><span class="lineno">  297</span>&#160;        _current = <span class="keyword">nullptr</span>;</div>
+<div class="line"><a name="l00298"></a><span class="lineno">  298</span>&#160; </div>
 <div class="line"><a name="l00299"></a><span class="lineno">  299</span>&#160; </div>
-<div class="line"><a name="l00300"></a><span class="lineno">  300</span>&#160;    promise&lt;void&gt;::notify cancel_lk(ident_t ident) {</div>
-<div class="line"><a name="l00301"></a><span class="lineno">  301</span>&#160;        <span class="keyword">auto</span> iter = std::find_if(_items.begin(), _items.end(), [&amp;](<span class="keyword">const</span> item_t &amp;item){</div>
-<div class="line"><a name="l00302"></a><span class="lineno">  302</span>&#160;            return item._ident == ident;</div>
-<div class="line"><a name="l00303"></a><span class="lineno">  303</span>&#160;        });</div>
-<div class="line"><a name="l00304"></a><span class="lineno">  304</span>&#160;        <span class="keywordflow">if</span> (iter == _items.end()) <span class="keywordflow">return</span> {};</div>
-<div class="line"><a name="l00305"></a><span class="lineno">  305</span>&#160;        <span class="keywordflow">if</span> (iter == _items.begin()) {</div>
-<div class="line"><a name="l00306"></a><span class="lineno">  306</span>&#160;            std::pop_heap(_items.begin(), _items.end(), compare_items);</div>
-<div class="line"><a name="l00307"></a><span class="lineno">  307</span>&#160;            <span class="keyword">auto</span> d = _items.back()._prom.cancel();</div>
-<div class="line"><a name="l00308"></a><span class="lineno">  308</span>&#160;            _items.pop_back();</div>
-<div class="line"><a name="l00309"></a><span class="lineno">  309</span>&#160;            <span class="keywordflow">return</span> d;</div>
-<div class="line"><a name="l00310"></a><span class="lineno">  310</span>&#160;        } <span class="keywordflow">else</span> {</div>
-<div class="line"><a name="l00311"></a><span class="lineno">  311</span>&#160;            <span class="keyword">auto</span> d = iter-&gt;_prom.cancel();</div>
-<div class="line"><a name="l00312"></a><span class="lineno">  312</span>&#160;            item_t &amp;x = *iter;</div>
-<div class="line"><a name="l00313"></a><span class="lineno">  313</span>&#160;            <span class="keywordflow">if</span> (&amp;x != &amp;_items.back()) {</div>
-<div class="line"><a name="l00314"></a><span class="lineno">  314</span>&#160;                std::swap(x, _items.back());</div>
-<div class="line"><a name="l00315"></a><span class="lineno">  315</span>&#160;                std::make_heap(_items.begin(), _items.end(),  compare_items);</div>
-<div class="line"><a name="l00316"></a><span class="lineno">  316</span>&#160;            }</div>
-<div class="line"><a name="l00317"></a><span class="lineno">  317</span>&#160;            _items.pop_back();</div>
-<div class="line"><a name="l00318"></a><span class="lineno">  318</span>&#160;            <span class="keywordflow">return</span> d;</div>
-<div class="line"><a name="l00319"></a><span class="lineno">  319</span>&#160;        }</div>
-<div class="line"><a name="l00320"></a><span class="lineno">  320</span>&#160;    }</div>
-<div class="line"><a name="l00321"></a><span class="lineno">  321</span>&#160; </div>
-<div class="line"><a name="l00322"></a><span class="lineno">  322</span>&#160; </div>
-<div class="line"><a name="l00323"></a><span class="lineno">  323</span>&#160;};</div>
-<div class="line"><a name="l00324"></a><span class="lineno">  324</span>&#160; </div>
-<div class="line"><a name="l00325"></a><span class="lineno">  325</span>&#160;<span class="keyword">inline</span> thread_local scheduler *scheduler::_current = <span class="keyword">nullptr</span>;</div>
-<div class="line"><a name="l00326"></a><span class="lineno">  326</span>&#160; </div>
-<div class="line"><a name="l00327"></a><span class="lineno">  327</span>&#160;}</div>
-<div class="line"><a name="l00328"></a><span class="lineno">  328</span>&#160; </div>
+<div class="line"><a name="l00300"></a><span class="lineno">  300</span>&#160;    }</div>
+<div class="line"><a name="l00301"></a><span class="lineno">  301</span>&#160; </div>
+<div class="line"><a name="l00302"></a><span class="lineno">  302</span>&#160;    <span class="keywordtype">void</span> wait_next(std::unique_lock&lt;std::mutex&gt; &amp;lk) {</div>
+<div class="line"><a name="l00303"></a><span class="lineno">  303</span>&#160;        <span class="keywordflow">if</span> (!_items.empty()) {</div>
+<div class="line"><a name="l00304"></a><span class="lineno">  304</span>&#160;            _cond.wait_until(lk, _items.front()._tp);</div>
+<div class="line"><a name="l00305"></a><span class="lineno">  305</span>&#160;        } <span class="keywordflow">else</span> {</div>
+<div class="line"><a name="l00306"></a><span class="lineno">  306</span>&#160;            _cond.wait(lk);</div>
+<div class="line"><a name="l00307"></a><span class="lineno">  307</span>&#160;        }</div>
+<div class="line"><a name="l00308"></a><span class="lineno">  308</span>&#160;    }</div>
+<div class="line"><a name="l00309"></a><span class="lineno">  309</span>&#160; </div>
+<div class="line"><a name="l00310"></a><span class="lineno">  310</span>&#160;    promise&lt;void&gt;::notify cancel_lk(ident_t ident) {</div>
+<div class="line"><a name="l00311"></a><span class="lineno">  311</span>&#160;        <span class="keyword">auto</span> iter = std::find_if(_items.begin(), _items.end(), [&amp;](<span class="keyword">const</span> item_t &amp;item){</div>
+<div class="line"><a name="l00312"></a><span class="lineno">  312</span>&#160;            return item._ident == ident;</div>
+<div class="line"><a name="l00313"></a><span class="lineno">  313</span>&#160;        });</div>
+<div class="line"><a name="l00314"></a><span class="lineno">  314</span>&#160;        <span class="keywordflow">if</span> (iter == _items.end()) <span class="keywordflow">return</span> {};</div>
+<div class="line"><a name="l00315"></a><span class="lineno">  315</span>&#160;        <span class="keywordflow">if</span> (iter == _items.begin()) {</div>
+<div class="line"><a name="l00316"></a><span class="lineno">  316</span>&#160;            std::pop_heap(_items.begin(), _items.end(), compare_items);</div>
+<div class="line"><a name="l00317"></a><span class="lineno">  317</span>&#160;            <span class="keyword">auto</span> d = _items.back()._prom.cancel();</div>
+<div class="line"><a name="l00318"></a><span class="lineno">  318</span>&#160;            _items.pop_back();</div>
+<div class="line"><a name="l00319"></a><span class="lineno">  319</span>&#160;            <span class="keywordflow">return</span> d;</div>
+<div class="line"><a name="l00320"></a><span class="lineno">  320</span>&#160;        } <span class="keywordflow">else</span> {</div>
+<div class="line"><a name="l00321"></a><span class="lineno">  321</span>&#160;            <span class="keyword">auto</span> d = iter-&gt;_prom.cancel();</div>
+<div class="line"><a name="l00322"></a><span class="lineno">  322</span>&#160;            item_t &amp;x = *iter;</div>
+<div class="line"><a name="l00323"></a><span class="lineno">  323</span>&#160;            <span class="keywordflow">if</span> (&amp;x != &amp;_items.back()) {</div>
+<div class="line"><a name="l00324"></a><span class="lineno">  324</span>&#160;                std::swap(x, _items.back());</div>
+<div class="line"><a name="l00325"></a><span class="lineno">  325</span>&#160;                std::make_heap(_items.begin(), _items.end(),  compare_items);</div>
+<div class="line"><a name="l00326"></a><span class="lineno">  326</span>&#160;            }</div>
+<div class="line"><a name="l00327"></a><span class="lineno">  327</span>&#160;            _items.pop_back();</div>
+<div class="line"><a name="l00328"></a><span class="lineno">  328</span>&#160;            <span class="keywordflow">return</span> d;</div>
+<div class="line"><a name="l00329"></a><span class="lineno">  329</span>&#160;        }</div>
+<div class="line"><a name="l00330"></a><span class="lineno">  330</span>&#160;    }</div>
+<div class="line"><a name="l00331"></a><span class="lineno">  331</span>&#160; </div>
+<div class="line"><a name="l00332"></a><span class="lineno">  332</span>&#160; </div>
+<div class="line"><a name="l00333"></a><span class="lineno">  333</span>&#160;};</div>
+<div class="line"><a name="l00334"></a><span class="lineno">  334</span>&#160; </div>
+<div class="line"><a name="l00335"></a><span class="lineno">  335</span>&#160;<span class="keyword">inline</span> thread_local scheduler *scheduler::_current = <span class="keyword">nullptr</span>;</div>
+<div class="line"><a name="l00336"></a><span class="lineno">  336</span>&#160; </div>
+<div class="line"><a name="l00337"></a><span class="lineno">  337</span>&#160;}</div>
+<div class="line"><a name="l00338"></a><span class="lineno">  338</span>&#160; </div>
 <div class="ttc" id="aclasscoro_1_1function_html"><div class="ttname"><a href="classcoro_1_1function.html">coro::function</a></div><div class="ttdoc">Move only function wrapper with small object optimization.</div><div class="ttdef"><b>Definition:</b> <a href="function_8h_source.html#l00023">function.h:23</a></div></div>
 <div class="ttc" id="aclasscoro_1_1future_html"><div class="ttname"><a href="classcoro_1_1future.html">coro::future</a></div><div class="ttdoc">Contains future value of T, can be co_awaited in coroutine.</div><div class="ttdef"><b>Definition:</b> <a href="future_8h_source.html#l00387">future.h:387</a></div></div>
 <div class="ttc" id="aclasscoro_1_1promise_html"><div class="ttname"><a href="classcoro_1_1promise.html">coro::promise</a></div><div class="ttdoc">Carries reference to future&lt;T&gt;, callable, sets value of an associated future&lt;T&gt;</div><div class="ttdef"><b>Definition:</b> <a href="future_8h_source.html#l00072">future.h:72</a></div></div>
+<div class="ttc" id="aclasscoro_1_1scheduler_1_1pending__cancel_html"><div class="ttname"><a href="classcoro_1_1scheduler_1_1pending__cancel.html">coro::scheduler::pending_cancel</a></div><div class="ttdoc">While this object is held, cancel is in effect.</div><div class="ttdef"><b>Definition:</b> <a href="scheduler_8h_source.html#l00218">scheduler.h:218</a></div></div>
 <div class="ttc" id="aclasscoro_1_1scheduler_a0f037d6555d47ad52e3ba8d0de1a694d_html_a0f037d6555d47ad52e3ba8d0de1a694d"><div class="ttname"><a href="classcoro_1_1scheduler_a0f037d6555d47ad52e3ba8d0de1a694d.html#a0f037d6555d47ad52e3ba8d0de1a694d">coro::scheduler::stop</a></div><div class="ttdeci">void stop()</div><div class="ttdoc">stop the running scheduler</div><div class="ttdef"><b>Definition:</b> <a href="scheduler_8h_source.html#l00194">scheduler.h:194</a></div></div>
 <div class="ttc" id="aclasscoro_1_1scheduler_a2bc4602167092596f0512ac47d8cab4a_html_a2bc4602167092596f0512ac47d8cab4a"><div class="ttname"><a href="classcoro_1_1scheduler_a2bc4602167092596f0512ac47d8cab4a.html#a2bc4602167092596f0512ac47d8cab4a">coro::scheduler::sleep_until</a></div><div class="ttdeci">future&lt; void &gt; sleep_until(std::chrono::system_clock::time_point tp, ident_t ident=nullptr)</div><div class="ttdoc">sleep until specified time point</div><div class="ttdef"><b>Definition:</b> <a href="scheduler_8h_source.html#l00049">scheduler.h:49</a></div></div>
 <div class="ttc" id="aclasscoro_1_1scheduler_a2ead7db28830a5479fb3f7c558c9205a_html_a2ead7db28830a5479fb3f7c558c9205a"><div class="ttname"><a href="classcoro_1_1scheduler_a2ead7db28830a5479fb3f7c558c9205a.html#a2ead7db28830a5479fb3f7c558c9205a">coro::scheduler::thread_pool</a></div><div class="ttdeci">static auto thread_pool(std::shared_ptr&lt; coro::thread_pool &gt; pool)</div><div class="ttdoc">Attach a thread pool to the scheduler.</div><div class="ttdef"><b>Definition:</b> <a href="scheduler_8h_source.html#l00154">scheduler.h:154</a></div></div>
 <div class="ttc" id="aclasscoro_1_1scheduler_a3978238c9a009e39c463c3c06bd545c6_html_a3978238c9a009e39c463c3c06bd545c6"><div class="ttname"><a href="classcoro_1_1scheduler_a3978238c9a009e39c463c3c06bd545c6.html#a3978238c9a009e39c463c3c06bd545c6">coro::scheduler::sleep_for</a></div><div class="ttdeci">future&lt; void &gt; sleep_for(std::chrono::duration&lt; A, B &gt; dur, ident_t ident=nullptr)</div><div class="ttdoc">sleep for specified duration</div><div class="ttdef"><b>Definition:</b> <a href="scheduler_8h_source.html#l00067">scheduler.h:67</a></div></div>
 <div class="ttc" id="aclasscoro_1_1scheduler_a5e414811527d333190af0e8a3d1bb1ea_html_a5e414811527d333190af0e8a3d1bb1ea"><div class="ttname"><a href="classcoro_1_1scheduler_a5e414811527d333190af0e8a3d1bb1ea.html#a5e414811527d333190af0e8a3d1bb1ea">coro::scheduler::run</a></div><div class="ttdeci">decltype(auto) run(future&lt; T &gt; &amp;fut, ResumeCB &amp;&amp;cb)</div><div class="ttdoc">run the scheduler in signle thread mode, stop when future is ready</div><div class="ttdef"><b>Definition:</b> <a href="scheduler_8h_source.html#l00086">scheduler.h:86</a></div></div>
 <div class="ttc" id="aclasscoro_1_1scheduler_a6857b3fd8a1f02db73375cb7f5a347af_html_a6857b3fd8a1f02db73375cb7f5a347af"><div class="ttname"><a href="classcoro_1_1scheduler_a6857b3fd8a1f02db73375cb7f5a347af.html#a6857b3fd8a1f02db73375cb7f5a347af">coro::scheduler::start</a></div><div class="ttdeci">bool start(ResumeCB &amp;&amp;resumecb)</div><div class="ttdoc">Start scheduler at background.</div><div class="ttdef"><b>Definition:</b> <a href="scheduler_8h_source.html#l00173">scheduler.h:173</a></div></div>
+<div class="ttc" id="aclasscoro_1_1scheduler_a76fcc6d2a256fdee438e356ef138ea0b_html_a76fcc6d2a256fdee438e356ef138ea0b"><div class="ttname"><a href="classcoro_1_1scheduler_a76fcc6d2a256fdee438e356ef138ea0b.html#a76fcc6d2a256fdee438e356ef138ea0b">coro::scheduler::cancel</a></div><div class="ttdeci">pending_cancel cancel(ident_t ident)</div><div class="ttdoc">Cancel scheduled operation.</div><div class="ttdef"><b>Definition:</b> <a href="scheduler_8h_source.html#l00243">scheduler.h:243</a></div></div>
 <div class="ttc" id="aclasscoro_1_1scheduler_a7e598d32f736e9bb0dfc99eb86e40e27_html_a7e598d32f736e9bb0dfc99eb86e40e27"><div class="ttname"><a href="classcoro_1_1scheduler_a7e598d32f736e9bb0dfc99eb86e40e27.html#a7e598d32f736e9bb0dfc99eb86e40e27">coro::scheduler::current</a></div><div class="ttdeci">static scheduler * current()</div><div class="ttdoc">returns current scheduler (for the current thread)</div><div class="ttdef"><b>Definition:</b> <a href="scheduler_8h_source.html#l00214">scheduler.h:214</a></div></div>
 <div class="ttc" id="aclasscoro_1_1scheduler_aa614954a2619b2669960f896dfff324d_html_aa614954a2619b2669960f896dfff324d"><div class="ttname"><a href="classcoro_1_1scheduler_aa614954a2619b2669960f896dfff324d.html#aa614954a2619b2669960f896dfff324d">coro::scheduler::start</a></div><div class="ttdeci">bool start()</div><div class="ttdoc">Start scheduler at background.</div><div class="ttdef"><b>Definition:</b> <a href="scheduler_8h_source.html#l00189">scheduler.h:189</a></div></div>
 <div class="ttc" id="aclasscoro_1_1scheduler_abb4b0356a30fdd453f76f7f5a7e82c2f_html_abb4b0356a30fdd453f76f7f5a7e82c2f"><div class="ttname"><a href="classcoro_1_1scheduler_abb4b0356a30fdd453f76f7f5a7e82c2f.html#abb4b0356a30fdd453f76f7f5a7e82c2f">coro::scheduler::scheduler</a></div><div class="ttdeci">scheduler()=default</div><div class="ttdoc">initialize the scheduler. It is not started, you must start it manually</div></div>
 <div class="ttc" id="aclasscoro_1_1scheduler_abc6a235c2f3e03acee2f09d76aacc05e_html_abc6a235c2f3e03acee2f09d76aacc05e"><div class="ttname"><a href="classcoro_1_1scheduler_abc6a235c2f3e03acee2f09d76aacc05e.html#abc6a235c2f3e03acee2f09d76aacc05e">coro::scheduler::~scheduler</a></div><div class="ttdeci">~scheduler()</div><div class="ttdoc">stop and destroy scheduler</div><div class="ttdef"><b>Definition:</b> <a href="scheduler_8h_source.html#l00037">scheduler.h:37</a></div></div>
 <div class="ttc" id="aclasscoro_1_1scheduler_ae0caf6569d473dfdd95ea88fa713120d_html_ae0caf6569d473dfdd95ea88fa713120d"><div class="ttname"><a href="classcoro_1_1scheduler_ae0caf6569d473dfdd95ea88fa713120d.html#ae0caf6569d473dfdd95ea88fa713120d">coro::scheduler::thread_pool</a></div><div class="ttdeci">static auto thread_pool(unsigned int threads)</div><div class="ttdoc">Create a thread pool for the scheduler.</div><div class="ttdef"><b>Definition:</b> <a href="scheduler_8h_source.html#l00143">scheduler.h:143</a></div></div>
 <div class="ttc" id="aclasscoro_1_1scheduler_html"><div class="ttname"><a href="classcoro_1_1scheduler.html">coro::scheduler</a></div><div class="ttdoc">scheduler for coroutines</div><div class="ttdef"><b>Definition:</b> <a href="scheduler_8h_source.html#l00018">scheduler.h:18</a></div></div>
-<div class="ttc" id="aclasscoro_1_1thread__pool_html"><div class="ttname"><a href="classcoro_1_1thread__pool.html">coro::thread_pool</a></div><div class="ttdoc">thread pool implementation</div><div class="ttdef"><b>Definition:</b> <a href="thread__pool_8h_source.html#l00018">thread_pool.h:18</a></div></div>
+<div class="ttc" id="aclasscoro_1_1thread__pool__t_html"><div class="ttname"><a href="classcoro_1_1thread__pool__t.html">coro::thread_pool_t</a></div><div class="ttdoc">thread pool implementation</div><div class="ttdef"><b>Definition:</b> <a href="thread__pool_8h_source.html#l00019">thread_pool.h:19</a></div></div>
 <div class="ttc" id="anamespacecoro_html"><div class="ttname"><a href="namespacecoro.html">coro</a></div><div class="ttdoc">main namespace</div><div class="ttdef"><b>Definition:</b> <a href="aggregator_8h_source.html#l00009">aggregator.h:9</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Apr 4 2024 09:03:25 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+Generated on Thu Apr 4 2024 12:10:53 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
 </small></address>
 </body>
 </html>

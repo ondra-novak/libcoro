@@ -1,9 +1,8 @@
 var searchData=
 [
-  ['scheduler_125',['scheduler',['../classcoro_1_1scheduler.html',1,'coro::scheduler'],['../classcoro_1_1scheduler_abb4b0356a30fdd453f76f7f5a7e82c2f.html#abb4b0356a30fdd453f76f7f5a7e82c2f',1,'coro::scheduler::scheduler()']]],
-  ['semaphore_126',['semaphore',['../classcoro_1_1semaphore.html',1,'coro::semaphore'],['../classcoro_1_1semaphore_a3a6489412b4e7c8a5ba343021f875561.html#a3a6489412b4e7c8a5ba343021f875561',1,'coro::semaphore::semaphore()']]],
-  ['set_5fcallback_127',['set_callback',['../classcoro_1_1future_ae8fc744c9f1b8bb90cb5535debd81588.html#ae8fc744c9f1b8bb90cb5535debd81588',1,'coro::future::set_callback()'],['../classcoro_1_1shared__future_a51448de5eec252c6444e9b8e2c32ae0d.html#a51448de5eec252c6444e9b8e2c32ae0d',1,'coro::shared_future::set_callback()']]],
-  ['set_5funblock_5fcallback_128',['set_unblock_callback',['../classcoro_1_1thread__pool_a06b76f3b3ff57e24d668663e8cdb1c9e.html#a06b76f3b3ff57e24d668663e8cdb1c9e',1,'coro::thread_pool']]],
+  ['scheduler_126',['scheduler',['../classcoro_1_1scheduler.html',1,'coro::scheduler'],['../classcoro_1_1scheduler_abb4b0356a30fdd453f76f7f5a7e82c2f.html#abb4b0356a30fdd453f76f7f5a7e82c2f',1,'coro::scheduler::scheduler()']]],
+  ['semaphore_127',['semaphore',['../classcoro_1_1semaphore.html',1,'coro::semaphore'],['../classcoro_1_1semaphore_a3a6489412b4e7c8a5ba343021f875561.html#a3a6489412b4e7c8a5ba343021f875561',1,'coro::semaphore::semaphore()']]],
+  ['set_5fcallback_128',['set_callback',['../classcoro_1_1future_ae8fc744c9f1b8bb90cb5535debd81588.html#ae8fc744c9f1b8bb90cb5535debd81588',1,'coro::future::set_callback()'],['../classcoro_1_1shared__future_a51448de5eec252c6444e9b8e2c32ae0d.html#a51448de5eec252c6444e9b8e2c32ae0d',1,'coro::shared_future::set_callback()']]],
   ['setdeferredevaluation_129',['setDeferredEvaluation',['../classcoro_1_1future_a3f727444dea9f3e2e4888cf00c6a48e9.html#a3f727444dea9f3e2e4888cf00c6a48e9',1,'coro::future']]],
   ['shared_5ffuture_130',['shared_future',['../classcoro_1_1shared__future.html',1,'coro::shared_future&lt; T &gt;'],['../classcoro_1_1shared__future_a59ac7e6e97aeb76ac1fd6bfce11f0583.html#a59ac7e6e97aeb76ac1fd6bfce11f0583',1,'coro::shared_future::shared_future(const shared_future &amp;other)'],['../classcoro_1_1shared__future_aa742b42e980124afc0b73aeeff9acf63.html#aa742b42e980124afc0b73aeeff9acf63',1,'coro::shared_future::shared_future()'],['../classcoro_1_1shared__future_a24b36e120b956e40c3d9db0f7d8c2a0d.html#a24b36e120b956e40c3d9db0f7d8c2a0d',1,'coro::shared_future::shared_future(shared_future &amp;other)']]],
   ['shared_5fstart_131',['shared_start',['../classcoro_1_1async_ae1b4487261355f4218fd10f5eac64d67.html#ae1b4487261355f4218fd10f5eac64d67',1,'coro::async']]],
@@ -17,7 +16,7 @@ var searchData=
   ['state_139',['State',['../classcoro_1_1shared__future_a79066beae9e1976fab389c50bca491bc.html#a79066beae9e1976fab389c50bca491bc',1,'coro::shared_future']]],
   ['std_5fallocator_140',['std_allocator',['../classcoro_1_1std__allocator.html',1,'coro']]],
   ['still_5fpending_5fexception_141',['still_pending_exception',['../classcoro_1_1still__pending__exception.html',1,'coro']]],
-  ['stop_142',['stop',['../classcoro_1_1scheduler_a0f037d6555d47ad52e3ba8d0de1a694d.html#a0f037d6555d47ad52e3ba8d0de1a694d',1,'coro::scheduler::stop()'],['../classcoro_1_1thread__pool_a20e93687b2d2cda44a6a2a12ff58c073.html#a20e93687b2d2cda44a6a2a12ff58c073',1,'coro::thread_pool::stop()']]],
+  ['stop_142',['stop',['../classcoro_1_1scheduler_a0f037d6555d47ad52e3ba8d0de1a694d.html#a0f037d6555d47ad52e3ba8d0de1a694d',1,'coro::scheduler::stop()'],['../classcoro_1_1thread__pool__t_aba6595c20e8af931b147b3dd83fb411f.html#aba6595c20e8af931b147b3dd83fb411f',1,'coro::thread_pool_t::stop()']]],
   ['subscribe_143',['subscribe',['../classcoro_1_1distributor_ac7ca251aacef8245f0c07c335e38484c.html#ac7ca251aacef8245f0c07c335e38484c',1,'coro::distributor']]],
   ['suspend_144',['suspend',['../classcoro_1_1suspend.html',1,'coro']]],
   ['symmetric_5ftransfer_145',['symmetric_transfer',['../classcoro_1_1promise_1_1notify_a1b2f6001de9c4ebe328173d15231569d.html#a1b2f6001de9c4ebe328173d15231569d',1,'coro::promise::notify::symmetric_transfer()'],['../classcoro_1_1prepared__coro_a4f66ec8bec49f53daa78613aedf2aa52.html#a4f66ec8bec49f53daa78613aedf2aa52',1,'coro::prepared_coro::symmetric_transfer()']]]

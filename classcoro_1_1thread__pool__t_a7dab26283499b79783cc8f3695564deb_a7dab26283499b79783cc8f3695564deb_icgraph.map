@@ -1,0 +1,5 @@
+<map id="coro::thread_pool_t::join" name="coro::thread_pool_t::join">
+<area shape="rect" id="node1" title="wait to process all enqueued tasks" alt="" coords="395,5,541,47"/>
+<area shape="rect" id="node2" href="$classcoro_1_1thread__pool__t_aba6595c20e8af931b147b3dd83fb411f.html#aba6595c20e8af931b147b3dd83fb411f" title="stop thread pool" alt="" coords="200,5,347,47"/>
+<area shape="rect" id="node3" href="$classcoro_1_1thread__pool__t_a165c8122df0fdde6c67cc51e24008deb.html#a165c8122df0fdde6c67cc51e24008deb" title="dtor" alt="" coords="5,5,152,47"/>
+</map>

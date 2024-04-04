@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['cancel_19',['cancel',['../classcoro_1_1promise_1_1notify_ab82f949c99b927524d740994901340cf.html#ab82f949c99b927524d740994901340cf',1,'coro::promise::notify::cancel()'],['../classcoro_1_1promise_a961e99f1d756f56f54d2a5ea9481403d.html#a961e99f1d756f56f54d2a5ea9481403d',1,'coro::promise::cancel()']]],
+  ['cancel_19',['cancel',['../classcoro_1_1promise_1_1notify_ab82f949c99b927524d740994901340cf.html#ab82f949c99b927524d740994901340cf',1,'coro::promise::notify::cancel()'],['../classcoro_1_1promise_a961e99f1d756f56f54d2a5ea9481403d.html#a961e99f1d756f56f54d2a5ea9481403d',1,'coro::promise::cancel()'],['../classcoro_1_1scheduler_a76fcc6d2a256fdee438e356ef138ea0b.html#a76fcc6d2a256fdee438e356ef138ea0b',1,'coro::scheduler::cancel()']]],
   ['cancel_5fall_20',['cancel_all',['../classcoro_1_1distributor_a8faf05d2a8aae8f2bc2a14628e3f07a0.html#a8faf05d2a8aae8f2bc2a14628e3f07a0',1,'coro::distributor']]],
   ['clear_21',['clear',['../classcoro_1_1queue_aa96448bebe7b5f7b7297e9025fb4f196.html#aa96448bebe7b5f7b7297e9025fb4f196',1,'coro::queue']]],
   ['close_22',['close',['../classcoro_1_1queue_a5402d3032685d967f869d4a42a6215ed.html#a5402d3032685d967f869d4a42a6215ed',1,'coro::queue']]],
@@ -16,5 +16,5 @@ var searchData=
   ['coro_5fallocator_5fhelper_32',['coro_allocator_helper',['../classcoro_1_1coro__allocator__helper.html',1,'coro']]],
   ['coroutine_33',['coroutine',['../group___coroutines_gaa0bb63fe4aa91a6b3c0bd1a2440e0c53.html#gaa0bb63fe4aa91a6b3c0bd1a2440e0c53',1,'coro']]],
   ['coroutines_34',['Coroutines',['../group___coroutines.html',1,'']]],
-  ['current_35',['current',['../classcoro_1_1scheduler_a7e598d32f736e9bb0dfc99eb86e40e27.html#a7e598d32f736e9bb0dfc99eb86e40e27',1,'coro::scheduler']]]
+  ['current_35',['current',['../classcoro_1_1scheduler_a7e598d32f736e9bb0dfc99eb86e40e27.html#a7e598d32f736e9bb0dfc99eb86e40e27',1,'coro::scheduler::current()'],['../classcoro_1_1thread__pool__t_a99d99ce444c3b73e081a1a82bf679821.html#a99d99ce444c3b73e081a1a82bf679821',1,'coro::thread_pool_t::current()']]]
 ];
