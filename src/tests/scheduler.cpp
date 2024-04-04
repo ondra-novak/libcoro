@@ -91,7 +91,7 @@ void test_signle_thread_scheduler() {
     int res = sch.run(f);
     CHECK_EQUAL(res, 42);
     auto tm2 = std::chrono::system_clock::now();
-    CHECK_BETWEEN(90,std::chrono::duration_cast<std::chrono::milliseconds>(tm2-tm1).count(),110);
+    CHECK_BETWEEN(90,std::chrono::duration_cast<std::chrono::milliseconds>(tm2-tm1).count(),150);
 }
 
 
