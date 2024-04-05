@@ -1,0 +1,8 @@
+<map id="coro::all_of" name="coro::all_of">
+<area shape="rect" id="node1" title="Awaitable (future) which is resolved once all of the futures are resolved." alt="" coords="563,126,657,153"/>
+<area shape="rect" id="node2" href="$classcoro_1_1future.html" title=" " alt="" coords="311,93,466,119"/>
+<area shape="rect" id="node3" href="$classcoro_1_1function.html" title=" " alt="" coords="5,5,189,47"/>
+<area shape="rect" id="node4" href="$classcoro_1_1function.html" title=" " alt="" coords="6,71,189,141"/>
+<area shape="rect" id="node5" href="$classcoro_1_1function.html" title=" " alt="" coords="5,165,189,207"/>
+<area shape="rect" id="node6" href="$classcoro_1_1promise.html" title=" " alt="" coords="304,143,473,170"/>
+</map>

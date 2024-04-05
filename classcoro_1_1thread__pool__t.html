@@ -100,6 +100,14 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a6bc4e743faf3c03d2acaa3cbc99fb610"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classcoro_1_1thread__pool__t_a6bc4e743faf3c03d2acaa3cbc99fb610.html#a6bc4e743faf3c03d2acaa3cbc99fb610">enqueue</a> (Fn &amp;&amp;fn)</td></tr>
 <tr class="memdesc:a6bc4e743faf3c03d2acaa3cbc99fb610"><td class="mdescLeft">&#160;</td><td class="mdescRight">enqueue function  <a href="classcoro_1_1thread__pool__t_a6bc4e743faf3c03d2acaa3cbc99fb610.html#a6bc4e743faf3c03d2acaa3cbc99fb610">More...</a><br /></td></tr>
 <tr class="separator:a6bc4e743faf3c03d2acaa3cbc99fb610"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa81da3c3da94acfbc7cbf207e5fe003f"><td class="memTemplParams" colspan="2">template&lt;std::invocable&lt;&gt; Fn&gt; </td></tr>
+<tr class="memitem:aa81da3c3da94acfbc7cbf207e5fe003f"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classcoro_1_1thread__pool__t_aa81da3c3da94acfbc7cbf207e5fe003f.html#aa81da3c3da94acfbc7cbf207e5fe003f">operator&gt;&gt;</a> (Fn &amp;&amp;fn)</td></tr>
+<tr class="memdesc:aa81da3c3da94acfbc7cbf207e5fe003f"><td class="mdescLeft">&#160;</td><td class="mdescRight">alias to enqueue  <a href="classcoro_1_1thread__pool__t_aa81da3c3da94acfbc7cbf207e5fe003f.html#aa81da3c3da94acfbc7cbf207e5fe003f">More...</a><br /></td></tr>
+<tr class="separator:aa81da3c3da94acfbc7cbf207e5fe003f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac461ca2198ec65b21e273d8d69426b58"><td class="memTemplParams" colspan="2">template&lt;typename Fn , typename ... Args&gt; </td></tr>
+<tr class="memitem:ac461ca2198ec65b21e273d8d69426b58"><td class="memTemplItemLeft" align="right" valign="top">requires std::invocable&lt; Fn, Args... &gt; auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classcoro_1_1thread__pool__t_ac461ca2198ec65b21e273d8d69426b58.html#ac461ca2198ec65b21e273d8d69426b58">run</a> (Fn &amp;&amp;fn, Args &amp;&amp;... args) -&gt; <a class="el" href="classcoro_1_1future.html">future</a>&lt; std::invoke_result_t&lt; Fn, Args... &gt; &gt;</td></tr>
+<tr class="memdesc:ac461ca2198ec65b21e273d8d69426b58"><td class="mdescLeft">&#160;</td><td class="mdescRight">Run a function in the thread_pool.  <a href="classcoro_1_1thread__pool__t_ac461ca2198ec65b21e273d8d69426b58.html#ac461ca2198ec65b21e273d8d69426b58">More...</a><br /></td></tr>
+<tr class="separator:ac461ca2198ec65b21e273d8d69426b58"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aba6595c20e8af931b147b3dd83fb411f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1thread__pool__t_aba6595c20e8af931b147b3dd83fb411f.html#aba6595c20e8af931b147b3dd83fb411f">stop</a> ()</td></tr>
 <tr class="memdesc:aba6595c20e8af931b147b3dd83fb411f"><td class="mdescLeft">&#160;</td><td class="mdescRight">stop thread pool  <a href="classcoro_1_1thread__pool__t_aba6595c20e8af931b147b3dd83fb411f.html#aba6595c20e8af931b147b3dd83fb411f">More...</a><br /></td></tr>
 <tr class="separator:aba6595c20e8af931b147b3dd83fb411f"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -149,7 +157,7 @@ class coro::thread_pool_t&lt; CondVar &gt;</h3>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Apr 4 2024 18:27:27 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+Generated on Fri Apr 5 2024 19:12:23 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
 </small></address>
 </body>
 </html>

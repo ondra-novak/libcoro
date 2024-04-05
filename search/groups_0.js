@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['allocators_347',['Allocators',['../group__allocators.html',1,'']]],
-  ['awaitables_348',['Awaitables',['../group__awaitable.html',1,'']]]
+  ['allocators_363',['Allocators',['../group__allocators.html',1,'']]],
+  ['awaitables_364',['Awaitables',['../group__awaitable.html',1,'']]]
 ];

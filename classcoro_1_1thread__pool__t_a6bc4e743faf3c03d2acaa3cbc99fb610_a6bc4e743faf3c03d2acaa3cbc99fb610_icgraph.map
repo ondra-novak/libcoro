@@ -1,4 +1,6 @@
 <map id="coro::thread_pool_t::enqueue" name="coro::thread_pool_t::enqueue">
-<area shape="rect" id="node1" title="enqueue function" alt="" coords="200,5,347,47"/>
-<area shape="rect" id="node2" href="$classcoro_1_1thread__pool__t_a8a8729ad3ee1792b8791fa1d4fcfedbb.html#a8a8729ad3ee1792b8791fa1d4fcfedbb" title="co_await support &#45; resumes the coroutine inside of thread_pool" alt="" coords="5,5,152,47"/>
+<area shape="rect" id="node1" title="enqueue function" alt="" coords="229,71,376,112"/>
+<area shape="rect" id="node2" href="$classcoro_1_1thread__pool__t_a8a8729ad3ee1792b8791fa1d4fcfedbb.html#a8a8729ad3ee1792b8791fa1d4fcfedbb" title="co_await support &#45; resumes the coroutine inside of thread_pool" alt="" coords="20,5,167,47"/>
+<area shape="rect" id="node3" href="$classcoro_1_1thread__pool__t_aa81da3c3da94acfbc7cbf207e5fe003f.html#aa81da3c3da94acfbc7cbf207e5fe003f" title="alias to enqueue" alt="" coords="20,71,167,112"/>
+<area shape="rect" id="node4" href="$classcoro_1_1thread__pool__t_ac461ca2198ec65b21e273d8d69426b58.html#ac461ca2198ec65b21e273d8d69426b58" title="Run a function in the thread_pool." alt="" coords="5,137,181,163"/>
 </map>

@@ -138,6 +138,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ae8fc744c9f1b8bb90cb5535debd81588 inherit pub_methods_classcoro_1_1future"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classcoro_1_1future_ae8fc744c9f1b8bb90cb5535debd81588.html#ae8fc744c9f1b8bb90cb5535debd81588">set_callback</a> (Fn &amp;&amp;fn)</td></tr>
 <tr class="memdesc:ae8fc744c9f1b8bb90cb5535debd81588 inherit pub_methods_classcoro_1_1future"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets callback which is called once future is resolved (in future)  <a href="classcoro_1_1future_ae8fc744c9f1b8bb90cb5535debd81588.html#ae8fc744c9f1b8bb90cb5535debd81588">More...</a><br /></td></tr>
 <tr class="separator:ae8fc744c9f1b8bb90cb5535debd81588 inherit pub_methods_classcoro_1_1future"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a94ac1b1f8ab732b81cf08d88501a323c inherit pub_methods_classcoro_1_1future"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1future_a94ac1b1f8ab732b81cf08d88501a323c.html#a94ac1b1f8ab732b81cf08d88501a323c">unset_callback</a> ()</td></tr>
+<tr class="memdesc:a94ac1b1f8ab732b81cf08d88501a323c inherit pub_methods_classcoro_1_1future"><td class="mdescLeft">&#160;</td><td class="mdescRight">unset callback  <a href="classcoro_1_1future_a94ac1b1f8ab732b81cf08d88501a323c.html#a94ac1b1f8ab732b81cf08d88501a323c">More...</a><br /></td></tr>
+<tr class="separator:a94ac1b1f8ab732b81cf08d88501a323c inherit pub_methods_classcoro_1_1future"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acebad35adcf2de89b1e95f3639856e11 inherit pub_methods_classcoro_1_1future"><td class="memTemplParams" colspan="2">template&lt;std::invocable&lt;&gt; Fn&gt; </td></tr>
 <tr class="memitem:acebad35adcf2de89b1e95f3639856e11 inherit pub_methods_classcoro_1_1future"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classcoro_1_1future_acebad35adcf2de89b1e95f3639856e11.html#acebad35adcf2de89b1e95f3639856e11">then</a> (Fn &amp;&amp;fn)</td></tr>
 <tr class="memdesc:acebad35adcf2de89b1e95f3639856e11 inherit pub_methods_classcoro_1_1future"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets function which is called once future is resolved (always)  <a href="classcoro_1_1future_acebad35adcf2de89b1e95f3639856e11.html#acebad35adcf2de89b1e95f3639856e11">More...</a><br /></td></tr>
@@ -206,14 +209,14 @@ class coro::deferred_future&lt; T &gt;</h3>
 <p>Deferred future is movable unless it is in progress (which results to exception). This type of future is always returned from a function in deferred state, so it can be moved and evaluated after the future is placed to correct place.</p>
 <p>Disadvantage of this future is requirement to store evaluation function inside of the future (which must be movable) and guarantee to keep referneces valid until deferred evaluation is started. , </p>
 
-<p class="definition">Definition at line <a class="el" href="future_8h_source.html#l01026">1026</a> of file <a class="el" href="future_8h_source.html">future.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="future_8h_source.html#l01037">1037</a> of file <a class="el" href="future_8h_source.html">future.h</a>.</p>
 </div><hr/>The documentation for this class was generated from the following file:<ul>
 <li>src/coro/<a class="el" href="future_8h_source.html">future.h</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Apr 4 2024 18:27:27 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+Generated on Fri Apr 5 2024 19:12:23 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
 </small></address>
 </body>
 </html>
