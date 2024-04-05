@@ -60,6 +60,44 @@ public:
         return true;
     }
 
+
+    ///alias to enqueue
+    template<std::invocable<> Fn>
+    bool operator>>(Fn &&fn) {
+        return enqueue(std::forward<Fn>(fn));
+    }
+
+
+    ///Run a function in the thread_pool
+    /**
+     * @param fn function / lambda function or pointer to function
+     * @param args arguments (optional)
+     * @return future, which is resolved with a return value of the function. If the
+     * function doesn't return, result is future<void>. You need to co_await on result
+     * (can't be discarded).
+     */
+    template<typename Fn, typename ... Args>
+    requires std::invocable<Fn, Args...>
+    auto run(Fn &&fn, Args && ... args) -> future<std::invoke_result_t<Fn, Args...> > {
+        return [&](auto promise) {
+            enqueue([promise = std::move(promise),
+                    fn = std::move(fn),
+                    args = std::make_tuple(std::forward<Args>(args)...)]() mutable{
+                try {
+                    if constexpr(std::is_void_v<std::invoke_result_t<Fn, Args...> >) {
+                        std::apply(fn, std::move(args));
+                        promise();
+                    } else {
+                        promise([&]{return std::apply(fn, std::move(args));});
+                    }
+                } catch (...) {
+                    promise.reject();
+                }
+            });
+        };
+
+    }
+
     ///stop thread pool
     /**
      * Can be called even if the thread_pool is already stopped

@@ -565,6 +565,17 @@ public:
         return RegAwtRes::constructed_ready == register_awaiter(std::forward<Fn>(fn), [](auto &&){});
     }
 
+    ///unset callback
+    /**
+     * Function is useful to disarm callback if there is possibility, that
+     * callback can access objects going to be destroyed.
+     * @retval true unset
+     * @retval false future is already resolved
+     */
+    bool unset_callback() {
+        return RegAwtRes::constructed_ready == register_awaiter([]{return prepared_coro{};}, [](auto &&){});
+    }
+
 
     ///Sets function which is called once future is resolved (always)
     /**
@@ -1551,6 +1562,121 @@ protected:
     static shared_future<T> * disabled_slot() {return reinterpret_cast<shared_future<T> *>(1);}
 
 
+};
+
+class future_with_callback {
+public:
+
+    template<typename Fut>
+    future_with_callback(Fut &&fut) {
+        this->fut = &fut;
+        set_cb = [](void *fut, function<prepared_coro()>fun){
+            using FutT = std::decay_t<Fut>;
+            FutT *f = reinterpret_cast<FutT *>(fut);
+            f->then(std::move(fun));
+        };
+    }
+
+    template<std::invocable<> Fn>
+    void operator>>(Fn &&fn) {
+        if constexpr(std::is_same_v<std::invoke_result_t<Fn>, prepared_coro>) {
+            set_cb(fut, std::forward<Fn>(fn));
+        } else{
+            set_cb(fut, [fn = std::move(fn)]()mutable -> prepared_coro {
+                fn();
+                return {};
+            });
+        }
+    }
+
+protected:
+    void *fut;
+    void (*set_cb)(void *fut, function<prepared_coro()>);
+};
+
+
+
+
+///Awaitable (future) which is resolved once all of the futures are resolved
+/**
+ * This object doesn't return anything. You need to access original futures for results
+ */
+class all_of: public future<void> {
+public:
+
+
+    template<typename Iter>
+    all_of(Iter from, Iter to) {
+        result = get_promise();
+        auto cb = [this]{if (--remain == 0) result();};
+        while (from != to) {
+            ++remain;
+            static_cast<future_with_callback>(*from) >> cb;
+            ++from;
+        }
+        cb();
+    }
+
+    all_of(std::initializer_list<future_with_callback> iter)
+        :all_of(iter.begin(), iter.end()) {}
+
+protected:
+    promise<void> result = {};
+    std::atomic<int> remain = {1};
+
+};
+
+
+class any_of: public future<unsigned int> {
+public:
+
+    template<typename Iter>
+    any_of(Iter from, Iter to) {
+        cleanup = [=]{do_cleanup(from, to);};
+        result = get_promise();
+        unsigned int idx = 0;
+        while (from != to) {
+            static_cast<future_with_callback>(*from) >> [idx, this] {
+                unsigned int r = notset;
+                if (selected.compare_exchange_strong(r, idx)) {
+                    finish();
+                }
+            };
+            ++from;
+            ++idx;
+        }
+        if (inited.fetch_add(2) > 0) {
+            cleanup();
+        }
+    }
+
+
+    any_of(std::initializer_list<future_with_callback> iter)
+        :any_of(iter.begin(), iter.end()) {}
+
+
+protected:
+
+    void finish() {
+        if (inited.fetch_add(1) > 1) {
+            cleanup();
+        }
+        result(selected);
+    }
+
+
+    static constexpr unsigned int notset = std::bit_cast<unsigned int>(-1);
+    promise<unsigned int> result = {};
+    std::atomic<unsigned int> selected = {notset};
+    std::atomic<int> inited = {0}; //0 - nothing, 1 - resolved before init, 2 - init waiting, 3 - resolved after init
+    function<void(), 8*sizeof(void *)> cleanup;
+
+    static void do_cleanup(auto from, auto to) {
+        while (from != to) {
+            static_cast<future_with_callback>(*from) >> []{return prepared_coro();};
+            ++from;
+        }
+    }
 };
 
 

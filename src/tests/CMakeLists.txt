@@ -20,6 +20,7 @@ set(testFiles all_compile.cpp
                scheduler.cpp
                destroy_coro.cpp
                thread_pool.cpp
+               future_all_any.cpp
                 )
 foreach (testFile ${testFiles})
     string(REGEX MATCH "([^\/]+$)" filename ${testFile})
