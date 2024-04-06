@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.9.1"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>libcoro: coro::future::is_awaited</title>
+<title>libcoro: coro::future::future</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -74,14 +74,14 @@ $(function() {
         <table>
           <tr><td class="navtab"><a class="navtab" href="classcoro_1_1future_a4e650f783e76f3e30ba2f19f1fbb2c33.html#a4e650f783e76f3e30ba2f19f1fbb2c33">await_ready</a></td></tr>
           <tr><td class="navtab"><a class="navtab" href="classcoro_1_1future_a37a4846ac351808aff805f36b648211d.html#a37a4846ac351808aff805f36b648211d">await_suspend</a></td></tr>
-          <tr><td class="navtab"><a class="navtab" href="classcoro_1_1future_a5b9b4ef5f6c8c1f541b017e8f0b68b85.html#a5b9b4ef5f6c8c1f541b017e8f0b68b85">future</a></td></tr>
+          <tr><td class="navtabHL"><a class="navtab" href="classcoro_1_1future_a5b9b4ef5f6c8c1f541b017e8f0b68b85.html#a5b9b4ef5f6c8c1f541b017e8f0b68b85">future</a></td></tr>
           <tr><td class="navtab"><a class="navtab" href="classcoro_1_1future_a4def6f48d15d8f4e16730c99e0a47c4b.html#a4def6f48d15d8f4e16730c99e0a47c4b">future</a></td></tr>
           <tr><td class="navtab"><a class="navtab" href="classcoro_1_1future_a0b11998c259463c0b7c098262f123d03.html#a0b11998c259463c0b7c098262f123d03">future</a></td></tr>
           <tr><td class="navtab"><a class="navtab" href="classcoro_1_1future_adf06689a147d5f78124cdbf61c55d524.html#adf06689a147d5f78124cdbf61c55d524">get</a></td></tr>
           <tr><td class="navtab"><a class="navtab" href="classcoro_1_1future_a1b648cf43f83b46ac3de0e4e868661e3.html#a1b648cf43f83b46ac3de0e4e868661e3">get_promise</a></td></tr>
           <tr><td class="navtab"><a class="navtab" href="classcoro_1_1future_a2095f28a80667c0b5c7e8e209e581474.html#a2095f28a80667c0b5c7e8e209e581474">has_exception</a></td></tr>
           <tr><td class="navtab"><a class="navtab" href="classcoro_1_1future_a4666461048b2c93b2d4383506d6068e4.html#a4666461048b2c93b2d4383506d6068e4">has_value</a></td></tr>
-          <tr><td class="navtabHL"><a class="navtab" href="classcoro_1_1future_aa4dc790abd17ba74196c19022bdde4a7.html#aa4dc790abd17ba74196c19022bdde4a7">is_awaited</a></td></tr>
+          <tr><td class="navtab"><a class="navtab" href="classcoro_1_1future_aa4dc790abd17ba74196c19022bdde4a7.html#aa4dc790abd17ba74196c19022bdde4a7">is_awaited</a></td></tr>
           <tr><td class="navtab"><a class="navtab" href="classcoro_1_1future_a331a709e5bf619289d2282836e9df641.html#a331a709e5bf619289d2282836e9df641">is_deferred</a></td></tr>
           <tr><td class="navtab"><a class="navtab" href="classcoro_1_1future_aacd2d15009df87c497383481e5712c99.html#aacd2d15009df87c497383481e5712c99">is_in_progress</a></td></tr>
           <tr><td class="navtab"><a class="navtab" href="classcoro_1_1future_ad501d94dbb5cb2b5e77da2b90a0d7af2.html#ad501d94dbb5cb2b5e77da2b90a0d7af2">is_pending</a></td></tr>
@@ -103,22 +103,35 @@ $(function() {
       </div>
    </td>
    <td valign="top" class="mempage">
-<a id="aa4dc790abd17ba74196c19022bdde4a7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa4dc790abd17ba74196c19022bdde4a7">&#9670;&nbsp;</a></span>is_awaited()</h2>
+<a id="a5b9b4ef5f6c8c1f541b017e8f0b68b85"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5b9b4ef5f6c8c1f541b017e8f0b68b85">&#9670;&nbsp;</a></span>future() <span class="overload">[1/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
 template&lt;typename T &gt; </div>
+<div class="memtemplate">
+template&lt;typename ... Args&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">bool <a class="el" href="classcoro_1_1future.html">coro::future</a>&lt; T &gt;::is_awaited </td>
+          <td class="memname"><a class="el" href="classcoro_1_1future.html">coro::future</a>&lt; T &gt;::<a class="el" href="classcoro_1_1future.html">future</a> </td>
           <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
+          <td class="paramtype">std::in_place_t&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Args &amp;&amp;...&#160;</td>
+          <td class="paramname"><em>args</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
   </td>
@@ -128,16 +141,15 @@ template&lt;typename T &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p>Determine whether an awaiter is set. </p>
-<dl class="retval"><dt>Return values</dt><dd>
-  <table class="retval">
-    <tr><td class="paramname">true</td><td>future has awaiter set </td></tr>
-    <tr><td class="paramname">false</td><td>there is no awaiter </td></tr>
+<p>Construct future already resolved with a value. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">args</td><td>arguments </td></tr>
   </table>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="future_8h_source.html#l00698">698</a> of file <a class="el" href="future_8h_source.html">future.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="future_8h_source.html#l00442">442</a> of file <a class="el" href="future_8h_source.html">future.h</a>.</p>
 
 </div>
 </div>
