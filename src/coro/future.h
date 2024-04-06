@@ -433,6 +433,13 @@ public:
     future(Args && ... args):_result(Result::value), _value(std::forward<Args>(args)...) {}
 
 
+    ///Construct future already resolved with a value
+    /**
+     * @param args arguments
+     */
+    template<typename ... Args>
+    future(std::in_place_t, Args &&... args): _result(Result::value), _value(std::forward<Args>(args)...) {}
+
     ////Construct future already resolved with an exception
     future(std::exception_ptr e):_result(Result::exception), _exception(std::move(e)) {}
 
