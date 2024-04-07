@@ -104,7 +104,7 @@ public:
     }
 
     template<typename ... Args>
-    void operator delete(void *ptr, Alloc &a, Args  && ...) {
+    void operator delete(void *, Alloc &, Args  && ...) {
         throw std::logic_error("unreachable");
     }
 
@@ -115,7 +115,7 @@ public:
     }
 
     template<typename This, typename ... Args>
-    void operator delete(void *ptr, This &, Alloc &a, Args && ...) {
+    void operator delete(void *, This &, Alloc &, Args && ...) {
         throw std::logic_error("unreachable");
     }
 
