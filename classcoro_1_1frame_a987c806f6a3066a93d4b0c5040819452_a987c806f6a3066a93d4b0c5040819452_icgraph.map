@@ -1,0 +1,5 @@
+<map id="coro::frame::get_handle" name="coro::frame::get_handle">
+<area shape="rect" id="node1" title="Retrieve coroutine handle of this frame." alt="" coords="409,5,587,32"/>
+<area shape="rect" id="node2" href="$classcoro_1_1frame_a891ec5f64080b81e84b587844235f56a.html#a891ec5f64080b81e84b587844235f56a" title="Emulates co_await (without await_resume) with no suspend when ready." alt="" coords="195,5,361,32"/>
+<area shape="rect" id="node3" href="$classcoro_1_1frame_ac97cd4ffd69181d206c21033bfce03c2.html#ac97cd4ffd69181d206c21033bfce03c2" title="Emulates co_await (without await_resume)" alt="" coords="5,5,147,32"/>
+</map>
