@@ -1,6 +1,6 @@
 #pragma once
 
-#include "frame.h"
+#include "sync_await.h"
 #include "function.h"
 #include "future.h"
 #include <ucontext.h>
@@ -20,10 +20,17 @@ public:
 
     template<typename Awaitable>
     static decltype(auto) await(Awaitable &awt) {
-        if (!awt.await_ready()) {
-            _global._caller->suspend_on(awt);
+        if constexpr(has_co_await_operator<Awaitable>) {
+            return await(awt.operator co_await());
+        } else {
+            fiber *c = _global._caller;
+            if (c == nullptr || c == &_global) {
+                return sync_await(awt);
+            } else if (!awt.await_ready()) {
+                c->suspend_on(awt);
+            }
+            return awt.await_resume();
         }
-        return awt.await_resume();
     }
 
     template<typename Awaitable>
@@ -33,7 +40,7 @@ public:
 
 
     template<typename Fn, typename ... Args>
-    static auto start(std::size_t stack_size, Fn &&fn, Args &&... args) -> deferred_future<std::invoke_result_t<Fn, Args...> >{
+    static auto create(std::size_t stack_size, Fn &&fn, Args &&... args) -> deferred_future<std::invoke_result_t<Fn, Args...> >{
         auto me = create_frame(stack_size, std::forward<Fn>(fn), std::forward<Args>(args)...);
         return [me = std::unique_ptr<fiber>(me)](auto promise) mutable -> prepared_coro {
             me->_fut = promise.release();
@@ -41,7 +48,7 @@ public:
         };
     }
     template<typename Fn, typename ... Args>
-    static void detach(std::size_t stack_size, Fn &&fn, Args &&... args) {
+    static void create_detach(std::size_t stack_size, Fn &&fn, Args &&... args) {
         auto me = create_frame(stack_size, std::forward<Fn>(fn), std::forward<Args>(args)...);
         _global._caller->resume_frame(me);
     }
@@ -86,7 +93,9 @@ protected:
 
         using Ret = std::invoke_result_t<Fn, Args...>;
 
-        using FnClosure = decltype([fn = std::move(fn), args = std::make_tuple(std::forward<Args>(args)...)](void *){});
+        using FnClosure = decltype([fn = std::move(fn), args = std::make_tuple(std::forward<Args>(args)...)](void *){
+            std::apply(fn, args);
+        });
 
         std::size_t need_size = stack_size + sizeof(fiber) +  sizeof(FnClosure);
         void *mem = ::operator new(need_size);
@@ -129,6 +138,12 @@ protected:
                 } catch (...) {
                     /* no exception processing possible */
                 }
+                fiber *me = _global._caller;
+                me->_awt_fn = [me](auto) mutable -> std::coroutine_handle<> {
+                    me->dealloc_frame();
+                    return std::noop_coroutine();
+                };
+
             }
         });
         return me;
@@ -152,7 +167,7 @@ protected:
 
     template<typename Awt>
     void suspend_on(Awt &awt) {
-        _awt_fn = [this, &awt](std::coroutine_handle<> h) {
+        _awt_fn = [this, &awt](std::coroutine_handle<> h) -> std::coroutine_handle<> {
             try {
                 using RetVal = decltype(awt.await_suspend(h));
                 if constexpr(std::is_same_v<RetVal,bool>) {
@@ -166,6 +181,7 @@ protected:
                 }
             } catch (...) {
                 this->_except = std::current_exception();
+                return std::noop_coroutine();
             }
         };
         swapcontext(&_this_context, &_caller->_this_context);

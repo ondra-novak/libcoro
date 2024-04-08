@@ -7,13 +7,18 @@
 
 namespace coro {
 
+template<typename T>
+concept has_co_await_operator = requires(T v){
+    {v.operator co_await()};
+};
+
 
 ///Creates coroutine compatible memory layout, so the object acts as an coroutine
 /**
  * Note this is experimental and undocumented feature. It is highly implemetation depended.
  * Currently only GCC, CLANG and MSC are supported
  *
- * @tparam T class which satisfy frame_content concept. The functions resume() and destroy()
+ * @tparam T class must defined two functions resume() and destroy(). The functions resume() and destroy()
  * are mapped to coroutine_handle<>::resume() and coroutine_handle<>::destroy(). There
  * is no specification, what these function must do.
  *
@@ -23,14 +28,14 @@ namespace coro {
 
 template<typename T>
 class frame {
-private:
+protected:
     void (*_resume_fn)(std::coroutine_handle<>) = [](std::coroutine_handle<> h) {
         static_assert(requires(T v){{v.resume()};}, "The child class must have T::resume() function");
         auto *me = reinterpret_cast<frame *>(h.address());
         me->do_resume();
     };
     void (*_destroy_fn)(std::coroutine_handle<>) = [](std::coroutine_handle<> h) {
-        static_assert(requires(T v){{v.resume()};}, "The child class must have T;;destroy() function");
+        static_assert(requires(T v){{v.resume()};}, "The child class must have T::destroy() function");
         auto *me = reinterpret_cast<frame *>(h.address());
         auto *content = static_cast<T *>(me);
         content->destroy();
@@ -39,6 +44,13 @@ private:
     void do_resume() {
         auto *content = static_cast<T *>(this);
         content->resume();
+    }
+    ///Sets done flag
+    /**
+     * This causes that h.done() return true. Note that once coroutine is set as done(), it can't be resumed
+     */
+    void set_done() {
+        _resume_fn = nullptr;
     }
 public:
     ///Retrieve coroutine handle of this frame.

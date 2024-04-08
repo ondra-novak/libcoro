@@ -16,11 +16,14 @@ public:
 
     //called when fake coroutine is destroyed
     void destroy() {
+        set_done();
         _destroyed = true;
+        _done = this->get_handle().done();
     }
 
     bool _called = false;
     bool _destroyed = false;
+    bool _done = false;
     coro::promise<void> _prom;
 
     //retrieve promise to wait in resumption
@@ -48,6 +51,7 @@ int main() {
 
     CHECK(tframe._called);
     CHECK(tframe._destroyed);
+    CHECK(tframe._done);
 
     return 0;
 }

@@ -59,6 +59,8 @@ public:
     ///test whether there is coroutine prepared
     operator bool() const {return _h != nullptr;}
 
+    bool done() const {return _h.done();}
+
 protected:
     std::coroutine_handle<> _h;
 
