@@ -115,6 +115,31 @@ class function_impl<RetVal(Args...), nx, reserved_space> {
         std::unique_ptr<Fn> _fn;
     };
 
+    template<typename Fn>
+    class WrapFnPlacement: public Abstract {
+    public:
+        struct Deleter {
+            void operator()(Fn *fn){std::destroy_at(fn);};
+        };
+
+        template<std::convertible_to<Fn> Fun>
+        WrapFnPlacement(Fun &&fn, void *ptr):_fn(new(ptr) Fn(std::forward<Fun>(fn))) {}
+
+        virtual RetVal call(Args && ... args) override {
+            return (*_fn)(std::forward<Args>(args)...);
+        }
+        virtual void move(void *address) override {
+            //allocate at address and move
+            new(address) WrapFnPlacement(std::move(*this));
+        }
+        virtual bool valid() const override {return true;}
+
+    protected:
+        //pointer is held to a function allocated on the heap
+        std::unique_ptr<Fn, Deleter> _fn;
+    };
+
+
     ///Represents invalid function, which is not callable. Used as default value of the object
     class InvalidFn: public Abstract {
     public:
@@ -158,6 +183,19 @@ public:
             //allocate object in reserved space
             new(_reserved) Large(std::forward<Fn>(fn));
         }
+    }
+
+    ///Construct function while placing the closure at given memory place (placement creation)
+    /**
+     * @param ptr pointer to a memory, where function will be constructed. The space for
+     * the function must be enough to hold Fn. use sizeof(Fn) to calculate required space
+     *
+     * @param fn function + closure
+     *
+     */
+    template<IsFunctionConstructible<RetVal, nx, Args...> Fn>
+    function_impl(void *ptr, Fn &&fn) {
+        new(_reserved) WrapFnPlacement<std::decay_t<Fn> >(std::forward<Fn>(fn), ptr);
     }
 
     ///Move constructor
@@ -209,8 +247,9 @@ public:
     }
 
     ///Call the function
-    RetVal operator()(Args && ... args) noexcept(nx) {
-        return ref().call(std::forward<Args>(args)...);
+    template<typename ... XArgs>
+    RetVal operator()(XArgs && ... args) noexcept(nx) {
+        return ref().call(Args(std::forward<XArgs>(args))...);
     }
 
     ///Determines callable state

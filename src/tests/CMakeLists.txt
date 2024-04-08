@@ -22,6 +22,7 @@ set(testFiles all_compile.cpp
                thread_pool.cpp
                future_all_any.cpp
                frame.cpp
+               fiber.cpp
                 )
 foreach (testFile ${testFiles})
     string(REGEX MATCH "([^\/]+$)" filename ${testFile})

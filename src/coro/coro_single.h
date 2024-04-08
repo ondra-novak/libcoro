@@ -12,5 +12,8 @@
 #include "cooperative.h"
 #include "async.h"
 #include "pool_alloc.h"
+#include "semaphore.h"
+#include "frame.h"
+#include "fiber.h"
 
 #endif
