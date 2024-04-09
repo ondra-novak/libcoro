@@ -111,7 +111,7 @@ public:
         template<std::invocable<function<prepared_coro()>  > Fn>
         void deliver(Fn &&fn) {
             auto ptr = _ptr.release();
-            ptr->set_resolved(std::forward<Fn>(fn));
+            if (ptr) ptr->set_resolved(std::forward<Fn>(fn));
         }
 
 
@@ -126,11 +126,15 @@ public:
          */
         std::coroutine_handle<> symmetric_transfer() {
             auto ptr = _ptr.release();
-            prepared_coro retval;
-            ptr->set_resolved([&](auto &&awt){
-                retval = awt();
-            });
-            return retval.symmetric_transfer();
+            if (ptr) {
+                prepared_coro retval;
+                ptr->set_resolved([&](auto &&awt){
+                    retval = awt();
+                });
+                return retval.symmetric_transfer();
+            } else {
+                return std::noop_coroutine();
+            }
 
         }
         ///Determines, whether object carries deferred notification
