@@ -1,6 +1,7 @@
 #include "check.h"
 #include "../coro/mutex.h"
-#include "../coro/coro.h"
+
+#include "../coro/coroutine.h"
 #include "../coro/async.h"
 #include <thread>
 

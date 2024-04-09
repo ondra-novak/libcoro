@@ -1,8 +1,5 @@
 #pragma once
 
-#include "sync_await.h"
-#include "function.h"
-#include "future.h"
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -64,8 +61,9 @@ protected:
     ///this coroutine machine state content
 #ifdef _WIN32
     LPVOID _handle = nullptr;
-#else    
+#else
     ucontext_t _this_context = {};
+    void *_stack_ptr = nullptr;
 #endif
     ///starting function (contains arguments)
     StartFN _start_fn = {};
@@ -89,8 +87,9 @@ protected:
         this->~fiber();
         DeleteFiber(h) ;
 #else
+        void *ptr = _stack_ptr;
         this->~fiber();
-        operator delete(this);
+        operator delete(ptr);
 #endif
     }
 
@@ -112,9 +111,9 @@ protected:
     };
 
     #ifdef _WIN32
-    
+
     struct InitInfo {
-        LPVOID this_fiber = nullptr;            
+        LPVOID this_fiber = nullptr;
         fiber *instance = nullptr;
         void *fn_memory = nullptr;
     };
@@ -126,7 +125,24 @@ protected:
             nfo->fn_memory = alloca(sizeof(FnClosure));
             nfo->instance = &inst;
             SwitchToFiber(nfo->this_fiber);
-            entry_point(&inst);            
+            entry_point(&inst);
+    }
+
+    #else
+
+    struct InitInfo {
+        fiber *instance = nullptr;
+        void *fn_memory = nullptr;
+    };
+
+    template<typename FnClosure>
+    static void InitFunction() {
+        InitInfo *nfo = reinterpret_cast<InitInfo *>(_global._fut);
+        fiber inst;
+        nfo->fn_memory = alloca(sizeof(FnClosure));
+        nfo->instance = &inst;
+        swapcontext(&inst._this_context, &_global._caller->_this_context);
+        entry_point(&inst);
     }
 
     #endif
@@ -161,12 +177,12 @@ protected:
                     /* no exception processing possible */
                 }
 
-            }        
+            }
 
             //cleanup
             fiber *me = _global._caller;
             //define final awaiter
-            me->_awt_fn = [ntf = std::move(ntf), me](auto) mutable -> std::coroutine_handle<> {                
+            me->_awt_fn = [ntf = std::move(ntf), me](auto) mutable -> std::coroutine_handle<> {
                 auto ntf2 = std::move(ntf);
                 //destroy frame
                 me->dealloc_frame();
@@ -178,7 +194,7 @@ protected:
     protected:
         Fn _fn;
         std::tuple<Args...> _args;
-        
+
     };
 
     template<typename Fn, typename ... Args>
@@ -201,17 +217,20 @@ protected:
         #else
 
         void *mem = ::operator new(need_size);
-        void *args_begin = reinterpret_cast<char *>(mem) + sizeof(fiber);
-        void *stack_begin = reinterpret_cast<char *>(args_begin) + sizeof(FnClosure);
-        fiber *me = new(mem) fiber;
+        ucontext_t tmp_ctx;
 
-        getcontext(&me->_this_context);
-        me->_this_context.uc_stack.ss_sp = stack_begin;
-        me->_this_context.uc_stack.ss_size = stack_size;
-        me->_this_context.uc_link = nullptr;
-        using TGFN = void (*)(void);
-        makecontext(&me->_this_context, reinterpret_cast<TGFN>(&entry_point), 1, me);
-        
+        getcontext(&tmp_ctx);
+        tmp_ctx.uc_stack.ss_sp = mem;
+        tmp_ctx.uc_stack.ss_size = need_size;
+        tmp_ctx.uc_link = nullptr;
+        makecontext(&tmp_ctx, &InitFunction<StartupFunction<Fn,Args...> >,0);
+        InitInfo nfo;
+        _global._fut = &nfo;
+        swapcontext(&_global._caller->_this_context, &tmp_ctx);
+        fiber *me = nfo.instance;
+        void *args_begin = nfo.fn_memory;
+        me->_stack_ptr = mem;
+
         #endif
 
         me->_start_fn = StartFN(args_begin, StartupFunction<Fn,Args...>(std::forward<Fn>(fn), std::forward<Args>(args)...));

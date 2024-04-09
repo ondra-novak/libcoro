@@ -1,8 +1,8 @@
 #include "check.h"
+
+#include "../coro/coroutine.h"
 #include "../coro/future.h"
 #include "../coro/async.h"
-#include "../coro/coro.h"
-
 #include <optional>
 
 static int constructor = 0;

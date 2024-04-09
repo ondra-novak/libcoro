@@ -1,7 +1,7 @@
 #include <iostream>
-#include "../coro/coro.h"
 #include "../coro/cooperative.h"
 #include "check.h"
+#include "../coro/coroutine.h"
 
 std::vector<int> results = {
     0,10,20,30,40,

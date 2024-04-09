@@ -1,6 +1,7 @@
-#include "../coro/coro.h"
 #include "../coro/future.h"
 #include "check.h"
+
+#include "../coro/coroutine.h"
 
 #include <thread>
 coro::deferred_future<double> evaluate_async(int val) {

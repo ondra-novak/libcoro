@@ -1,7 +1,5 @@
 #include "check.h"
-#include "../coro/fiber.h"
-#include "../coro/scheduler.h"
-#include "../coro/cooperative.h"
+#include <coro_fiber.h>
 
 void test_coro(coro::scheduler *sch) {
     coro::fiber::await(sch->sleep_for(std::chrono::milliseconds(100)));

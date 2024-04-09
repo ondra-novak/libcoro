@@ -1,10 +1,9 @@
 #pragma once
 
+#include "coroutine.h"
 #include "generator.h"
 #include "queue.h"
 #include "on_leave.h"
-#include "coro.h"
-
 #include <vector>
 namespace coro {
 

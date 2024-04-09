@@ -1,6 +1,6 @@
 #include "../coro/semaphore.h"
-#include "../coro/coro.h"
 #include "check.h"
+#include "../coro/coroutine.h"
 
 
 coro::coroutine test_coro(coro::semaphore &sem, int &i) {
