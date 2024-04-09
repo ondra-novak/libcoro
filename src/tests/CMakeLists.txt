@@ -22,8 +22,12 @@ set(testFiles all_compile.cpp
                thread_pool.cpp
                future_all_any.cpp
                frame.cpp
-               fiber.cpp
                 )
+                
+if (ENABLE_FIBER) 
+set(testFiles ${testFiles} fiber.cpp)
+endif()
+
 foreach (testFile ${testFiles})
     string(REGEX MATCH "([^\/]+$)" filename ${testFile})
     string(REGEX MATCH "[^.]*" executable_name test_${filename})
