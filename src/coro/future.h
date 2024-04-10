@@ -1606,7 +1606,7 @@ protected:
     void (*set_cb)(void *fut, function<prepared_coro()>);
 };
 
-
+#if 0
 
 
 ///Awaitable (future) which is resolved once all of the futures are resolved
@@ -1638,7 +1638,8 @@ protected:
 
 };
 
-
+#endif
+#if 0
 class any_of: public future<unsigned int> {
 public:
 
@@ -1690,7 +1691,7 @@ protected:
         }
     }
 };
-
+#endif
 
 
 
