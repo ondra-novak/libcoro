@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.9.1"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>libcoro: coro::all_of Class Reference</title>
+<title>libcoro: coro::all_of&lt; T &gt; Class Template Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -68,35 +68,36 @@ $(function() {
 </div><!-- top -->
 <div class="header">
   <div class="summary">
+<a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="classcoro_1_1all__of-members.html">List of all members</a>  </div>
   <div class="headertitle">
-<div class="title">coro::all_of Class Reference</div>  </div>
+<div class="title">coro::all_of&lt; T &gt; Class Template Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
 
-<p>Awaitable (future) which is resolved once all of the futures are resolved.  
+<p>this awaitable is resolved, when all objects specified by constructor are resolved  
  <a href="classcoro_1_1all__of.html#details">More...</a></p>
 
-<p><code>#include &lt;<a class="el" href="future_8h_source.html">future.h</a>&gt;</code></p>
+<p><code>#include &lt;<a class="el" href="future__list_8h_source.html">future_list.h</a>&gt;</code></p>
 <div id="dynsection-0" onclick="return toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
-  <img id="dynsection-0-trigger" src="closed.png" alt="+"/> Inheritance diagram for coro::all_of:</div>
+  <img id="dynsection-0-trigger" src="closed.png" alt="+"/> Inheritance diagram for coro::all_of&lt; T &gt;:</div>
 <div id="dynsection-0-summary" class="dynsummary" style="display:block;">
 </div>
 <div id="dynsection-0-content" class="dyncontent" style="display:none;">
-<div class="center"><img src="classcoro_1_1all__of__inherit__graph.png" border="0" usemap="#acoro_1_1all__of_inherit__map" alt="Inheritance graph"/></div>
-<map name="acoro_1_1all__of_inherit__map" id="acoro_1_1all__of_inherit__map">
-<area shape="rect" title="Awaitable (future) which is resolved once all of the futures are resolved." alt="" coords="35,80,130,107"/>
+<div class="center"><img src="classcoro_1_1all__of__inherit__graph.png" border="0" usemap="#acoro_1_1all__of_3_01_t_01_4_inherit__map" alt="Inheritance graph"/></div>
+<map name="acoro_1_1all__of_3_01_t_01_4_inherit__map" id="acoro_1_1all__of_3_01_t_01_4_inherit__map">
+<area shape="rect" title="this awaitable is resolved, when all objects specified by constructor are resolved" alt="" coords="17,80,149,107"/>
 <area shape="rect" href="classcoro_1_1future.html" title=" " alt="" coords="5,5,160,32"/>
 </map>
 <center><span class="legend">[<a href="graph_legend.html">legend</a>]</span></center></div>
 <div id="dynsection-1" onclick="return toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
-  <img id="dynsection-1-trigger" src="closed.png" alt="+"/> Collaboration diagram for coro::all_of:</div>
+  <img id="dynsection-1-trigger" src="closed.png" alt="+"/> Collaboration diagram for coro::all_of&lt; T &gt;:</div>
 <div id="dynsection-1-summary" class="dynsummary" style="display:block;">
 </div>
 <div id="dynsection-1-content" class="dyncontent" style="display:none;">
-<div class="center"><img src="classcoro_1_1all__of__coll__graph.png" border="0" usemap="#acoro_1_1all__of_coll__map" alt="Collaboration graph"/></div>
-<map name="acoro_1_1all__of_coll__map" id="acoro_1_1all__of_coll__map">
-<area shape="rect" title="Awaitable (future) which is resolved once all of the futures are resolved." alt="" coords="563,126,657,153"/>
+<div class="center"><img src="classcoro_1_1all__of__coll__graph.png" border="0" usemap="#acoro_1_1all__of_3_01_t_01_4_coll__map" alt="Collaboration graph"/></div>
+<map name="acoro_1_1all__of_3_01_t_01_4_coll__map" id="acoro_1_1all__of_3_01_t_01_4_coll__map">
+<area shape="rect" title="this awaitable is resolved, when all objects specified by constructor are resolved" alt="" coords="567,126,699,153"/>
 <area shape="rect" href="classcoro_1_1future.html" title=" " alt="" coords="311,93,466,119"/>
 <area shape="rect" href="classcoro_1_1function.html" title=" " alt="" coords="5,5,189,47"/>
 <area shape="rect" href="classcoro_1_1function.html" title=" " alt="" coords="6,71,189,141"/>
@@ -105,8 +106,19 @@ $(function() {
 </map>
 <center><span class="legend">[<a href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="inherited"></a>
-Additional Inherited Members</h2></td></tr>
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
+Public Member Functions</h2></td></tr>
+<tr class="memitem:a24c5188cc718e3c3bfe085950d34e252"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1all__of_a24c5188cc718e3c3bfe085950d34e252.html#a24c5188cc718e3c3bfe085950d34e252">all_of</a> (std::initializer_list&lt; <a class="el" href="classcoro_1_1pointer__wrapper.html">pointer_wrapper</a>&lt; T &gt; &gt; lst)</td></tr>
+<tr class="memdesc:a24c5188cc718e3c3bfe085950d34e252"><td class="mdescLeft">&#160;</td><td class="mdescRight">construct using initializer list  <a href="classcoro_1_1all__of_a24c5188cc718e3c3bfe085950d34e252.html#a24c5188cc718e3c3bfe085950d34e252">More...</a><br /></td></tr>
+<tr class="separator:a24c5188cc718e3c3bfe085950d34e252"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a96cbbf7001920d152d8f39cffb8e5287"><td class="memTemplParams" colspan="2">template&lt;container_type Container&gt; </td></tr>
+<tr class="memitem:a96cbbf7001920d152d8f39cffb8e5287"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classcoro_1_1all__of_a96cbbf7001920d152d8f39cffb8e5287.html#a96cbbf7001920d152d8f39cffb8e5287">all_of</a> (Container &amp;&amp;cont)</td></tr>
+<tr class="memdesc:a96cbbf7001920d152d8f39cffb8e5287"><td class="mdescLeft">&#160;</td><td class="mdescRight">construct using a container  <a href="classcoro_1_1all__of_a96cbbf7001920d152d8f39cffb8e5287.html#a96cbbf7001920d152d8f39cffb8e5287">More...</a><br /></td></tr>
+<tr class="separator:a96cbbf7001920d152d8f39cffb8e5287"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8090b2d9e40ade860cbb5b93ea25cecf"><td class="memTemplParams" colspan="2">template&lt;iterator_type Iter&gt; </td></tr>
+<tr class="memitem:a8090b2d9e40ade860cbb5b93ea25cecf"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classcoro_1_1all__of_a8090b2d9e40ade860cbb5b93ea25cecf.html#a8090b2d9e40ade860cbb5b93ea25cecf">all_of</a> (Iter from, Iter to)</td></tr>
+<tr class="memdesc:a8090b2d9e40ade860cbb5b93ea25cecf"><td class="mdescLeft">&#160;</td><td class="mdescRight">construct using iterator pair  <a href="classcoro_1_1all__of_a8090b2d9e40ade860cbb5b93ea25cecf.html#a8090b2d9e40ade860cbb5b93ea25cecf">More...</a><br /></td></tr>
+<tr class="separator:a8090b2d9e40ade860cbb5b93ea25cecf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_classcoro_1_1future"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_classcoro_1_1future')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classcoro_1_1future.html">coro::future&lt; void &gt;</a></td></tr>
 <tr class="memitem:a5b9b4ef5f6c8c1f541b017e8f0b68b85 inherit pub_methods_classcoro_1_1future"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1future_a5b9b4ef5f6c8c1f541b017e8f0b68b85.html#a5b9b4ef5f6c8c1f541b017e8f0b68b85">future</a> (std::in_place_t, Args &amp;&amp;... args)</td></tr>
 <tr class="memdesc:a5b9b4ef5f6c8c1f541b017e8f0b68b85 inherit pub_methods_classcoro_1_1future"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct future already resolved with a value.  <a href="classcoro_1_1future_a5b9b4ef5f6c8c1f541b017e8f0b68b85.html#a5b9b4ef5f6c8c1f541b017e8f0b68b85">More...</a><br /></td></tr>
@@ -183,6 +195,15 @@ Additional Inherited Members</h2></td></tr>
 <tr class="memitem:ad0c25cd6f444e32c1296702e49291ec1 inherit pub_methods_classcoro_1_1future"><td class="memItemLeft" align="right" valign="top">canceled_awaiter&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1future_ad0c25cd6f444e32c1296702e49291ec1.html#ad0c25cd6f444e32c1296702e49291ec1">operator!</a> ()</td></tr>
 <tr class="memdesc:ad0c25cd6f444e32c1296702e49291ec1 inherit pub_methods_classcoro_1_1future"><td class="mdescLeft">&#160;</td><td class="mdescRight">awaitable for canceled operation  <a href="classcoro_1_1future_ad0c25cd6f444e32c1296702e49291ec1.html#ad0c25cd6f444e32c1296702e49291ec1">More...</a><br /></td></tr>
 <tr class="separator:ad0c25cd6f444e32c1296702e49291ec1 inherit pub_methods_classcoro_1_1future"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a96ac87f9e055f2b42c7cc0c1426cbfd2 inherit pub_methods_classcoro_1_1future"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classcoro_1_1promise.html">promise</a>&lt; X &gt;::notify&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1future_a96ac87f9e055f2b42c7cc0c1426cbfd2.html#a96ac87f9e055f2b42c7cc0c1426cbfd2">forward_to</a> (<a class="el" href="classcoro_1_1promise.html">promise</a>&lt; X &gt; &amp;prom) noexcept</td></tr>
+<tr class="memdesc:a96ac87f9e055f2b42c7cc0c1426cbfd2 inherit pub_methods_classcoro_1_1future"><td class="mdescLeft">&#160;</td><td class="mdescRight">Forward value, possibly convert it, to different promise.  <a href="classcoro_1_1future_a96ac87f9e055f2b42c7cc0c1426cbfd2.html#a96ac87f9e055f2b42c7cc0c1426cbfd2">More...</a><br /></td></tr>
+<tr class="separator:a96ac87f9e055f2b42c7cc0c1426cbfd2 inherit pub_methods_classcoro_1_1future"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9a35b0e6fb236fbac22de0752e7cf74d inherit pub_methods_classcoro_1_1future"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classcoro_1_1promise.html">promise</a>&lt; X &gt;::notify&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1future_a9a35b0e6fb236fbac22de0752e7cf74d.html#a9a35b0e6fb236fbac22de0752e7cf74d">convert_to</a> (<a class="el" href="classcoro_1_1promise.html">promise</a>&lt; X &gt; &amp;prom, Fn &amp;&amp;convert) noexcept</td></tr>
+<tr class="memdesc:a9a35b0e6fb236fbac22de0752e7cf74d inherit pub_methods_classcoro_1_1future"><td class="mdescLeft">&#160;</td><td class="mdescRight">Forward value, possibly convert it, to different promise.  <a href="classcoro_1_1future_a9a35b0e6fb236fbac22de0752e7cf74d.html#a9a35b0e6fb236fbac22de0752e7cf74d">More...</a><br /></td></tr>
+<tr class="separator:a9a35b0e6fb236fbac22de0752e7cf74d inherit pub_methods_classcoro_1_1future"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="inherited"></a>
+Additional Inherited Members</h2></td></tr>
 <tr class="inherit_header pro_methods_classcoro_1_1future"><td colspan="2" onclick="javascript:toggleInherit('pro_methods_classcoro_1_1future')"><img src="closed.png" alt="-"/>&#160;Protected Member Functions inherited from <a class="el" href="classcoro_1_1future.html">coro::future&lt; void &gt;</a></td></tr>
 <tr class="memitem:a19d310ef5cce45110afeb688e41712fa inherit pro_methods_classcoro_1_1future"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1future_a19d310ef5cce45110afeb688e41712fa.html#a19d310ef5cce45110afeb688e41712fa">startDeferredEvaluation</a> (ResumeFn &amp;&amp;resume_fn) noexcept</td></tr>
 <tr class="memdesc:a19d310ef5cce45110afeb688e41712fa inherit pro_methods_classcoro_1_1future"><td class="mdescLeft">&#160;</td><td class="mdescRight">Starts evaluation of deferred future.  <a href="classcoro_1_1future_a19d310ef5cce45110afeb688e41712fa.html#a19d310ef5cce45110afeb688e41712fa">More...</a><br /></td></tr>
@@ -192,17 +213,31 @@ Additional Inherited Members</h2></td></tr>
 <tr class="separator:a3f727444dea9f3e2e4888cf00c6a48e9 inherit pro_methods_classcoro_1_1future"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Awaitable (future) which is resolved once all of the futures are resolved. </p>
-<p>This object doesn't return anything. You need to access original futures for results </p>
+<div class="textblock"><h3>template&lt;typename T&gt;<br />
+class coro::all_of&lt; T &gt;</h3>
 
-<p class="definition">Definition at line <a class="el" href="future_8h_source.html#l01616">1616</a> of file <a class="el" href="future_8h_source.html">future.h</a>.</p>
+<p>this awaitable is resolved, when all objects specified by constructor are resolved </p>
+<p>The list is defined as an container of pointer to these objects. However for initializer list, you don't need to specify list of pointers</p>
+<div class="fragment"><div class="line">co_await <a class="code" href="classcoro_1_1all__of_a24c5188cc718e3c3bfe085950d34e252.html#a24c5188cc718e3c3bfe085950d34e252">all_of</a>({f1,f2,f3,f4});</div>
+<div class="line"> </div>
+<div class="line">std::vector&lt;future&lt;int&gt; *&gt; tasks;</div>
+<div class="line">co_await <a class="code" href="classcoro_1_1all__of_a24c5188cc718e3c3bfe085950d34e252.html#a24c5188cc718e3c3bfe085950d34e252">all_of</a>(tasks);</div>
+<div class="ttc" id="aclasscoro_1_1all__of_a24c5188cc718e3c3bfe085950d34e252_html_a24c5188cc718e3c3bfe085950d34e252"><div class="ttname"><a href="classcoro_1_1all__of_a24c5188cc718e3c3bfe085950d34e252.html#a24c5188cc718e3c3bfe085950d34e252">coro::all_of::all_of</a></div><div class="ttdeci">all_of(std::initializer_list&lt; pointer_wrapper&lt; T &gt; &gt; lst)</div><div class="ttdoc">construct using initializer list</div><div class="ttdef"><b>Definition:</b> <a href="future__list_8h_source.html#l00113">future_list.h:113</a></div></div>
+</div><!-- fragment --><dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">T</td><td>type of object </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="future__list_8h_source.html#l00106">106</a> of file <a class="el" href="future__list_8h_source.html">future_list.h</a>.</p>
 </div><hr/>The documentation for this class was generated from the following file:<ul>
-<li>src/coro/<a class="el" href="future_8h_source.html">future.h</a></li>
+<li>src/coro/<a class="el" href="future__list_8h_source.html">future_list.h</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Apr 9 2024 12:48:25 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+Generated on Thu Apr 11 2024 19:04:02 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
 </small></address>
 </body>
 </html>

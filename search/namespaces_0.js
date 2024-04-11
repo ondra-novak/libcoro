@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['coro_238',['coro',['../namespacecoro.html',1,'']]]
+  ['coro_249',['coro',['../namespacecoro.html',1,'']]]
 ];

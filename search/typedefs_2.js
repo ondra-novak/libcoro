@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['queue_369',['queue',['../classcoro_1_1distributor_ad7967d46813c5eabba0ce5004255cacf.html#ad7967d46813c5eabba0ce5004255cacf',1,'coro::distributor']]]
+  ['pointer_5fvalue_391',['pointer_value',['../namespacecoro_a16660e680c2ad70709e17191983e67fb.html#a16660e680c2ad70709e17191983e67fb',1,'coro']]]
 ];

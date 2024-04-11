@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['queue_227',['queue',['../classcoro_1_1queue.html',1,'coro']]],
-  ['queue_3c_20t_2c_20queueimpl_20_3e_228',['queue&lt; T, QueueImpl &gt;',['../classcoro_1_1queue.html',1,'coro']]]
+  ['on_5fleave_229',['on_leave',['../classcoro_1_1on__leave.html',1,'coro']]],
+  ['ownership_230',['ownership',['../classcoro_1_1mutex_1_1ownership.html',1,'coro::mutex']]]
 ];

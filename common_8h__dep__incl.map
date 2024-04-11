@@ -1,13 +1,14 @@
 <map id="src/coro/common.h" name="src/coro/common.h">
-<area shape="rect" id="node1" title=" " alt="" coords="210,5,357,32"/>
-<area shape="rect" id="node2" href="$async_8h_source.html" title=" " alt="" coords="5,155,132,181"/>
-<area shape="rect" id="node4" href="$future_8h_source.html" title=" " alt="" coords="382,80,510,107"/>
-<area shape="rect" id="node3" href="$coro__single_8h_source.html" title=" " alt="" coords="325,304,487,331"/>
-<area shape="rect" id="node5" href="$distributor_8h_source.html" title=" " alt="" coords="386,229,541,256"/>
-<area shape="rect" id="node6" href="$generator_8h_source.html" title=" " alt="" coords="156,155,307,181"/>
-<area shape="rect" id="node8" href="$queue_8h_source.html" title=" " alt="" coords="331,155,460,181"/>
-<area shape="rect" id="node9" href="$scheduler_8h_source.html" title=" " alt="" coords="565,229,716,256"/>
-<area shape="rect" id="node10" href="$semaphore_8h_source.html" title=" " alt="" coords="741,229,903,256"/>
-<area shape="rect" id="node11" href="$thread__pool_8h_source.html" title=" " alt="" coords="536,155,703,181"/>
-<area shape="rect" id="node7" href="$aggregator_8h_source.html" title=" " alt="" coords="152,229,311,256"/>
+<area shape="rect" id="node1" title=" " alt="" coords="561,5,708,32"/>
+<area shape="rect" id="node2" href="$async_8h_source.html" title=" " alt="" coords="794,155,921,181"/>
+<area shape="rect" id="node5" href="$future_8h_source.html" title=" " alt="" coords="520,80,648,107"/>
+<area shape="rect" id="node3" href="$coro__single_8h_source.html" title=" " alt="" coords="323,304,485,331"/>
+<area shape="rect" id="node4" href="$future__list_8h_source.html" title=" " alt="" coords="780,229,935,256"/>
+<area shape="rect" id="node6" href="$distributor_8h_source.html" title=" " alt="" coords="5,229,160,256"/>
+<area shape="rect" id="node7" href="$generator_8h_source.html" title=" " alt="" coords="274,155,425,181"/>
+<area shape="rect" id="node9" href="$queue_8h_source.html" title=" " alt="" coords="121,155,250,181"/>
+<area shape="rect" id="node10" href="$scheduler_8h_source.html" title=" " alt="" coords="418,229,569,256"/>
+<area shape="rect" id="node11" href="$semaphore_8h_source.html" title=" " alt="" coords="593,229,756,256"/>
+<area shape="rect" id="node12" href="$thread__pool_8h_source.html" title=" " alt="" coords="501,155,667,181"/>
+<area shape="rect" id="node8" href="$aggregator_8h_source.html" title=" " alt="" coords="235,229,394,256"/>
 </map>

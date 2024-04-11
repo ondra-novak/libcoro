@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['thread_5fpool_373',['thread_pool',['../group__awaitable_ga02b71f38fffb35f0bbb5aad59ca2c3b3.html#ga02b71f38fffb35f0bbb5aad59ca2c3b3',1,'coro']]]
+  ['scheduler_395',['scheduler',['../group__awaitable_gac822630e28d046b157cd80416f2c6889.html#gac822630e28d046b157cd80416f2c6889',1,'coro']]]
 ];

@@ -1,0 +1,4 @@
+<map id="coro::any_of&lt; T &gt;" name="coro::any_of&lt; T &gt;">
+<area shape="rect" id="node1" title="Awaitable returns result of a first complete object." alt="" coords="13,95,153,121"/>
+<area shape="rect" id="node2" href="$classcoro_1_1future.html" title="Contains future value of T, can be co_awaited in coroutine." alt="" coords="5,5,161,47"/>
+</map>

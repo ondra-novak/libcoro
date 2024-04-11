@@ -135,8 +135,20 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1shared__future.html">shared_future</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Future which can be shared (by copying - like shared_ptr)  <a href="classcoro_1_1shared__future.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1pointer__wrapper.html">pointer_wrapper</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Wraps object into pointer.  <a href="classcoro_1_1pointer__wrapper.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1all__of.html">all_of</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Awaitable (future) which is resolved once all of the futures are resolved.  <a href="classcoro_1_1all__of.html#details">More...</a><br /></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">this awaitable is resolved, when all objects specified by constructor are resolved  <a href="classcoro_1_1all__of.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1each__of.html">each_of</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Process all futures in order of completion.  <a href="classcoro_1_1each__of.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1any__of.html">any_of</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Awaitable returns result of a first complete object.  <a href="classcoro_1_1any__of.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1task__list.html">task_list</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">helps to create task list: list of started task as list of futures  <a href="classcoro_1_1task__list.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1generator__iterator.html">generator_iterator</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Iterator to access generators.  <a href="classcoro_1_1generator__iterator.html#details">More...</a><br /></td></tr>
@@ -177,6 +189,10 @@ Typedefs</h2></td></tr>
 <tr class="memitem:gaa0bb63fe4aa91a6b3c0bd1a2440e0c53"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___coroutines_gaa0bb63fe4aa91a6b3c0bd1a2440e0c53.html#gaa0bb63fe4aa91a6b3c0bd1a2440e0c53">coroutine</a> = <a class="el" href="classcoro_1_1basic__coroutine.html">basic_coroutine</a>&lt; <a class="el" href="classcoro_1_1std__allocator.html">std_allocator</a> &gt;</td></tr>
 <tr class="memdesc:gaa0bb63fe4aa91a6b3c0bd1a2440e0c53"><td class="mdescLeft">&#160;</td><td class="mdescRight">COROUTINE: Basic coroutine, always detached, with no return value.  <a href="group___coroutines_gaa0bb63fe4aa91a6b3c0bd1a2440e0c53.html#gaa0bb63fe4aa91a6b3c0bd1a2440e0c53">More...</a><br /></td></tr>
 <tr class="separator:gaa0bb63fe4aa91a6b3c0bd1a2440e0c53"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a16660e680c2ad70709e17191983e67fb"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
+<tr class="memitem:a16660e680c2ad70709e17191983e67fb"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacecoro_a16660e680c2ad70709e17191983e67fb.html#a16660e680c2ad70709e17191983e67fb">pointer_value</a> = std::decay_t&lt; decltype(*std::declval&lt; T &gt;())&gt;</td></tr>
+<tr class="memdesc:a16660e680c2ad70709e17191983e67fb"><td class="mdescLeft">&#160;</td><td class="mdescRight">determines type of pointer value  <a href="namespacecoro_a16660e680c2ad70709e17191983e67fb.html#a16660e680c2ad70709e17191983e67fb">More...</a><br /></td></tr>
+<tr class="separator:a16660e680c2ad70709e17191983e67fb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gac822630e28d046b157cd80416f2c6889"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__awaitable_gac822630e28d046b157cd80416f2c6889.html#gac822630e28d046b157cd80416f2c6889">scheduler</a> = <a class="el" href="classcoro_1_1scheduler__t.html">scheduler_t</a>&lt; std::condition_variable &gt;</td></tr>
 <tr class="memdesc:gac822630e28d046b157cd80416f2c6889"><td class="mdescLeft">&#160;</td><td class="mdescRight">scheduler for coroutines  <a href="group__awaitable_gac822630e28d046b157cd80416f2c6889.html#gac822630e28d046b157cd80416f2c6889">More...</a><br /></td></tr>
 <tr class="separator:gac822630e28d046b157cd80416f2c6889"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -221,13 +237,21 @@ Variables</h2></td></tr>
 <tr class="memitem:ga74db1a79f7510e368f9f297fdcb7ce61"><td class="memItemLeft" align="right" valign="top">constexpr <a class="el" href="classcoro_1_1std__allocator.html">std_allocator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__allocators_ga74db1a79f7510e368f9f297fdcb7ce61.html#ga74db1a79f7510e368f9f297fdcb7ce61">standard_allocator</a></td></tr>
 <tr class="memdesc:ga74db1a79f7510e368f9f297fdcb7ce61"><td class="mdescLeft">&#160;</td><td class="mdescRight">Global instance for <a class="el" href="classcoro_1_1std__allocator.html" title="represents standard allocator for coroutines">std_allocator</a> which can be used anywhere the allocator is requested.  <a href="group__allocators_ga74db1a79f7510e368f9f297fdcb7ce61.html#ga74db1a79f7510e368f9f297fdcb7ce61">More...</a><br /></td></tr>
 <tr class="separator:ga74db1a79f7510e368f9f297fdcb7ce61"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a022cd45b46966230b4c6ca96acc5d4b1"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
+<tr class="memitem:a022cd45b46966230b4c6ca96acc5d4b1"><td class="memTemplItemLeft" align="right" valign="top">concept&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacecoro_a022cd45b46966230b4c6ca96acc5d4b1.html#a022cd45b46966230b4c6ca96acc5d4b1">iterator_type</a></td></tr>
+<tr class="memdesc:a022cd45b46966230b4c6ca96acc5d4b1"><td class="mdescLeft">&#160;</td><td class="mdescRight">any iterator  <a href="namespacecoro_a022cd45b46966230b4c6ca96acc5d4b1.html#a022cd45b46966230b4c6ca96acc5d4b1">More...</a><br /></td></tr>
+<tr class="separator:a022cd45b46966230b4c6ca96acc5d4b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7c190fafb9215d1c618e2adb11c049ee"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
+<tr class="memitem:a7c190fafb9215d1c618e2adb11c049ee"><td class="memTemplItemLeft" align="right" valign="top">concept&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacecoro_a7c190fafb9215d1c618e2adb11c049ee.html#a7c190fafb9215d1c618e2adb11c049ee">container_type</a></td></tr>
+<tr class="memdesc:a7c190fafb9215d1c618e2adb11c049ee"><td class="mdescLeft">&#160;</td><td class="mdescRight">any container (must have begin and end)  <a href="namespacecoro_a7c190fafb9215d1c618e2adb11c049ee.html#a7c190fafb9215d1c618e2adb11c049ee">More...</a><br /></td></tr>
+<tr class="separator:a7c190fafb9215d1c618e2adb11c049ee"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>main namespace </p>
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Apr 9 2024 12:48:25 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+Generated on Thu Apr 11 2024 19:04:02 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
 </small></address>
 </body>
 </html>

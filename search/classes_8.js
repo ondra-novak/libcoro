@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['on_5fleave_219',['on_leave',['../classcoro_1_1on__leave.html',1,'coro']]],
-  ['ownership_220',['ownership',['../classcoro_1_1mutex_1_1ownership.html',1,'coro::mutex']]]
+  ['mutex_227',['mutex',['../classcoro_1_1mutex.html',1,'coro']]]
 ];

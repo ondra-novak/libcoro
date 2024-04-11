@@ -192,6 +192,14 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ad0c25cd6f444e32c1296702e49291ec1 inherit pub_methods_classcoro_1_1future"><td class="memItemLeft" align="right" valign="top">canceled_awaiter&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1future_ad0c25cd6f444e32c1296702e49291ec1.html#ad0c25cd6f444e32c1296702e49291ec1">operator!</a> ()</td></tr>
 <tr class="memdesc:ad0c25cd6f444e32c1296702e49291ec1 inherit pub_methods_classcoro_1_1future"><td class="mdescLeft">&#160;</td><td class="mdescRight">awaitable for canceled operation  <a href="classcoro_1_1future_ad0c25cd6f444e32c1296702e49291ec1.html#ad0c25cd6f444e32c1296702e49291ec1">More...</a><br /></td></tr>
 <tr class="separator:ad0c25cd6f444e32c1296702e49291ec1 inherit pub_methods_classcoro_1_1future"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a96ac87f9e055f2b42c7cc0c1426cbfd2 inherit pub_methods_classcoro_1_1future"><td class="memTemplParams" colspan="2">template&lt;typename X &gt; </td></tr>
+<tr class="memitem:a96ac87f9e055f2b42c7cc0c1426cbfd2 inherit pub_methods_classcoro_1_1future"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="classcoro_1_1promise.html">promise</a>&lt; X &gt;::notify&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classcoro_1_1future_a96ac87f9e055f2b42c7cc0c1426cbfd2.html#a96ac87f9e055f2b42c7cc0c1426cbfd2">forward_to</a> (<a class="el" href="classcoro_1_1promise.html">promise</a>&lt; X &gt; &amp;prom) noexcept</td></tr>
+<tr class="memdesc:a96ac87f9e055f2b42c7cc0c1426cbfd2 inherit pub_methods_classcoro_1_1future"><td class="mdescLeft">&#160;</td><td class="mdescRight">Forward value, possibly convert it, to different promise.  <a href="classcoro_1_1future_a96ac87f9e055f2b42c7cc0c1426cbfd2.html#a96ac87f9e055f2b42c7cc0c1426cbfd2">More...</a><br /></td></tr>
+<tr class="separator:a96ac87f9e055f2b42c7cc0c1426cbfd2 inherit pub_methods_classcoro_1_1future"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9a35b0e6fb236fbac22de0752e7cf74d inherit pub_methods_classcoro_1_1future"><td class="memTemplParams" colspan="2">template&lt;typename X , std::invocable&lt; std::add_lvalue_reference_t&lt; T &gt; &gt; Fn&gt; </td></tr>
+<tr class="memitem:a9a35b0e6fb236fbac22de0752e7cf74d inherit pub_methods_classcoro_1_1future"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="classcoro_1_1promise.html">promise</a>&lt; X &gt;::notify&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classcoro_1_1future_a9a35b0e6fb236fbac22de0752e7cf74d.html#a9a35b0e6fb236fbac22de0752e7cf74d">convert_to</a> (<a class="el" href="classcoro_1_1promise.html">promise</a>&lt; X &gt; &amp;prom, Fn &amp;&amp;convert) noexcept</td></tr>
+<tr class="memdesc:a9a35b0e6fb236fbac22de0752e7cf74d inherit pub_methods_classcoro_1_1future"><td class="mdescLeft">&#160;</td><td class="mdescRight">Forward value, possibly convert it, to different promise.  <a href="classcoro_1_1future_a9a35b0e6fb236fbac22de0752e7cf74d.html#a9a35b0e6fb236fbac22de0752e7cf74d">More...</a><br /></td></tr>
+<tr class="separator:a9a35b0e6fb236fbac22de0752e7cf74d inherit pub_methods_classcoro_1_1future"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="inherited"></a>
 Additional Inherited Members</h2></td></tr>
@@ -213,14 +221,14 @@ class coro::deferred_future&lt; T &gt;</h3>
 <p>Deferred future is movable unless it is in progress (which results to exception). This type of future is always returned from a function in deferred state, so it can be moved and evaluated after the future is placed to correct place.</p>
 <p>Disadvantage of this future is requirement to store evaluation function inside of the future (which must be movable) and guarantee to keep referneces valid until deferred evaluation is started. , </p>
 
-<p class="definition">Definition at line <a class="el" href="future_8h_source.html#l01049">1049</a> of file <a class="el" href="future_8h_source.html">future.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="future_8h_source.html#l01100">1100</a> of file <a class="el" href="future_8h_source.html">future.h</a>.</p>
 </div><hr/>The documentation for this class was generated from the following file:<ul>
 <li>src/coro/<a class="el" href="future_8h_source.html">future.h</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Apr 9 2024 12:48:25 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+Generated on Thu Apr 11 2024 19:04:02 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
 </small></address>
 </body>
 </html>

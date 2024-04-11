@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['ptr_363',['ptr',['../structcoro_1_1any_1_1content_a28495380c52283fd27d712504e4e2864.html#a28495380c52283fd27d712504e4e2864',1,'coro::any::content']]]
+  ['iterator_5ftype_383',['iterator_type',['../namespacecoro_a022cd45b46966230b4c6ca96acc5d4b1.html#a022cd45b46966230b4c6ca96acc5d4b1',1,'coro']]]
 ];

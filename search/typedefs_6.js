@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['value_5ftype_374',['value_type',['../classcoro_1_1generator_afde657763671f09524ed974ae81a9501.html#afde657763671f09524ed974ae81a9501',1,'coro::generator']]]
+  ['thread_5fpool_396',['thread_pool',['../group__awaitable_ga02b71f38fffb35f0bbb5aad59ca2c3b3.html#ga02b71f38fffb35f0bbb5aad59ca2c3b3',1,'coro']]]
 ];

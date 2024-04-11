@@ -85,8 +85,9 @@ $(function() {
 <div id="dynsection-0-content" class="dyncontent" style="display:none;">
 <div class="center"><img src="classcoro_1_1future__inherit__graph.png" border="0" usemap="#acoro_1_1future_3_01_t_01_4_inherit__map" alt="Inheritance graph"/></div>
 <map name="acoro_1_1future_3_01_t_01_4_inherit__map" id="acoro_1_1future_3_01_t_01_4_inherit__map">
-<area shape="rect" title="Contains future value of T, can be co_awaited in coroutine." alt="" coords="37,5,171,32"/>
-<area shape="rect" href="classcoro_1_1deferred__future.html" title="Contains future value of T, where evaluation is deferred until the value is needed." alt="" coords="5,80,203,107"/>
+<area shape="rect" title="Contains future value of T, can be co_awaited in coroutine." alt="" coords="104,5,239,32"/>
+<area shape="rect" href="classcoro_1_1any__of.html" title="Awaitable returns result of a first complete object." alt="" coords="5,80,145,107"/>
+<area shape="rect" href="classcoro_1_1deferred__future.html" title="Contains future value of T, where evaluation is deferred until the value is needed." alt="" coords="170,80,367,107"/>
 </map>
 <center><span class="legend">[<a href="graph_legend.html">legend</a>]</span></center></div>
 <div id="dynsection-1" onclick="return toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
@@ -188,6 +189,14 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ad0c25cd6f444e32c1296702e49291ec1"><td class="memItemLeft" align="right" valign="top">canceled_awaiter&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1future_ad0c25cd6f444e32c1296702e49291ec1.html#ad0c25cd6f444e32c1296702e49291ec1">operator!</a> ()</td></tr>
 <tr class="memdesc:ad0c25cd6f444e32c1296702e49291ec1"><td class="mdescLeft">&#160;</td><td class="mdescRight">awaitable for canceled operation  <a href="classcoro_1_1future_ad0c25cd6f444e32c1296702e49291ec1.html#ad0c25cd6f444e32c1296702e49291ec1">More...</a><br /></td></tr>
 <tr class="separator:ad0c25cd6f444e32c1296702e49291ec1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a96ac87f9e055f2b42c7cc0c1426cbfd2"><td class="memTemplParams" colspan="2">template&lt;typename X &gt; </td></tr>
+<tr class="memitem:a96ac87f9e055f2b42c7cc0c1426cbfd2"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="classcoro_1_1promise.html">promise</a>&lt; X &gt;::notify&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classcoro_1_1future_a96ac87f9e055f2b42c7cc0c1426cbfd2.html#a96ac87f9e055f2b42c7cc0c1426cbfd2">forward_to</a> (<a class="el" href="classcoro_1_1promise.html">promise</a>&lt; X &gt; &amp;prom) noexcept</td></tr>
+<tr class="memdesc:a96ac87f9e055f2b42c7cc0c1426cbfd2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Forward value, possibly convert it, to different promise.  <a href="classcoro_1_1future_a96ac87f9e055f2b42c7cc0c1426cbfd2.html#a96ac87f9e055f2b42c7cc0c1426cbfd2">More...</a><br /></td></tr>
+<tr class="separator:a96ac87f9e055f2b42c7cc0c1426cbfd2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9a35b0e6fb236fbac22de0752e7cf74d"><td class="memTemplParams" colspan="2">template&lt;typename X , std::invocable&lt; std::add_lvalue_reference_t&lt; T &gt; &gt; Fn&gt; </td></tr>
+<tr class="memitem:a9a35b0e6fb236fbac22de0752e7cf74d"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="classcoro_1_1promise.html">promise</a>&lt; X &gt;::notify&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classcoro_1_1future_a9a35b0e6fb236fbac22de0752e7cf74d.html#a9a35b0e6fb236fbac22de0752e7cf74d">convert_to</a> (<a class="el" href="classcoro_1_1promise.html">promise</a>&lt; X &gt; &amp;prom, Fn &amp;&amp;convert) noexcept</td></tr>
+<tr class="memdesc:a9a35b0e6fb236fbac22de0752e7cf74d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Forward value, possibly convert it, to different promise.  <a href="classcoro_1_1future_a9a35b0e6fb236fbac22de0752e7cf74d.html#a9a35b0e6fb236fbac22de0752e7cf74d">More...</a><br /></td></tr>
+<tr class="separator:a9a35b0e6fb236fbac22de0752e7cf74d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
@@ -219,7 +228,7 @@ class coro::future&lt; T &gt;</h3>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Apr 9 2024 12:48:25 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+Generated on Thu Apr 11 2024 19:04:02 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
 </small></address>
 </body>
 </html>
