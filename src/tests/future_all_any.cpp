@@ -1,7 +1,9 @@
 #include "check.h"
 #include "../coro/future.h"
 #include "../coro/future_list.h"
+#include "../coro/scheduler.h"
 #include "../coro/async.h"
+#include "../coro/coroutine.h"
 
 
 coro::future<void> test_all(coro::future<void> &f1, coro::future<void> &f2, coro::future<void> &f3) {
@@ -77,10 +79,49 @@ void tests() {
 
 }
 
+coro::async<int> delayed_async(coro::scheduler &sch, int id, unsigned int delay) {
+    co_await sch.sleep_for(std::chrono::milliseconds(delay));
+    co_return id;
+}
+
+coro::future<void> delay_async_test(coro::scheduler &sch) {
+    coro::future<int> f1 = delayed_async(sch, 1, 40);
+    coro::future<int> f2 = delayed_async(sch, 2, 10);
+    coro::future<int> f3 = delayed_async(sch, 3, 30);
+    coro::future<int> f4 = delayed_async(sch, 4, 50);
+    int results[] = {2,3,1,4,-1};
+    auto iter = std::begin(results);
+    for (auto fut: coro::each_of({f1,f2,f3,f4})) {
+        int r = co_await fut;
+        CHECK_EQUAL(*iter, r);
+        ++iter;
+    }
+}
+
+coro::future<void> delay_async_test2(coro::scheduler &sch) {
+    coro::future<int> f1 = delayed_async(sch, 1, 40);
+    coro::future<int> f2 = delayed_async(sch, 2, 10);
+    coro::future<int> f3 = delayed_async(sch, 3, 30);
+    coro::future<int> f4 = delayed_async(sch, 4, 50);
+    {
+        auto e = coro::each_of({f1,f2,f3,f4});
+        int r = co_await *e.begin();
+        CHECK_EQUAL(r,2);
+    }
+    co_await coro::all_of({f1,f2,f3,f4});
+}
+
 int main() {
     test1();
     test2();
     test3();
     test4();
+
+    coro::scheduler sch;
+    sch.run(delay_async_test(sch));
+    sch.run(delay_async_test2(sch));
+
+
 }
+
 

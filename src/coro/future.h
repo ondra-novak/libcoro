@@ -775,6 +775,57 @@ public:
      */
     canceled_awaiter operator!() {return this;}
 
+    ///Forward value, possibly convert it, to different promise
+    /**
+     * The source future must be resolved. The function forwards whole state without
+     * throwing any exception. So the target promise recives possible exception or
+     * cancel status
+     *
+     * @param prom target promise
+     * @return notify of target promise. If the future is not resulved, return
+     * is false
+     */
+    template<typename X>
+    typename promise<X>::notify forward_to(promise<X> &prom) noexcept {
+        return convert_to(prom, [](T &x)->X{return x;});
+    }
+
+    ///Forward value, possibly convert it, to different promise
+    /**
+     * The source future must be resolved. The function forwards whole state without
+     * throwing any exception. So the target promise recives possible exception or
+     * cancel status
+     *
+     * @param prom target promise
+     * @param convert function which perform conversion from T to X
+     * @return notify of target promise. If the future is not resulved, return
+     * is false
+     */
+    template<typename X, std::invocable<std::add_lvalue_reference_t<T> > Fn>
+    typename promise<X>::notify convert_to(promise<X> &prom, Fn &&convert) noexcept {
+        if (this->is_pending()) return {};
+
+        switch (_result) {
+            case Result::exception: return prom.reject(_exception);
+            case Result::value:
+                if constexpr(std::is_void_v<X>) {
+                    return prom();
+                } else {
+                    if constexpr(std::is_reference_v<T>) {
+                        return prom(convert(*_value));
+                    } else {
+                        return prom(convert(_value));
+                    }
+                }
+            case Result::not_set:
+                return prom.cancel();
+
+        }
+    }
+
+
+
+
 protected:
 
     enum class State: char {
