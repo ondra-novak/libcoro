@@ -68,6 +68,17 @@ coro::async<void> async_fibo_test3(coro::scheduler &sch) {
     CHECK(iter == std::end(results));
 }
 
+coro::async<void> async_fibo_test4(coro::scheduler &sch) {
+    int results[] = {1,1,2,3,5,8,13,21,34,55};
+    auto gen = async_fibo(sch,10);
+    auto iter = std::begin(results);
+    for (auto &val: gen) {
+        int v = co_await val;
+        CHECK_EQUAL(v,*iter);
+        ++iter;
+    }
+}
+
 
 int main() {
     coro::scheduler sch;
@@ -92,4 +103,5 @@ int main() {
     async_fibo_test(sch).run();
     async_fibo_test2(sch).run();
     async_fibo_test3(sch).run();
+    async_fibo_test4(sch).run();
 }
