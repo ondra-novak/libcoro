@@ -1,7 +1,8 @@
 #pragma once
 
 #include "future.h"
-#include "queue.h"
+#include "async.h"
+#include <deque>
 
 #include <condition_variable>
 namespace coro {
@@ -48,9 +49,25 @@ protected:
     T *_ptr;
 };
 
+template<typename T>
+concept is_pointer_like = (requires(T v) {
+    {*v};
+} && std::is_move_constructible_v<T>);
+
 ///determines type of pointer value
 template<typename T>
 using pointer_value = std::decay_t<decltype(*std::declval<T>())>;
+
+
+template<typename T>
+struct unwrap_pointer_like_def {using type = T;};
+template<is_pointer_like T>
+struct unwrap_pointer_like_def<T> {using type = pointer_value<T>;};
+template<typename T>
+using unwrap_pointer_like=typename unwrap_pointer_like_def<T>::type;
+
+
+
 
 
 ///any iterator
@@ -237,7 +254,7 @@ public:
      * @param cont container
      */
     template<container_type Container>
-    each_of(Container &&cont)
+    each_of(Container &cont)
         :each_of(cont.begin(), cont.end()) {}
 
     ///construct using iterator pair
@@ -249,8 +266,13 @@ public:
     each_of(Iter from, Iter to) {
         std::lock_guard _(_mx);
         while (from != to) {
-            future_ptr ptr = &(*(*from));
-            _awaiting.push_back(ptr);
+            if constexpr(is_pointer_like<decltype(*from)>) {
+                future_ptr ptr = &(*(*from));
+                _awaiting.push_back(ptr);
+            } else {
+                future_ptr ptr = &(*from);
+                _awaiting.push_back(ptr);
+            }
             ++from;
         }
         _sep = _awaiting.size();
@@ -293,8 +315,7 @@ protected:
                 return true;
             }
             return false;
-        }));
-        if (_cond) _cond->notify_all();;
+        }));        if (_cond) _cond->notify_all();;
         if (proms) return ptr->forward_to(proms);
         return {};
     }
@@ -334,7 +355,7 @@ protected:
 template<typename X>
 each_of(std::initializer_list<X>) -> each_of<X>;
 template<container_type T>
-each_of(T) -> each_of<pointer_value<typename T::value_type> >;
+each_of(T) -> each_of<unwrap_pointer_like<typename T::value_type> >;
 
 
 ///Awaitable returns result of a first complete object
@@ -379,5 +400,70 @@ any_of(std::initializer_list<X>) -> any_of<X>;
 template<container_type T>
 any_of(T) -> any_of<pointer_value<typename T::value_type> >;
 
+
+
+
+///helps to create task list: list of started task as list of futures
+/**
+ * @tparam T can be coro::future<T>, coro::deferred_future<T> or any awaitable
+ * compatible with these objects. T can be unmovable, however you need to use
+ * special push operations in this case.
+ *
+ */
+template<typename T>
+class task_list: public std::deque<T> {
+public:
+
+    using std::deque<T>::deque;
+
+    ///Redirect return value to the task list
+    /**
+     * @param fn a function which returns value to be pushed into the list. The
+     * return value is pushed as last item.
+     *
+     * Its is expected that returned value is not movable nor copyable. It is
+     * constructed directly in the list
+     */
+    template<std::invocable Fn>
+    void operator<<(Fn &&fn) {
+        static_assert(std::is_same_v<std::invoke_result_t<Fn>, T>, "Return value type mismatch");
+        this->emplace_back(construct_using<Fn>(fn));
+    }
+
+
+    ///Redirect return value to the task list
+    /**
+     * @param fn a function which returns value to be pushed into the list. The
+     * return value is pushed as first iten.
+     *
+     * Its is expected that returned value is not movable nor copyable. It is
+     * constructed directly in the list
+     */
+    template<std::invocable Fn>
+    friend void operator>>(Fn &&fn, task_list &lst) {
+        static_assert(std::is_same_v<std::invoke_result_t<Fn>, T>, "Return value type mismatch");
+        lst.emplace_front(construct_using<Fn &>(fn));
+    }
+
+    using std::deque<T>::push_back;
+    using std::deque<T>::push_front;
+
+    ///Start async function and store result to the list (as last item)
+    template<typename X, typename Y> requires std::constructible_from<T, async<X,Y> >
+    void push_back(async<X,Y> x) {
+        (*this) << [&]()->T{return x;};
+    }
+    ///Start async function and store result to the list (as first item)
+    template<typename X, typename Y> requires std::constructible_from<T, async<X,Y> >
+    void push_front(async<X,Y> x) {
+        [&]()->T{return x;} >> (*this);
+    }
+
+};
+
+
 }
+
+
+
 

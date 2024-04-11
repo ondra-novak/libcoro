@@ -4,6 +4,7 @@
 #include "../coro/scheduler.h"
 #include "../coro/async.h"
 #include "../coro/coroutine.h"
+#include <list>
 
 
 coro::future<void> test_all(coro::future<void> &f1, coro::future<void> &f2, coro::future<void> &f3) {
@@ -111,6 +112,20 @@ coro::future<void> delay_async_test2(coro::scheduler &sch) {
     co_await coro::all_of({f1,f2,f3,f4});
 }
 
+
+coro::future<void> task_list_test(coro::scheduler &sch) {
+    coro::task_list<coro::future<int> > list;
+    for (int i = 0; i < 100; ++i) {
+        list.push_back(delayed_async(sch, i, i));
+    }
+    int i = 0;
+    for (auto fut: coro::each_of(list)) {
+        int r = co_await fut;
+        CHECK_EQUAL(i, r);
+        ++i;
+    }
+}
+
 int main() {
     test1();
     test2();
@@ -120,6 +135,7 @@ int main() {
     coro::scheduler sch;
     sch.run(delay_async_test(sch));
     sch.run(delay_async_test2(sch));
+    sch.run(task_list_test(sch));
 
 
 }
