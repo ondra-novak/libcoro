@@ -158,16 +158,16 @@ all_of(std::initializer_list<X>) -> all_of<X>;
 ///Process all futures in order of completion
 /**
  * @code
- * for (auto fut: each_of({f1,f2,f3,f4}) {
+ * for (auto fut: when_each({f1,f2,f3,f4}) {
  *      auto result = co_await fut;
  *      //use result
  * }
  * @endcode
  *
- * @tparam T type of future object (example each_of<future<int> >)
+ * @tparam T type of future object (example when_each<future<int> >)
  */
 template<typename T>
-class each_of {
+class when_each {
 public:
 
     using result_future_type = future<std::add_lvalue_reference_t<typename T::value_type> >;
@@ -178,7 +178,7 @@ public:
     using result_notify_type = typename result_promise_type::notify;
 
 
-    ///iterator for each_of - it always return awaitable reference (future)
+    ///iterator for when_each - it always return awaitable reference (future)
     /**
      * The iterator is random access iterator. Underlying container is ordered in order
      * of completion. You can access not yet complete item, you only need to co_await on
@@ -189,18 +189,22 @@ public:
 
         using iterator_category = std::random_access_iterator_tag;
         using value_type = typename result_future_type::value_type;
-        using reference = result_future_type;
+        using reference = std::add_lvalue_reference<result_future_type>;
         using difference_type = std::ptrdiff_t;
 
 
         ///default construct - note such iterator cannot be used for iterating
         iterator() = default;
         ///retrieve item. Note that result is awaitable reference. You need co_await the result;
-        result_future_type operator *() const {
-            return [&](auto promise) {
-                _prom = std::move(promise);
-                _owner->charge(this);
-            };
+        result_future_type &operator *() const {
+            _tmp._prom = _tmp._fut.get_promise();
+            _owner->charge(this);
+            return _tmp._fut;
+        }
+
+        void operator()(result_promise_type prom) const {
+            _tmp._prom = std::move(prom);
+            _owner->charge(this);
         }
 
         ///go to next item
@@ -224,13 +228,23 @@ public:
 
 
     protected:
-        iterator(each_of *owner, std::size_t index):_owner(owner),_index(index) {}
+        iterator(when_each *owner, std::size_t index):_owner(owner),_index(index) {}
 
-        each_of *_owner = nullptr;
+        struct tmp {
+            result_promise_type _prom;
+            result_future_type _fut;
+            tmp() = default;
+            tmp(tmp &&other):_prom(std::move(other._prom)) {}
+            tmp &operator=(tmp &&other) {
+                _prom = std::move(other._prom);
+                return *this;
+            }
+        };
+
+        when_each *_owner = nullptr;
         std::size_t _index = 0;
-        mutable result_promise_type _prom;
-
-        friend class each_of;
+        mutable tmp _tmp;
+        friend class when_each;
 
     };
 
@@ -246,16 +260,16 @@ public:
     /**
      * @param lst {f1,f2,f3,f4}
      */
-    each_of(std::initializer_list<pointer_wrapper<T> > lst)
-        :each_of(lst.begin(), lst.end()) {}
+    when_each(std::initializer_list<pointer_wrapper<T> > lst)
+        :when_each(lst.begin(), lst.end()) {}
 
     ///construct using a container
     /**
      * @param cont container
      */
     template<container_type Container>
-    each_of(Container &cont)
-        :each_of(cont.begin(), cont.end()) {}
+    when_each(Container &cont)
+        :when_each(cont.begin(), cont.end()) {}
 
     ///construct using iterator pair
     /**
@@ -263,7 +277,7 @@ public:
      * @param to end range
      */
     template<iterator_type Iter>
-    each_of(Iter from, Iter to) {
+    when_each(Iter from, Iter to) {
         std::lock_guard _(_mx);
         while (from != to) {
             if constexpr(is_pointer_like<decltype(*from)>) {
@@ -288,7 +302,7 @@ public:
 
     }
 
-    ~each_of() {
+    ~when_each() {
         cleanup();
     }
 
@@ -311,7 +325,7 @@ protected:
         result_promise_type proms;
         _iters.erase(std::remove_if(_iters.begin(), _iters.end(), [&](const iterator *it){
             if (it->_index == idx) {
-                proms += it->_prom;
+                proms += it->_tmp._prom;
                 return true;
             }
             return false;
@@ -326,7 +340,7 @@ protected:
         std::lock_guard _(_mx);
         auto idx = it->_index+_sep;
         if (idx < _awaiting.size()) {
-            ntf = _awaiting[idx]->forward_to(it->_prom);
+            ntf = _awaiting[idx]->forward_to(it->_tmp._prom);
             return false;
         }
         _iters.push_back(it);
@@ -353,9 +367,9 @@ protected:
 };
 
 template<typename X>
-each_of(std::initializer_list<X>) -> each_of<X>;
+when_each(std::initializer_list<X>) -> when_each<X>;
 template<container_type T>
-each_of(T) -> each_of<unwrap_pointer_like<typename T::value_type> >;
+when_each(T) -> when_each<unwrap_pointer_like<typename T::value_type> >;
 
 
 ///Awaitable returns result of a first complete object
@@ -370,7 +384,7 @@ each_of(T) -> each_of<unwrap_pointer_like<typename T::value_type> >;
  *
  */
 template<typename T>
-class any_of : public each_of<T>::result_future_type {
+class any_of : public when_each<T>::result_future_type {
 public:
 
     any_of(std::initializer_list<pointer_wrapper<T> > lst)
@@ -385,13 +399,14 @@ public:
         :_each_of(std::move(from), std::move(to)) {
 
         _iter = _each_of.begin();
-        this->operator<<([&]{return *_iter;});
+        _iter(this->get_promise());
+
     }
 
 
 protected:
-    each_of<T> _each_of;
-    typename each_of<T>::iterator _iter;
+    when_each<T> _each_of;
+    typename when_each<T>::iterator _iter;
 
 };
 

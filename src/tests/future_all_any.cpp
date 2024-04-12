@@ -92,7 +92,7 @@ coro::future<void> delay_async_test(coro::scheduler &sch) {
     coro::future<int> f4 = delayed_async(sch, 4, 50);
     int results[] = {2,3,1,4,-1};
     auto iter = std::begin(results);
-    for (auto fut: coro::each_of({f1,f2,f3,f4})) {
+    for (auto &fut: coro::when_each({f1,f2,f3,f4})) {
         int r = co_await fut;
         CHECK_EQUAL(*iter, r);
         ++iter;
@@ -105,7 +105,7 @@ coro::future<void> delay_async_test2(coro::scheduler &sch) {
     coro::future<int> f3 = delayed_async(sch, 3, 30);
     coro::future<int> f4 = delayed_async(sch, 4, 50);
     {
-        auto e = coro::each_of({f1,f2,f3,f4});
+        auto e = coro::when_each({f1,f2,f3,f4});
         int r = co_await *e.begin();
         CHECK_EQUAL(r,2);
     }
@@ -119,7 +119,7 @@ coro::future<void> task_list_test(coro::scheduler &sch) {
         list.push_back(delayed_async(sch, i, i));
     }
     int i = 0;
-    for (auto fut: coro::each_of(list)) {
+    for (auto &fut: coro::when_each(list)) {
         int r = co_await fut;
         CHECK_EQUAL(i, r);
         ++i;
