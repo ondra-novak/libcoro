@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.9.1"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>libcoro: coro::each_of::begin</title>
+<title>libcoro: coro::when_each::when_each</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -63,7 +63,7 @@ $(function() {
 
 <div id="nav-path" class="navpath">
   <ul>
-<li class="navelem"><a class="el" href="namespacecoro.html">coro</a></li><li class="navelem"><a class="el" href="classcoro_1_1each__of.html">each_of</a></li>  </ul>
+<li class="navelem"><a class="el" href="namespacecoro.html">coro</a></li><li class="navelem"><a class="el" href="classcoro_1_1when__each.html">when_each</a></li>  </ul>
 </div>
 </div><!-- top -->
 <div class="contents">
@@ -72,30 +72,33 @@ $(function() {
    <td valign="top">
       <div class="navtab">
         <table>
-          <tr><td class="navtabHL"><a class="navtab" href="classcoro_1_1each__of_a939aa559ecd3a600a695fc2cad0d8179.html#a939aa559ecd3a600a695fc2cad0d8179">begin</a></td></tr>
-          <tr><td class="navtab"><a class="navtab" href="classcoro_1_1each__of_a1df4e114782570de837d68ffee13de4d.html#a1df4e114782570de837d68ffee13de4d">each_of</a></td></tr>
-          <tr><td class="navtab"><a class="navtab" href="classcoro_1_1each__of_a7565edd1f56862faff146159f455d723.html#a7565edd1f56862faff146159f455d723">each_of</a></td></tr>
-          <tr><td class="navtab"><a class="navtab" href="classcoro_1_1each__of_a4bb61a21a9a9048c987c9fc959272371.html#a4bb61a21a9a9048c987c9fc959272371">each_of</a></td></tr>
-          <tr><td class="navtab"><a class="navtab" href="classcoro_1_1each__of_a83d743edc10f4cab50be99eed1de84f7.html#a83d743edc10f4cab50be99eed1de84f7">end</a></td></tr>
+          <tr><td class="navtab"><a class="navtab" href="classcoro_1_1when__each_ab3cf5090b0fc1eb7911d1051a0d2ac8f.html#ab3cf5090b0fc1eb7911d1051a0d2ac8f">begin</a></td></tr>
+          <tr><td class="navtab"><a class="navtab" href="classcoro_1_1when__each_a7ce8e46f4586d695ac1d02afe248ab07.html#a7ce8e46f4586d695ac1d02afe248ab07">end</a></td></tr>
+          <tr><td class="navtab"><a class="navtab" href="classcoro_1_1when__each_af5cfc19181ff9f1db8712d04313ef805.html#af5cfc19181ff9f1db8712d04313ef805">when_each</a></td></tr>
+          <tr><td class="navtabHL"><a class="navtab" href="classcoro_1_1when__each_ad83b07107b05e17efad0f399da674cc3.html#ad83b07107b05e17efad0f399da674cc3">when_each</a></td></tr>
+          <tr><td class="navtab"><a class="navtab" href="classcoro_1_1when__each_a1b80e7d2cc126c5d3ac240269f0d4dd8.html#a1b80e7d2cc126c5d3ac240269f0d4dd8">when_each</a></td></tr>
         </table>
       </div>
    </td>
    <td valign="top" class="mempage">
-<a id="a939aa559ecd3a600a695fc2cad0d8179"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a939aa559ecd3a600a695fc2cad0d8179">&#9670;&nbsp;</a></span>begin()</h2>
+<a id="ad83b07107b05e17efad0f399da674cc3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad83b07107b05e17efad0f399da674cc3">&#9670;&nbsp;</a></span>when_each() <span class="overload">[2/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
 template&lt;typename T &gt; </div>
+<div class="memtemplate">
+template&lt;container_type Container&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classcoro_1_1each__of_1_1iterator.html">iterator</a> <a class="el" href="classcoro_1_1each__of.html">coro::each_of</a>&lt; T &gt;::begin </td>
+          <td class="memname"><a class="el" href="classcoro_1_1when__each.html">coro::when_each</a>&lt; T &gt;::<a class="el" href="classcoro_1_1when__each.html">when_each</a> </td>
           <td>(</td>
-          <td class="paramname"></td><td>)</td>
+          <td class="paramtype">Container &amp;&#160;</td>
+          <td class="paramname"><em>cont</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -106,10 +109,15 @@ template&lt;typename T &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p>retrieve iterator </p>
-<dl class="section return"><dt>Returns</dt><dd></dd></dl>
+<p>construct using a container </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">cont</td><td>container </td></tr>
+  </table>
+  </dd>
+</dl>
 
-<p class="definition">Definition at line <a class="el" href="future__list_8h_source.html#l00241">241</a> of file <a class="el" href="future__list_8h_source.html">future_list.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="future__list_8h_source.html#l00271">271</a> of file <a class="el" href="future__list_8h_source.html">future_list.h</a>.</p>
 
 </div>
 </div>
@@ -119,7 +127,7 @@ template&lt;typename T &gt; </div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Apr 11 2024 19:04:02 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+Generated on Fri Apr 12 2024 06:34:02 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
 </small></address>
 </body>
 </html>

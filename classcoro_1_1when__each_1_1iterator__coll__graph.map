@@ -1,0 +1,4 @@
+<map id="coro::when_each&lt; T &gt;::iterator" name="coro::when_each&lt; T &gt;::iterator">
+<area shape="rect" id="node1" title="iterator for when_each &#45; it always return awaitable reference (future)" alt="" coords="13,95,167,136"/>
+<area shape="rect" id="node2" href="$classcoro_1_1when__each.html" title="Process all futures in order of completion." alt="" coords="5,5,175,32"/>
+</map>

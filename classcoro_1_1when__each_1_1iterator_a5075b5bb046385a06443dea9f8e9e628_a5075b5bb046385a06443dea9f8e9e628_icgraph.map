@@ -1,0 +1,5 @@
+<map id="coro::when_each::iterator::iterator" name="coro::when_each::iterator::iterator">
+<area shape="rect" id="node1" title="default construct &#45; note such iterator cannot be used for iterating" alt="" coords="240,39,427,80"/>
+<area shape="rect" id="node2" href="$classcoro_1_1when__each_1_1iterator_a24279925d956fd99f7bd21e4bb963cdc.html#a24279925d956fd99f7bd21e4bb963cdc" title="go to next item" alt="" coords="5,5,192,47"/>
+<area shape="rect" id="node3" href="$classcoro_1_1when__each_1_1iterator_a93c72916e14bd60fe5194cb19a5f27d8.html#a93c72916e14bd60fe5194cb19a5f27d8" title="go to previous item" alt="" coords="5,71,192,112"/>
+</map>

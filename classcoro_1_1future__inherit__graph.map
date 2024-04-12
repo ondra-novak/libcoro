@@ -1,5 +1,4 @@
 <map id="coro::future&lt; T &gt;" name="coro::future&lt; T &gt;">
-<area shape="rect" id="node1" title="Contains future value of T, can be co_awaited in coroutine." alt="" coords="104,5,239,32"/>
-<area shape="rect" id="node2" href="$classcoro_1_1any__of.html" title="Awaitable returns result of a first complete object." alt="" coords="5,80,145,107"/>
-<area shape="rect" id="node3" href="$classcoro_1_1deferred__future.html" title="Contains future value of T, where evaluation is deferred until the value is needed." alt="" coords="170,80,367,107"/>
+<area shape="rect" id="node1" title="Contains future value of T, can be co_awaited in coroutine." alt="" coords="37,5,171,32"/>
+<area shape="rect" id="node2" href="$classcoro_1_1deferred__future.html" title="Contains future value of T, where evaluation is deferred until the value is needed." alt="" coords="5,80,203,107"/>
 </map>

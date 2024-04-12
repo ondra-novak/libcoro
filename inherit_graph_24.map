@@ -1,5 +1,4 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$classcoro_1_1future.html" title="Contains future value of T, can be co_awaited in coroutine." alt="" coords="5,31,140,57"/>
-<area shape="rect" id="node2" href="$classcoro_1_1any__of.html" title="Awaitable returns result of a first complete object." alt="" coords="217,5,357,32"/>
-<area shape="rect" id="node3" href="$classcoro_1_1deferred__future.html" title="Contains future value of T, where evaluation is deferred until the value is needed." alt="" coords="188,56,385,83"/>
+<area shape="rect" id="node1" href="$classcoro_1_1future.html" title="Contains future value of T, can be co_awaited in coroutine." alt="" coords="5,5,140,32"/>
+<area shape="rect" id="node2" href="$classcoro_1_1deferred__future.html" title="Contains future value of T, where evaluation is deferred until the value is needed." alt="" coords="188,5,385,32"/>
 </map>
