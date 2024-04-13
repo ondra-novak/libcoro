@@ -247,9 +247,8 @@ public:
     }
 
     ///Call the function
-    template<typename ... XArgs>
-    RetVal operator()(XArgs && ... args) noexcept(nx) {
-        return ref().call(Args(std::forward<XArgs>(args))...);
+    RetVal operator()(Args  ... args) noexcept(nx) {
+        return ref().call(std::forward<Args>(args)...);
     }
 
     ///Determines callable state
