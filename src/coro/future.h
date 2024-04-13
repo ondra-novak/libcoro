@@ -817,6 +817,7 @@ public:
                         return prom(convert(_value));
                     }
                 }
+            default:
             case Result::not_set:
                 return prom.cancel();
 
