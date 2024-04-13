@@ -256,157 +256,156 @@ $(function() {
 <div class="line"><a name="l00246"></a><span class="lineno">  246</span>&#160;        <span class="keywordflow">return</span> *<span class="keyword">this</span>;</div>
 <div class="line"><a name="l00247"></a><span class="lineno">  247</span>&#160;    }</div>
 <div class="line"><a name="l00248"></a><span class="lineno">  248</span>&#160; </div>
-<div class="line"><a name="l00250"></a><span class="lineno">  250</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> ... XArgs&gt;</div>
-<div class="line"><a name="l00251"></a><span class="lineno">  251</span>&#160;    RetVal operator()(XArgs &amp;&amp; ... args) noexcept(nx) {</div>
-<div class="line"><a name="l00252"></a><span class="lineno">  252</span>&#160;        <span class="keywordflow">return</span> ref().call(Args(std::forward&lt;XArgs&gt;(args))...);</div>
-<div class="line"><a name="l00253"></a><span class="lineno">  253</span>&#160;    }</div>
-<div class="line"><a name="l00254"></a><span class="lineno">  254</span>&#160; </div>
-<div class="line"><a name="l00256"></a><span class="lineno">  256</span>&#160; </div>
-<div class="line"><a name="l00260"></a><span class="lineno">  260</span>&#160;    <span class="keyword">explicit</span> <span class="keyword">operator</span> bool()<span class="keyword"> const </span>{</div>
-<div class="line"><a name="l00261"></a><span class="lineno">  261</span>&#160;        <span class="keywordflow">return</span> ref().valid();</div>
-<div class="line"><a name="l00262"></a><span class="lineno">  262</span>&#160;    }</div>
-<div class="line"><a name="l00263"></a><span class="lineno">  263</span>&#160; </div>
-<div class="line"><a name="l00264"></a><span class="lineno">  264</span>&#160;    <span class="keyword">static</span> constexpr <span class="keywordtype">bool</span> is_noexcept = nx;</div>
-<div class="line"><a name="l00265"></a><span class="lineno">  265</span>&#160;    <span class="keyword">using</span> value_type = RetVal;</div>
+<div class="line"><a name="l00250"></a><span class="lineno">  250</span>&#160;    RetVal operator()(Args  ... args) noexcept(nx) {</div>
+<div class="line"><a name="l00251"></a><span class="lineno">  251</span>&#160;        <span class="keywordflow">return</span> ref().call(std::forward&lt;Args&gt;(args)...);</div>
+<div class="line"><a name="l00252"></a><span class="lineno">  252</span>&#160;    }</div>
+<div class="line"><a name="l00253"></a><span class="lineno">  253</span>&#160; </div>
+<div class="line"><a name="l00255"></a><span class="lineno">  255</span>&#160; </div>
+<div class="line"><a name="l00259"></a><span class="lineno">  259</span>&#160;    <span class="keyword">explicit</span> <span class="keyword">operator</span> bool()<span class="keyword"> const </span>{</div>
+<div class="line"><a name="l00260"></a><span class="lineno">  260</span>&#160;        <span class="keywordflow">return</span> ref().valid();</div>
+<div class="line"><a name="l00261"></a><span class="lineno">  261</span>&#160;    }</div>
+<div class="line"><a name="l00262"></a><span class="lineno">  262</span>&#160; </div>
+<div class="line"><a name="l00263"></a><span class="lineno">  263</span>&#160;    <span class="keyword">static</span> constexpr <span class="keywordtype">bool</span> is_noexcept = nx;</div>
+<div class="line"><a name="l00264"></a><span class="lineno">  264</span>&#160;    <span class="keyword">using</span> value_type = RetVal;</div>
+<div class="line"><a name="l00265"></a><span class="lineno">  265</span>&#160; </div>
 <div class="line"><a name="l00266"></a><span class="lineno">  266</span>&#160; </div>
-<div class="line"><a name="l00267"></a><span class="lineno">  267</span>&#160; </div>
-<div class="line"><a name="l00268"></a><span class="lineno">  268</span>&#160;<span class="keyword">protected</span>:</div>
-<div class="line"><a name="l00269"></a><span class="lineno">  269</span>&#160; </div>
-<div class="line"><a name="l00270"></a><span class="lineno">  270</span>&#160;    <span class="keywordtype">char</span> _reserved[reserved_space];</div>
-<div class="line"><a name="l00271"></a><span class="lineno">  271</span>&#160; </div>
-<div class="line"><a name="l00273"></a><span class="lineno">  273</span>&#160;    Abstract &amp;ref() {<span class="keywordflow">return</span> *<span class="keyword">reinterpret_cast&lt;</span>Abstract *<span class="keyword">&gt;</span>(_reserved);}</div>
-<div class="line"><a name="l00275"></a><span class="lineno">  275</span>&#160;    <span class="keyword">const</span> Abstract &amp;ref()<span class="keyword"> const </span>{<span class="keywordflow">return</span> *<span class="keyword">reinterpret_cast&lt;</span><span class="keyword">const </span>Abstract *<span class="keyword">&gt;</span>(_reserved);}</div>
-<div class="line"><a name="l00276"></a><span class="lineno">  276</span>&#160; </div>
-<div class="line"><a name="l00277"></a><span class="lineno">  277</span>&#160;    <span class="keywordtype">void</span> destroy() {</div>
-<div class="line"><a name="l00278"></a><span class="lineno">  278</span>&#160;        <span class="comment">//direct call of the destructor</span></div>
-<div class="line"><a name="l00279"></a><span class="lineno">  279</span>&#160;        ref().~Abstract();</div>
-<div class="line"><a name="l00280"></a><span class="lineno">  280</span>&#160;    }</div>
-<div class="line"><a name="l00281"></a><span class="lineno">  281</span>&#160; </div>
-<div class="line"><a name="l00282"></a><span class="lineno">  282</span>&#160;};</div>
+<div class="line"><a name="l00267"></a><span class="lineno">  267</span>&#160;<span class="keyword">protected</span>:</div>
+<div class="line"><a name="l00268"></a><span class="lineno">  268</span>&#160; </div>
+<div class="line"><a name="l00269"></a><span class="lineno">  269</span>&#160;    <span class="keywordtype">char</span> _reserved[reserved_space];</div>
+<div class="line"><a name="l00270"></a><span class="lineno">  270</span>&#160; </div>
+<div class="line"><a name="l00272"></a><span class="lineno">  272</span>&#160;    Abstract &amp;ref() {<span class="keywordflow">return</span> *<span class="keyword">reinterpret_cast&lt;</span>Abstract *<span class="keyword">&gt;</span>(_reserved);}</div>
+<div class="line"><a name="l00274"></a><span class="lineno">  274</span>&#160;    <span class="keyword">const</span> Abstract &amp;ref()<span class="keyword"> const </span>{<span class="keywordflow">return</span> *<span class="keyword">reinterpret_cast&lt;</span><span class="keyword">const </span>Abstract *<span class="keyword">&gt;</span>(_reserved);}</div>
+<div class="line"><a name="l00275"></a><span class="lineno">  275</span>&#160; </div>
+<div class="line"><a name="l00276"></a><span class="lineno">  276</span>&#160;    <span class="keywordtype">void</span> destroy() {</div>
+<div class="line"><a name="l00277"></a><span class="lineno">  277</span>&#160;        <span class="comment">//direct call of the destructor</span></div>
+<div class="line"><a name="l00278"></a><span class="lineno">  278</span>&#160;        ref().~Abstract();</div>
+<div class="line"><a name="l00279"></a><span class="lineno">  279</span>&#160;    }</div>
+<div class="line"><a name="l00280"></a><span class="lineno">  280</span>&#160; </div>
+<div class="line"><a name="l00281"></a><span class="lineno">  281</span>&#160;};</div>
+<div class="line"><a name="l00282"></a><span class="lineno">  282</span>&#160; </div>
 <div class="line"><a name="l00283"></a><span class="lineno">  283</span>&#160; </div>
-<div class="line"><a name="l00284"></a><span class="lineno">  284</span>&#160; </div>
-<div class="line"><a name="l00285"></a><span class="lineno">  285</span>&#160;<span class="keyword">template</span>&lt;<span class="keyword">typename</span> RetVal, <span class="keyword">typename</span> ... Args, <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> reserved_space&gt;</div>
-<div class="line"><a name="l00286"></a><span class="lineno">  286</span>&#160;<span class="keyword">class </span>function&lt;RetVal(Args...) noexcept(false), reserved_space&gt;: <span class="keyword">public</span> function_impl&lt;RetVal(Args...), false, reserved_space&gt; {</div>
-<div class="line"><a name="l00287"></a><span class="lineno">  287</span>&#160;<span class="keyword">public</span>:</div>
-<div class="line"><a name="l00288"></a><span class="lineno">  288</span>&#160;    <span class="keyword">using</span> function_impl&lt;RetVal(Args...), <span class="keyword">false</span>, reserved_space&gt;::function_impl;</div>
-<div class="line"><a name="l00289"></a><span class="lineno">  289</span>&#160;};</div>
-<div class="line"><a name="l00290"></a><span class="lineno">  290</span>&#160; </div>
-<div class="line"><a name="l00291"></a><span class="lineno">  291</span>&#160;<span class="keyword">template</span>&lt;<span class="keyword">typename</span> RetVal, <span class="keyword">typename</span> ... Args, <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> reserved_space&gt;</div>
-<div class="line"><a name="l00292"></a><span class="lineno">  292</span>&#160;<span class="keyword">class </span>function&lt;RetVal(Args...) noexcept(true), reserved_space&gt;: <span class="keyword">public</span> function_impl&lt;RetVal(Args...), true, reserved_space&gt; {</div>
-<div class="line"><a name="l00293"></a><span class="lineno">  293</span>&#160;<span class="keyword">public</span>:</div>
-<div class="line"><a name="l00294"></a><span class="lineno">  294</span>&#160;    <span class="keyword">using</span> function_impl&lt;RetVal(Args...), <span class="keyword">true</span>, reserved_space&gt;::function_impl;</div>
-<div class="line"><a name="l00295"></a><span class="lineno">  295</span>&#160;};</div>
+<div class="line"><a name="l00284"></a><span class="lineno">  284</span>&#160;<span class="keyword">template</span>&lt;<span class="keyword">typename</span> RetVal, <span class="keyword">typename</span> ... Args, <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> reserved_space&gt;</div>
+<div class="line"><a name="l00285"></a><span class="lineno">  285</span>&#160;<span class="keyword">class </span>function&lt;RetVal(Args...) noexcept(false), reserved_space&gt;: <span class="keyword">public</span> function_impl&lt;RetVal(Args...), false, reserved_space&gt; {</div>
+<div class="line"><a name="l00286"></a><span class="lineno">  286</span>&#160;<span class="keyword">public</span>:</div>
+<div class="line"><a name="l00287"></a><span class="lineno">  287</span>&#160;    <span class="keyword">using</span> function_impl&lt;RetVal(Args...), <span class="keyword">false</span>, reserved_space&gt;::function_impl;</div>
+<div class="line"><a name="l00288"></a><span class="lineno">  288</span>&#160;};</div>
+<div class="line"><a name="l00289"></a><span class="lineno">  289</span>&#160; </div>
+<div class="line"><a name="l00290"></a><span class="lineno">  290</span>&#160;<span class="keyword">template</span>&lt;<span class="keyword">typename</span> RetVal, <span class="keyword">typename</span> ... Args, <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> reserved_space&gt;</div>
+<div class="line"><a name="l00291"></a><span class="lineno">  291</span>&#160;<span class="keyword">class </span>function&lt;RetVal(Args...) noexcept(true), reserved_space&gt;: <span class="keyword">public</span> function_impl&lt;RetVal(Args...), true, reserved_space&gt; {</div>
+<div class="line"><a name="l00292"></a><span class="lineno">  292</span>&#160;<span class="keyword">public</span>:</div>
+<div class="line"><a name="l00293"></a><span class="lineno">  293</span>&#160;    <span class="keyword">using</span> function_impl&lt;RetVal(Args...), <span class="keyword">true</span>, reserved_space&gt;::function_impl;</div>
+<div class="line"><a name="l00294"></a><span class="lineno">  294</span>&#160;};</div>
+<div class="line"><a name="l00295"></a><span class="lineno">  295</span>&#160; </div>
 <div class="line"><a name="l00296"></a><span class="lineno">  296</span>&#160; </div>
 <div class="line"><a name="l00297"></a><span class="lineno">  297</span>&#160; </div>
-<div class="line"><a name="l00298"></a><span class="lineno">  298</span>&#160; </div>
-<div class="line"><a name="l00300"></a><span class="lineno">  300</span>&#160; </div>
-<div class="line"><a name="l00306"></a><span class="lineno">  306</span>&#160;<span class="keyword">template</span>&lt;<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> reserved_space = 4*sizeof(<span class="keywordtype">void</span> *)&gt;</div>
-<div class="line"><a name="l00307"></a><span class="lineno"><a class="line" href="classcoro_1_1any.html">  307</a></span>&#160;<span class="keyword">class </span><a class="code" href="classcoro_1_1any.html">any</a> {</div>
-<div class="line"><a name="l00308"></a><span class="lineno">  308</span>&#160;<span class="keyword">public</span>:</div>
-<div class="line"><a name="l00309"></a><span class="lineno">  309</span>&#160; </div>
-<div class="line"><a name="l00311"></a><span class="lineno"><a class="line" href="structcoro_1_1any_1_1content.html">  311</a></span>&#160;    <span class="keyword">struct </span><a class="code" href="structcoro_1_1any_1_1content.html">content</a> {</div>
-<div class="line"><a name="l00313"></a><span class="lineno"><a class="line" href="structcoro_1_1any_1_1content_afc4d218aff80db81c41549ab5c61bb8d.html#afc4d218aff80db81c41549ab5c61bb8d">  313</a></span>&#160;        <span class="keyword">const</span> std::type_info &amp;<a class="code" href="structcoro_1_1any_1_1content_afc4d218aff80db81c41549ab5c61bb8d.html#afc4d218aff80db81c41549ab5c61bb8d">type</a>;</div>
-<div class="line"><a name="l00315"></a><span class="lineno"><a class="line" href="structcoro_1_1any_1_1content_a28495380c52283fd27d712504e4e2864.html#a28495380c52283fd27d712504e4e2864">  315</a></span>&#160;        <span class="keywordtype">void</span> *<a class="code" href="structcoro_1_1any_1_1content_a28495380c52283fd27d712504e4e2864.html#a28495380c52283fd27d712504e4e2864">ptr</a>;</div>
-<div class="line"><a name="l00317"></a><span class="lineno"><a class="line" href="structcoro_1_1any_1_1content_a0675024be2b7617b9b9d5ded7b0f68ec.html#a0675024be2b7617b9b9d5ded7b0f68ec">  317</a></span>&#160;        std::size_t <a class="code" href="structcoro_1_1any_1_1content_a0675024be2b7617b9b9d5ded7b0f68ec.html#a0675024be2b7617b9b9d5ded7b0f68ec">size</a>;</div>
-<div class="line"><a name="l00318"></a><span class="lineno">  318</span>&#160;    };</div>
-<div class="line"><a name="l00319"></a><span class="lineno">  319</span>&#160; </div>
-<div class="line"><a name="l00321"></a><span class="lineno">  321</span>&#160; </div>
-<div class="line"><a name="l00325"></a><span class="lineno">  325</span>&#160;    <span class="keyword">template</span>&lt;hasnt_cast_operator&lt;any&gt; Arg&gt;</div>
-<div class="line"><a name="l00326"></a><span class="lineno"><a class="line" href="classcoro_1_1any_a324de76924decac5cc0ab06c2f4cffe8.html#a324de76924decac5cc0ab06c2f4cffe8">  326</a></span>&#160;    <a class="code" href="classcoro_1_1any_a324de76924decac5cc0ab06c2f4cffe8.html#a324de76924decac5cc0ab06c2f4cffe8">any</a>(Arg &amp;&amp;arg):_storage([v = Arg(std::forward&lt;Arg&gt;(arg))]()mutable -&gt; <a class="code" href="structcoro_1_1any_1_1content.html">content</a>{</div>
-<div class="line"><a name="l00327"></a><span class="lineno">  327</span>&#160;        return {</div>
-<div class="line"><a name="l00328"></a><span class="lineno">  328</span>&#160;            typeid(v),</div>
-<div class="line"><a name="l00329"></a><span class="lineno">  329</span>&#160;            &amp;v,</div>
-<div class="line"><a name="l00330"></a><span class="lineno">  330</span>&#160;            sizeof(v)</div>
-<div class="line"><a name="l00331"></a><span class="lineno">  331</span>&#160;        };</div>
-<div class="line"><a name="l00332"></a><span class="lineno">  332</span>&#160;    }) {}</div>
+<div class="line"><a name="l00299"></a><span class="lineno">  299</span>&#160; </div>
+<div class="line"><a name="l00305"></a><span class="lineno">  305</span>&#160;<span class="keyword">template</span>&lt;<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> reserved_space = 4*sizeof(<span class="keywordtype">void</span> *)&gt;</div>
+<div class="line"><a name="l00306"></a><span class="lineno"><a class="line" href="classcoro_1_1any.html">  306</a></span>&#160;<span class="keyword">class </span><a class="code" href="classcoro_1_1any.html">any</a> {</div>
+<div class="line"><a name="l00307"></a><span class="lineno">  307</span>&#160;<span class="keyword">public</span>:</div>
+<div class="line"><a name="l00308"></a><span class="lineno">  308</span>&#160; </div>
+<div class="line"><a name="l00310"></a><span class="lineno"><a class="line" href="structcoro_1_1any_1_1content.html">  310</a></span>&#160;    <span class="keyword">struct </span><a class="code" href="structcoro_1_1any_1_1content.html">content</a> {</div>
+<div class="line"><a name="l00312"></a><span class="lineno"><a class="line" href="structcoro_1_1any_1_1content_afc4d218aff80db81c41549ab5c61bb8d.html#afc4d218aff80db81c41549ab5c61bb8d">  312</a></span>&#160;        <span class="keyword">const</span> std::type_info &amp;<a class="code" href="structcoro_1_1any_1_1content_afc4d218aff80db81c41549ab5c61bb8d.html#afc4d218aff80db81c41549ab5c61bb8d">type</a>;</div>
+<div class="line"><a name="l00314"></a><span class="lineno"><a class="line" href="structcoro_1_1any_1_1content_a28495380c52283fd27d712504e4e2864.html#a28495380c52283fd27d712504e4e2864">  314</a></span>&#160;        <span class="keywordtype">void</span> *<a class="code" href="structcoro_1_1any_1_1content_a28495380c52283fd27d712504e4e2864.html#a28495380c52283fd27d712504e4e2864">ptr</a>;</div>
+<div class="line"><a name="l00316"></a><span class="lineno"><a class="line" href="structcoro_1_1any_1_1content_a0675024be2b7617b9b9d5ded7b0f68ec.html#a0675024be2b7617b9b9d5ded7b0f68ec">  316</a></span>&#160;        std::size_t <a class="code" href="structcoro_1_1any_1_1content_a0675024be2b7617b9b9d5ded7b0f68ec.html#a0675024be2b7617b9b9d5ded7b0f68ec">size</a>;</div>
+<div class="line"><a name="l00317"></a><span class="lineno">  317</span>&#160;    };</div>
+<div class="line"><a name="l00318"></a><span class="lineno">  318</span>&#160; </div>
+<div class="line"><a name="l00320"></a><span class="lineno">  320</span>&#160; </div>
+<div class="line"><a name="l00324"></a><span class="lineno">  324</span>&#160;    <span class="keyword">template</span>&lt;hasnt_cast_operator&lt;any&gt; Arg&gt;</div>
+<div class="line"><a name="l00325"></a><span class="lineno"><a class="line" href="classcoro_1_1any_a324de76924decac5cc0ab06c2f4cffe8.html#a324de76924decac5cc0ab06c2f4cffe8">  325</a></span>&#160;    <a class="code" href="classcoro_1_1any_a324de76924decac5cc0ab06c2f4cffe8.html#a324de76924decac5cc0ab06c2f4cffe8">any</a>(Arg &amp;&amp;arg):_storage([v = Arg(std::forward&lt;Arg&gt;(arg))]()mutable -&gt; <a class="code" href="structcoro_1_1any_1_1content.html">content</a>{</div>
+<div class="line"><a name="l00326"></a><span class="lineno">  326</span>&#160;        return {</div>
+<div class="line"><a name="l00327"></a><span class="lineno">  327</span>&#160;            typeid(v),</div>
+<div class="line"><a name="l00328"></a><span class="lineno">  328</span>&#160;            &amp;v,</div>
+<div class="line"><a name="l00329"></a><span class="lineno">  329</span>&#160;            sizeof(v)</div>
+<div class="line"><a name="l00330"></a><span class="lineno">  330</span>&#160;        };</div>
+<div class="line"><a name="l00331"></a><span class="lineno">  331</span>&#160;    }) {}</div>
+<div class="line"><a name="l00332"></a><span class="lineno">  332</span>&#160; </div>
 <div class="line"><a name="l00333"></a><span class="lineno">  333</span>&#160; </div>
-<div class="line"><a name="l00334"></a><span class="lineno">  334</span>&#160; </div>
-<div class="line"><a name="l00336"></a><span class="lineno"><a class="line" href="classcoro_1_1any_a5dedfcaff89ba7ea15e740b6ac215bbf.html#a5dedfcaff89ba7ea15e740b6ac215bbf">  336</a></span>&#160;    <a class="code" href="classcoro_1_1any_a5dedfcaff89ba7ea15e740b6ac215bbf.html#a5dedfcaff89ba7ea15e740b6ac215bbf">any</a>():_storage([]()mutable-&gt;<a class="code" href="structcoro_1_1any_1_1content.html">content</a>{</div>
-<div class="line"><a name="l00337"></a><span class="lineno">  337</span>&#160;        return {typeid(nullptr),nullptr,0};</div>
-<div class="line"><a name="l00338"></a><span class="lineno">  338</span>&#160;    }) {}</div>
-<div class="line"><a name="l00339"></a><span class="lineno">  339</span>&#160; </div>
-<div class="line"><a name="l00341"></a><span class="lineno">  341</span>&#160; </div>
-<div class="line"><a name="l00345"></a><span class="lineno"><a class="line" href="classcoro_1_1any_a2ca6ead2e8d2857f3a5227316461e96d.html#a2ca6ead2e8d2857f3a5227316461e96d">  345</a></span>&#160;    <span class="keyword">const</span> <a class="code" href="structcoro_1_1any_1_1content.html">content</a> <a class="code" href="classcoro_1_1any_a2ca6ead2e8d2857f3a5227316461e96d.html#a2ca6ead2e8d2857f3a5227316461e96d">get_info</a>()<span class="keyword"> const </span>{</div>
-<div class="line"><a name="l00346"></a><span class="lineno">  346</span>&#160;        <span class="keywordflow">return</span> _storage();</div>
-<div class="line"><a name="l00347"></a><span class="lineno">  347</span>&#160;    }</div>
-<div class="line"><a name="l00349"></a><span class="lineno">  349</span>&#160; </div>
-<div class="line"><a name="l00353"></a><span class="lineno"><a class="line" href="classcoro_1_1any_a0de384ea7a827818a50e81ccf1ab012d.html#a0de384ea7a827818a50e81ccf1ab012d">  353</a></span>&#160;    <a class="code" href="structcoro_1_1any_1_1content.html">content</a> <a class="code" href="classcoro_1_1any_a0de384ea7a827818a50e81ccf1ab012d.html#a0de384ea7a827818a50e81ccf1ab012d">get_info</a>() {</div>
-<div class="line"><a name="l00354"></a><span class="lineno">  354</span>&#160;        <span class="keywordflow">return</span> _storage();</div>
-<div class="line"><a name="l00355"></a><span class="lineno">  355</span>&#160;    }</div>
-<div class="line"><a name="l00356"></a><span class="lineno">  356</span>&#160; </div>
-<div class="line"><a name="l00358"></a><span class="lineno">  358</span>&#160; </div>
-<div class="line"><a name="l00366"></a><span class="lineno">  366</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</div>
-<div class="line"><a name="l00367"></a><span class="lineno"><a class="line" href="classcoro_1_1any_a63e1788c7d5911a46876db8ce8babb44.html#a63e1788c7d5911a46876db8ce8babb44">  367</a></span>&#160;    <span class="keyword">const</span> T *<a class="code" href="classcoro_1_1any_a63e1788c7d5911a46876db8ce8babb44.html#a63e1788c7d5911a46876db8ce8babb44">get_ptr</a>() const noexcept {</div>
-<div class="line"><a name="l00368"></a><span class="lineno">  368</span>&#160;        <span class="keyword">auto</span> ctx = get_info();</div>
-<div class="line"><a name="l00369"></a><span class="lineno">  369</span>&#160;        <span class="keywordflow">if</span> (ctx.type != <span class="keyword">typeid</span>(T)) <span class="keywordflow">return</span> <span class="keyword">nullptr</span>;</div>
-<div class="line"><a name="l00370"></a><span class="lineno">  370</span>&#160;        <span class="keywordflow">return</span> <span class="keyword">reinterpret_cast&lt;</span><span class="keyword">const </span>T *<span class="keyword">&gt;</span>(ctx.ptr);</div>
-<div class="line"><a name="l00371"></a><span class="lineno">  371</span>&#160;    }</div>
-<div class="line"><a name="l00373"></a><span class="lineno">  373</span>&#160; </div>
-<div class="line"><a name="l00380"></a><span class="lineno">  380</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</div>
-<div class="line"><a name="l00381"></a><span class="lineno"><a class="line" href="classcoro_1_1any_a8abe1c1d62194ffdeeb07e17a7c25900.html#a8abe1c1d62194ffdeeb07e17a7c25900">  381</a></span>&#160;    T *<a class="code" href="classcoro_1_1any_a8abe1c1d62194ffdeeb07e17a7c25900.html#a8abe1c1d62194ffdeeb07e17a7c25900">get_ptr</a>() noexcept  {</div>
-<div class="line"><a name="l00382"></a><span class="lineno">  382</span>&#160;        <span class="keyword">auto</span> ctx = get_info();</div>
-<div class="line"><a name="l00383"></a><span class="lineno">  383</span>&#160;        <span class="keywordflow">if</span> (ctx.type != <span class="keyword">typeid</span>(T)) <span class="keywordflow">return</span> <span class="keyword">nullptr</span>;</div>
-<div class="line"><a name="l00384"></a><span class="lineno">  384</span>&#160;        <span class="keywordflow">return</span> <span class="keyword">reinterpret_cast&lt;</span>T *<span class="keyword">&gt;</span>(ctx.ptr);</div>
-<div class="line"><a name="l00385"></a><span class="lineno">  385</span>&#160;    }</div>
-<div class="line"><a name="l00386"></a><span class="lineno">  386</span>&#160; </div>
-<div class="line"><a name="l00388"></a><span class="lineno">  388</span>&#160; </div>
-<div class="line"><a name="l00394"></a><span class="lineno">  394</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</div>
-<div class="line"><a name="l00395"></a><span class="lineno"><a class="line" href="classcoro_1_1any_a82195bd019753d42c74da39f5719da1a.html#a82195bd019753d42c74da39f5719da1a">  395</a></span>&#160;    <span class="keyword">const</span> T &amp;<a class="code" href="classcoro_1_1any_a82195bd019753d42c74da39f5719da1a.html#a82195bd019753d42c74da39f5719da1a">get</a>()<span class="keyword"> const </span>{</div>
-<div class="line"><a name="l00396"></a><span class="lineno">  396</span>&#160;        <span class="keyword">auto</span> ptr = get_ptr&lt;T&gt;();</div>
-<div class="line"><a name="l00397"></a><span class="lineno">  397</span>&#160;        <span class="keywordflow">if</span> (ptr == <span class="keyword">nullptr</span>) <span class="keywordflow">throw</span> std::bad_cast();</div>
-<div class="line"><a name="l00398"></a><span class="lineno">  398</span>&#160;        <span class="keywordflow">return</span> *ptr;</div>
-<div class="line"><a name="l00399"></a><span class="lineno">  399</span>&#160;    }</div>
-<div class="line"><a name="l00401"></a><span class="lineno">  401</span>&#160; </div>
-<div class="line"><a name="l00407"></a><span class="lineno">  407</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</div>
-<div class="line"><a name="l00408"></a><span class="lineno"><a class="line" href="classcoro_1_1any_a8280f72e8f0d8414b25c1376991832a3.html#a8280f72e8f0d8414b25c1376991832a3">  408</a></span>&#160;    T &amp;<a class="code" href="classcoro_1_1any_a8280f72e8f0d8414b25c1376991832a3.html#a8280f72e8f0d8414b25c1376991832a3">get</a>()  {</div>
-<div class="line"><a name="l00409"></a><span class="lineno">  409</span>&#160;        <span class="keyword">auto</span> ptr = get_ptr&lt;T&gt;();</div>
-<div class="line"><a name="l00410"></a><span class="lineno">  410</span>&#160;        <span class="keywordflow">if</span> (ptr == <span class="keyword">nullptr</span>) <span class="keywordflow">throw</span> std::bad_cast();</div>
-<div class="line"><a name="l00411"></a><span class="lineno">  411</span>&#160;        <span class="keywordflow">return</span> *ptr;</div>
-<div class="line"><a name="l00412"></a><span class="lineno">  412</span>&#160;    }</div>
-<div class="line"><a name="l00413"></a><span class="lineno">  413</span>&#160; </div>
-<div class="line"><a name="l00415"></a><span class="lineno">  415</span>&#160; </div>
-<div class="line"><a name="l00420"></a><span class="lineno"><a class="line" href="classcoro_1_1any_aa0c724710c17cbfe6af195a2cf9cb53d.html#aa0c724710c17cbfe6af195a2cf9cb53d">  420</a></span>&#160;    <span class="keywordtype">bool</span> <a class="code" href="classcoro_1_1any_aa0c724710c17cbfe6af195a2cf9cb53d.html#aa0c724710c17cbfe6af195a2cf9cb53d">empty</a>() const noexcept {</div>
-<div class="line"><a name="l00421"></a><span class="lineno">  421</span>&#160;        <span class="keywordflow">return</span> get_info().ptr == <span class="keyword">nullptr</span>;</div>
-<div class="line"><a name="l00422"></a><span class="lineno">  422</span>&#160;    }</div>
-<div class="line"><a name="l00423"></a><span class="lineno">  423</span>&#160; </div>
-<div class="line"><a name="l00425"></a><span class="lineno">  425</span>&#160; </div>
-<div class="line"><a name="l00429"></a><span class="lineno"><a class="line" href="classcoro_1_1any_aeaaf2b9415446a9dac4e9427ebf4079a.html#aeaaf2b9415446a9dac4e9427ebf4079a">  429</a></span>&#160;    <span class="keyword">operator</span> bool() const noexcept {</div>
-<div class="line"><a name="l00430"></a><span class="lineno">  430</span>&#160;        <span class="keywordflow">return</span> get_info().ptr != <span class="keyword">nullptr</span>;</div>
-<div class="line"><a name="l00431"></a><span class="lineno">  431</span>&#160;    }</div>
-<div class="line"><a name="l00432"></a><span class="lineno">  432</span>&#160; </div>
-<div class="line"><a name="l00434"></a><span class="lineno">  434</span>&#160; </div>
-<div class="line"><a name="l00439"></a><span class="lineno">  439</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</div>
-<div class="line"><a name="l00440"></a><span class="lineno"><a class="line" href="classcoro_1_1any_a0d549755e3757100e12a4d1bce990151.html#a0d549755e3757100e12a4d1bce990151">  440</a></span>&#160;    <span class="keywordtype">bool</span> <a class="code" href="classcoro_1_1any_a0d549755e3757100e12a4d1bce990151.html#a0d549755e3757100e12a4d1bce990151">contains</a>() const noexcept {</div>
-<div class="line"><a name="l00441"></a><span class="lineno">  441</span>&#160;        <span class="keywordflow">return</span>  get_info().type ==  <span class="keyword">typeid</span>(T);</div>
-<div class="line"><a name="l00442"></a><span class="lineno">  442</span>&#160;    }</div>
-<div class="line"><a name="l00443"></a><span class="lineno">  443</span>&#160; </div>
-<div class="line"><a name="l00444"></a><span class="lineno">  444</span>&#160;<span class="keyword">protected</span>:</div>
-<div class="line"><a name="l00445"></a><span class="lineno">  445</span>&#160;    <span class="keyword">mutable</span> <span class="keyword">function</span>&lt;content()&gt; _storage;</div>
-<div class="line"><a name="l00446"></a><span class="lineno">  446</span>&#160;};</div>
+<div class="line"><a name="l00335"></a><span class="lineno"><a class="line" href="classcoro_1_1any_a5dedfcaff89ba7ea15e740b6ac215bbf.html#a5dedfcaff89ba7ea15e740b6ac215bbf">  335</a></span>&#160;    <a class="code" href="classcoro_1_1any_a5dedfcaff89ba7ea15e740b6ac215bbf.html#a5dedfcaff89ba7ea15e740b6ac215bbf">any</a>():_storage([]()mutable-&gt;<a class="code" href="structcoro_1_1any_1_1content.html">content</a>{</div>
+<div class="line"><a name="l00336"></a><span class="lineno">  336</span>&#160;        return {typeid(nullptr),nullptr,0};</div>
+<div class="line"><a name="l00337"></a><span class="lineno">  337</span>&#160;    }) {}</div>
+<div class="line"><a name="l00338"></a><span class="lineno">  338</span>&#160; </div>
+<div class="line"><a name="l00340"></a><span class="lineno">  340</span>&#160; </div>
+<div class="line"><a name="l00344"></a><span class="lineno"><a class="line" href="classcoro_1_1any_a2ca6ead2e8d2857f3a5227316461e96d.html#a2ca6ead2e8d2857f3a5227316461e96d">  344</a></span>&#160;    <span class="keyword">const</span> <a class="code" href="structcoro_1_1any_1_1content.html">content</a> <a class="code" href="classcoro_1_1any_a2ca6ead2e8d2857f3a5227316461e96d.html#a2ca6ead2e8d2857f3a5227316461e96d">get_info</a>()<span class="keyword"> const </span>{</div>
+<div class="line"><a name="l00345"></a><span class="lineno">  345</span>&#160;        <span class="keywordflow">return</span> _storage();</div>
+<div class="line"><a name="l00346"></a><span class="lineno">  346</span>&#160;    }</div>
+<div class="line"><a name="l00348"></a><span class="lineno">  348</span>&#160; </div>
+<div class="line"><a name="l00352"></a><span class="lineno"><a class="line" href="classcoro_1_1any_a0de384ea7a827818a50e81ccf1ab012d.html#a0de384ea7a827818a50e81ccf1ab012d">  352</a></span>&#160;    <a class="code" href="structcoro_1_1any_1_1content.html">content</a> <a class="code" href="classcoro_1_1any_a0de384ea7a827818a50e81ccf1ab012d.html#a0de384ea7a827818a50e81ccf1ab012d">get_info</a>() {</div>
+<div class="line"><a name="l00353"></a><span class="lineno">  353</span>&#160;        <span class="keywordflow">return</span> _storage();</div>
+<div class="line"><a name="l00354"></a><span class="lineno">  354</span>&#160;    }</div>
+<div class="line"><a name="l00355"></a><span class="lineno">  355</span>&#160; </div>
+<div class="line"><a name="l00357"></a><span class="lineno">  357</span>&#160; </div>
+<div class="line"><a name="l00365"></a><span class="lineno">  365</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</div>
+<div class="line"><a name="l00366"></a><span class="lineno"><a class="line" href="classcoro_1_1any_a63e1788c7d5911a46876db8ce8babb44.html#a63e1788c7d5911a46876db8ce8babb44">  366</a></span>&#160;    <span class="keyword">const</span> T *<a class="code" href="classcoro_1_1any_a63e1788c7d5911a46876db8ce8babb44.html#a63e1788c7d5911a46876db8ce8babb44">get_ptr</a>() const noexcept {</div>
+<div class="line"><a name="l00367"></a><span class="lineno">  367</span>&#160;        <span class="keyword">auto</span> ctx = get_info();</div>
+<div class="line"><a name="l00368"></a><span class="lineno">  368</span>&#160;        <span class="keywordflow">if</span> (ctx.type != <span class="keyword">typeid</span>(T)) <span class="keywordflow">return</span> <span class="keyword">nullptr</span>;</div>
+<div class="line"><a name="l00369"></a><span class="lineno">  369</span>&#160;        <span class="keywordflow">return</span> <span class="keyword">reinterpret_cast&lt;</span><span class="keyword">const </span>T *<span class="keyword">&gt;</span>(ctx.ptr);</div>
+<div class="line"><a name="l00370"></a><span class="lineno">  370</span>&#160;    }</div>
+<div class="line"><a name="l00372"></a><span class="lineno">  372</span>&#160; </div>
+<div class="line"><a name="l00379"></a><span class="lineno">  379</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</div>
+<div class="line"><a name="l00380"></a><span class="lineno"><a class="line" href="classcoro_1_1any_a8abe1c1d62194ffdeeb07e17a7c25900.html#a8abe1c1d62194ffdeeb07e17a7c25900">  380</a></span>&#160;    T *<a class="code" href="classcoro_1_1any_a8abe1c1d62194ffdeeb07e17a7c25900.html#a8abe1c1d62194ffdeeb07e17a7c25900">get_ptr</a>() noexcept  {</div>
+<div class="line"><a name="l00381"></a><span class="lineno">  381</span>&#160;        <span class="keyword">auto</span> ctx = get_info();</div>
+<div class="line"><a name="l00382"></a><span class="lineno">  382</span>&#160;        <span class="keywordflow">if</span> (ctx.type != <span class="keyword">typeid</span>(T)) <span class="keywordflow">return</span> <span class="keyword">nullptr</span>;</div>
+<div class="line"><a name="l00383"></a><span class="lineno">  383</span>&#160;        <span class="keywordflow">return</span> <span class="keyword">reinterpret_cast&lt;</span>T *<span class="keyword">&gt;</span>(ctx.ptr);</div>
+<div class="line"><a name="l00384"></a><span class="lineno">  384</span>&#160;    }</div>
+<div class="line"><a name="l00385"></a><span class="lineno">  385</span>&#160; </div>
+<div class="line"><a name="l00387"></a><span class="lineno">  387</span>&#160; </div>
+<div class="line"><a name="l00393"></a><span class="lineno">  393</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</div>
+<div class="line"><a name="l00394"></a><span class="lineno"><a class="line" href="classcoro_1_1any_a82195bd019753d42c74da39f5719da1a.html#a82195bd019753d42c74da39f5719da1a">  394</a></span>&#160;    <span class="keyword">const</span> T &amp;<a class="code" href="classcoro_1_1any_a82195bd019753d42c74da39f5719da1a.html#a82195bd019753d42c74da39f5719da1a">get</a>()<span class="keyword"> const </span>{</div>
+<div class="line"><a name="l00395"></a><span class="lineno">  395</span>&#160;        <span class="keyword">auto</span> ptr = get_ptr&lt;T&gt;();</div>
+<div class="line"><a name="l00396"></a><span class="lineno">  396</span>&#160;        <span class="keywordflow">if</span> (ptr == <span class="keyword">nullptr</span>) <span class="keywordflow">throw</span> std::bad_cast();</div>
+<div class="line"><a name="l00397"></a><span class="lineno">  397</span>&#160;        <span class="keywordflow">return</span> *ptr;</div>
+<div class="line"><a name="l00398"></a><span class="lineno">  398</span>&#160;    }</div>
+<div class="line"><a name="l00400"></a><span class="lineno">  400</span>&#160; </div>
+<div class="line"><a name="l00406"></a><span class="lineno">  406</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</div>
+<div class="line"><a name="l00407"></a><span class="lineno"><a class="line" href="classcoro_1_1any_a8280f72e8f0d8414b25c1376991832a3.html#a8280f72e8f0d8414b25c1376991832a3">  407</a></span>&#160;    T &amp;<a class="code" href="classcoro_1_1any_a8280f72e8f0d8414b25c1376991832a3.html#a8280f72e8f0d8414b25c1376991832a3">get</a>()  {</div>
+<div class="line"><a name="l00408"></a><span class="lineno">  408</span>&#160;        <span class="keyword">auto</span> ptr = get_ptr&lt;T&gt;();</div>
+<div class="line"><a name="l00409"></a><span class="lineno">  409</span>&#160;        <span class="keywordflow">if</span> (ptr == <span class="keyword">nullptr</span>) <span class="keywordflow">throw</span> std::bad_cast();</div>
+<div class="line"><a name="l00410"></a><span class="lineno">  410</span>&#160;        <span class="keywordflow">return</span> *ptr;</div>
+<div class="line"><a name="l00411"></a><span class="lineno">  411</span>&#160;    }</div>
+<div class="line"><a name="l00412"></a><span class="lineno">  412</span>&#160; </div>
+<div class="line"><a name="l00414"></a><span class="lineno">  414</span>&#160; </div>
+<div class="line"><a name="l00419"></a><span class="lineno"><a class="line" href="classcoro_1_1any_aa0c724710c17cbfe6af195a2cf9cb53d.html#aa0c724710c17cbfe6af195a2cf9cb53d">  419</a></span>&#160;    <span class="keywordtype">bool</span> <a class="code" href="classcoro_1_1any_aa0c724710c17cbfe6af195a2cf9cb53d.html#aa0c724710c17cbfe6af195a2cf9cb53d">empty</a>() const noexcept {</div>
+<div class="line"><a name="l00420"></a><span class="lineno">  420</span>&#160;        <span class="keywordflow">return</span> get_info().ptr == <span class="keyword">nullptr</span>;</div>
+<div class="line"><a name="l00421"></a><span class="lineno">  421</span>&#160;    }</div>
+<div class="line"><a name="l00422"></a><span class="lineno">  422</span>&#160; </div>
+<div class="line"><a name="l00424"></a><span class="lineno">  424</span>&#160; </div>
+<div class="line"><a name="l00428"></a><span class="lineno"><a class="line" href="classcoro_1_1any_aeaaf2b9415446a9dac4e9427ebf4079a.html#aeaaf2b9415446a9dac4e9427ebf4079a">  428</a></span>&#160;    <span class="keyword">operator</span> bool() const noexcept {</div>
+<div class="line"><a name="l00429"></a><span class="lineno">  429</span>&#160;        <span class="keywordflow">return</span> get_info().ptr != <span class="keyword">nullptr</span>;</div>
+<div class="line"><a name="l00430"></a><span class="lineno">  430</span>&#160;    }</div>
+<div class="line"><a name="l00431"></a><span class="lineno">  431</span>&#160; </div>
+<div class="line"><a name="l00433"></a><span class="lineno">  433</span>&#160; </div>
+<div class="line"><a name="l00438"></a><span class="lineno">  438</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</div>
+<div class="line"><a name="l00439"></a><span class="lineno"><a class="line" href="classcoro_1_1any_a0d549755e3757100e12a4d1bce990151.html#a0d549755e3757100e12a4d1bce990151">  439</a></span>&#160;    <span class="keywordtype">bool</span> <a class="code" href="classcoro_1_1any_a0d549755e3757100e12a4d1bce990151.html#a0d549755e3757100e12a4d1bce990151">contains</a>() const noexcept {</div>
+<div class="line"><a name="l00440"></a><span class="lineno">  440</span>&#160;        <span class="keywordflow">return</span>  get_info().type ==  <span class="keyword">typeid</span>(T);</div>
+<div class="line"><a name="l00441"></a><span class="lineno">  441</span>&#160;    }</div>
+<div class="line"><a name="l00442"></a><span class="lineno">  442</span>&#160; </div>
+<div class="line"><a name="l00443"></a><span class="lineno">  443</span>&#160;<span class="keyword">protected</span>:</div>
+<div class="line"><a name="l00444"></a><span class="lineno">  444</span>&#160;    <span class="keyword">mutable</span> <span class="keyword">function</span>&lt;content()&gt; _storage;</div>
+<div class="line"><a name="l00445"></a><span class="lineno">  445</span>&#160;};</div>
+<div class="line"><a name="l00446"></a><span class="lineno">  446</span>&#160; </div>
 <div class="line"><a name="l00447"></a><span class="lineno">  447</span>&#160; </div>
-<div class="line"><a name="l00448"></a><span class="lineno">  448</span>&#160; </div>
-<div class="line"><a name="l00449"></a><span class="lineno">  449</span>&#160;}</div>
-<div class="ttc" id="aclasscoro_1_1any_a0d549755e3757100e12a4d1bce990151_html_a0d549755e3757100e12a4d1bce990151"><div class="ttname"><a href="classcoro_1_1any_a0d549755e3757100e12a4d1bce990151.html#a0d549755e3757100e12a4d1bce990151">coro::any::contains</a></div><div class="ttdeci">bool contains() const noexcept</div><div class="ttdoc">Tests whether object contains given type.</div><div class="ttdef"><b>Definition:</b> <a href="function_8h_source.html#l00440">function.h:440</a></div></div>
-<div class="ttc" id="aclasscoro_1_1any_a0de384ea7a827818a50e81ccf1ab012d_html_a0de384ea7a827818a50e81ccf1ab012d"><div class="ttname"><a href="classcoro_1_1any_a0de384ea7a827818a50e81ccf1ab012d.html#a0de384ea7a827818a50e81ccf1ab012d">coro::any::get_info</a></div><div class="ttdeci">content get_info()</div><div class="ttdoc">Retrieve information about the content.</div><div class="ttdef"><b>Definition:</b> <a href="function_8h_source.html#l00353">function.h:353</a></div></div>
-<div class="ttc" id="aclasscoro_1_1any_a2ca6ead2e8d2857f3a5227316461e96d_html_a2ca6ead2e8d2857f3a5227316461e96d"><div class="ttname"><a href="classcoro_1_1any_a2ca6ead2e8d2857f3a5227316461e96d.html#a2ca6ead2e8d2857f3a5227316461e96d">coro::any::get_info</a></div><div class="ttdeci">const content get_info() const</div><div class="ttdoc">Retrieve information about the content.</div><div class="ttdef"><b>Definition:</b> <a href="function_8h_source.html#l00345">function.h:345</a></div></div>
-<div class="ttc" id="aclasscoro_1_1any_a324de76924decac5cc0ab06c2f4cffe8_html_a324de76924decac5cc0ab06c2f4cffe8"><div class="ttname"><a href="classcoro_1_1any_a324de76924decac5cc0ab06c2f4cffe8.html#a324de76924decac5cc0ab06c2f4cffe8">coro::any::any</a></div><div class="ttdeci">any(Arg &amp;&amp;arg)</div><div class="ttdoc">Construct any instance.</div><div class="ttdef"><b>Definition:</b> <a href="function_8h_source.html#l00326">function.h:326</a></div></div>
-<div class="ttc" id="aclasscoro_1_1any_a5dedfcaff89ba7ea15e740b6ac215bbf_html_a5dedfcaff89ba7ea15e740b6ac215bbf"><div class="ttname"><a href="classcoro_1_1any_a5dedfcaff89ba7ea15e740b6ac215bbf.html#a5dedfcaff89ba7ea15e740b6ac215bbf">coro::any::any</a></div><div class="ttdeci">any()</div><div class="ttdoc">Construct empty.</div><div class="ttdef"><b>Definition:</b> <a href="function_8h_source.html#l00336">function.h:336</a></div></div>
-<div class="ttc" id="aclasscoro_1_1any_a63e1788c7d5911a46876db8ce8babb44_html_a63e1788c7d5911a46876db8ce8babb44"><div class="ttname"><a href="classcoro_1_1any_a63e1788c7d5911a46876db8ce8babb44.html#a63e1788c7d5911a46876db8ce8babb44">coro::any::get_ptr</a></div><div class="ttdeci">const T * get_ptr() const noexcept</div><div class="ttdoc">Get as pointer.</div><div class="ttdef"><b>Definition:</b> <a href="function_8h_source.html#l00367">function.h:367</a></div></div>
-<div class="ttc" id="aclasscoro_1_1any_a82195bd019753d42c74da39f5719da1a_html_a82195bd019753d42c74da39f5719da1a"><div class="ttname"><a href="classcoro_1_1any_a82195bd019753d42c74da39f5719da1a.html#a82195bd019753d42c74da39f5719da1a">coro::any::get</a></div><div class="ttdeci">const T &amp; get() const</div><div class="ttdoc">Get as reference.</div><div class="ttdef"><b>Definition:</b> <a href="function_8h_source.html#l00395">function.h:395</a></div></div>
-<div class="ttc" id="aclasscoro_1_1any_a8280f72e8f0d8414b25c1376991832a3_html_a8280f72e8f0d8414b25c1376991832a3"><div class="ttname"><a href="classcoro_1_1any_a8280f72e8f0d8414b25c1376991832a3.html#a8280f72e8f0d8414b25c1376991832a3">coro::any::get</a></div><div class="ttdeci">T &amp; get()</div><div class="ttdoc">Get as reference.</div><div class="ttdef"><b>Definition:</b> <a href="function_8h_source.html#l00408">function.h:408</a></div></div>
-<div class="ttc" id="aclasscoro_1_1any_a8abe1c1d62194ffdeeb07e17a7c25900_html_a8abe1c1d62194ffdeeb07e17a7c25900"><div class="ttname"><a href="classcoro_1_1any_a8abe1c1d62194ffdeeb07e17a7c25900.html#a8abe1c1d62194ffdeeb07e17a7c25900">coro::any::get_ptr</a></div><div class="ttdeci">T * get_ptr() noexcept</div><div class="ttdoc">Get as pointer.</div><div class="ttdef"><b>Definition:</b> <a href="function_8h_source.html#l00381">function.h:381</a></div></div>
-<div class="ttc" id="aclasscoro_1_1any_aa0c724710c17cbfe6af195a2cf9cb53d_html_aa0c724710c17cbfe6af195a2cf9cb53d"><div class="ttname"><a href="classcoro_1_1any_aa0c724710c17cbfe6af195a2cf9cb53d.html#aa0c724710c17cbfe6af195a2cf9cb53d">coro::any::empty</a></div><div class="ttdeci">bool empty() const noexcept</div><div class="ttdoc">Determines whether object is empty.</div><div class="ttdef"><b>Definition:</b> <a href="function_8h_source.html#l00420">function.h:420</a></div></div>
-<div class="ttc" id="aclasscoro_1_1any_html"><div class="ttname"><a href="classcoro_1_1any.html">coro::any</a></div><div class="ttdoc">Movable any replacement with small object optimization - uses coro::function.</div><div class="ttdef"><b>Definition:</b> <a href="function_8h_source.html#l00307">function.h:307</a></div></div>
+<div class="line"><a name="l00448"></a><span class="lineno">  448</span>&#160;}</div>
+<div class="ttc" id="aclasscoro_1_1any_a0d549755e3757100e12a4d1bce990151_html_a0d549755e3757100e12a4d1bce990151"><div class="ttname"><a href="classcoro_1_1any_a0d549755e3757100e12a4d1bce990151.html#a0d549755e3757100e12a4d1bce990151">coro::any::contains</a></div><div class="ttdeci">bool contains() const noexcept</div><div class="ttdoc">Tests whether object contains given type.</div><div class="ttdef"><b>Definition:</b> <a href="function_8h_source.html#l00439">function.h:439</a></div></div>
+<div class="ttc" id="aclasscoro_1_1any_a0de384ea7a827818a50e81ccf1ab012d_html_a0de384ea7a827818a50e81ccf1ab012d"><div class="ttname"><a href="classcoro_1_1any_a0de384ea7a827818a50e81ccf1ab012d.html#a0de384ea7a827818a50e81ccf1ab012d">coro::any::get_info</a></div><div class="ttdeci">content get_info()</div><div class="ttdoc">Retrieve information about the content.</div><div class="ttdef"><b>Definition:</b> <a href="function_8h_source.html#l00352">function.h:352</a></div></div>
+<div class="ttc" id="aclasscoro_1_1any_a2ca6ead2e8d2857f3a5227316461e96d_html_a2ca6ead2e8d2857f3a5227316461e96d"><div class="ttname"><a href="classcoro_1_1any_a2ca6ead2e8d2857f3a5227316461e96d.html#a2ca6ead2e8d2857f3a5227316461e96d">coro::any::get_info</a></div><div class="ttdeci">const content get_info() const</div><div class="ttdoc">Retrieve information about the content.</div><div class="ttdef"><b>Definition:</b> <a href="function_8h_source.html#l00344">function.h:344</a></div></div>
+<div class="ttc" id="aclasscoro_1_1any_a324de76924decac5cc0ab06c2f4cffe8_html_a324de76924decac5cc0ab06c2f4cffe8"><div class="ttname"><a href="classcoro_1_1any_a324de76924decac5cc0ab06c2f4cffe8.html#a324de76924decac5cc0ab06c2f4cffe8">coro::any::any</a></div><div class="ttdeci">any(Arg &amp;&amp;arg)</div><div class="ttdoc">Construct any instance.</div><div class="ttdef"><b>Definition:</b> <a href="function_8h_source.html#l00325">function.h:325</a></div></div>
+<div class="ttc" id="aclasscoro_1_1any_a5dedfcaff89ba7ea15e740b6ac215bbf_html_a5dedfcaff89ba7ea15e740b6ac215bbf"><div class="ttname"><a href="classcoro_1_1any_a5dedfcaff89ba7ea15e740b6ac215bbf.html#a5dedfcaff89ba7ea15e740b6ac215bbf">coro::any::any</a></div><div class="ttdeci">any()</div><div class="ttdoc">Construct empty.</div><div class="ttdef"><b>Definition:</b> <a href="function_8h_source.html#l00335">function.h:335</a></div></div>
+<div class="ttc" id="aclasscoro_1_1any_a63e1788c7d5911a46876db8ce8babb44_html_a63e1788c7d5911a46876db8ce8babb44"><div class="ttname"><a href="classcoro_1_1any_a63e1788c7d5911a46876db8ce8babb44.html#a63e1788c7d5911a46876db8ce8babb44">coro::any::get_ptr</a></div><div class="ttdeci">const T * get_ptr() const noexcept</div><div class="ttdoc">Get as pointer.</div><div class="ttdef"><b>Definition:</b> <a href="function_8h_source.html#l00366">function.h:366</a></div></div>
+<div class="ttc" id="aclasscoro_1_1any_a82195bd019753d42c74da39f5719da1a_html_a82195bd019753d42c74da39f5719da1a"><div class="ttname"><a href="classcoro_1_1any_a82195bd019753d42c74da39f5719da1a.html#a82195bd019753d42c74da39f5719da1a">coro::any::get</a></div><div class="ttdeci">const T &amp; get() const</div><div class="ttdoc">Get as reference.</div><div class="ttdef"><b>Definition:</b> <a href="function_8h_source.html#l00394">function.h:394</a></div></div>
+<div class="ttc" id="aclasscoro_1_1any_a8280f72e8f0d8414b25c1376991832a3_html_a8280f72e8f0d8414b25c1376991832a3"><div class="ttname"><a href="classcoro_1_1any_a8280f72e8f0d8414b25c1376991832a3.html#a8280f72e8f0d8414b25c1376991832a3">coro::any::get</a></div><div class="ttdeci">T &amp; get()</div><div class="ttdoc">Get as reference.</div><div class="ttdef"><b>Definition:</b> <a href="function_8h_source.html#l00407">function.h:407</a></div></div>
+<div class="ttc" id="aclasscoro_1_1any_a8abe1c1d62194ffdeeb07e17a7c25900_html_a8abe1c1d62194ffdeeb07e17a7c25900"><div class="ttname"><a href="classcoro_1_1any_a8abe1c1d62194ffdeeb07e17a7c25900.html#a8abe1c1d62194ffdeeb07e17a7c25900">coro::any::get_ptr</a></div><div class="ttdeci">T * get_ptr() noexcept</div><div class="ttdoc">Get as pointer.</div><div class="ttdef"><b>Definition:</b> <a href="function_8h_source.html#l00380">function.h:380</a></div></div>
+<div class="ttc" id="aclasscoro_1_1any_aa0c724710c17cbfe6af195a2cf9cb53d_html_aa0c724710c17cbfe6af195a2cf9cb53d"><div class="ttname"><a href="classcoro_1_1any_aa0c724710c17cbfe6af195a2cf9cb53d.html#aa0c724710c17cbfe6af195a2cf9cb53d">coro::any::empty</a></div><div class="ttdeci">bool empty() const noexcept</div><div class="ttdoc">Determines whether object is empty.</div><div class="ttdef"><b>Definition:</b> <a href="function_8h_source.html#l00419">function.h:419</a></div></div>
+<div class="ttc" id="aclasscoro_1_1any_html"><div class="ttname"><a href="classcoro_1_1any.html">coro::any</a></div><div class="ttdoc">Movable any replacement with small object optimization - uses coro::function.</div><div class="ttdef"><b>Definition:</b> <a href="function_8h_source.html#l00306">function.h:306</a></div></div>
 <div class="ttc" id="aclasscoro_1_1function_html"><div class="ttname"><a href="classcoro_1_1function.html">coro::function</a></div><div class="ttdoc">Move only function wrapper with small object optimization.</div><div class="ttdef"><b>Definition:</b> <a href="function_8h_source.html#l00023">function.h:23</a></div></div>
 <div class="ttc" id="anamespacecoro_html"><div class="ttname"><a href="namespacecoro.html">coro</a></div><div class="ttdoc">main namespace</div><div class="ttdef"><b>Definition:</b> <a href="aggregator_8h_source.html#l00008">aggregator.h:8</a></div></div>
-<div class="ttc" id="astructcoro_1_1any_1_1content_a0675024be2b7617b9b9d5ded7b0f68ec_html_a0675024be2b7617b9b9d5ded7b0f68ec"><div class="ttname"><a href="structcoro_1_1any_1_1content_a0675024be2b7617b9b9d5ded7b0f68ec.html#a0675024be2b7617b9b9d5ded7b0f68ec">coro::any::content::size</a></div><div class="ttdeci">std::size_t size</div><div class="ttdoc">size in bytes</div><div class="ttdef"><b>Definition:</b> <a href="function_8h_source.html#l00317">function.h:317</a></div></div>
-<div class="ttc" id="astructcoro_1_1any_1_1content_a28495380c52283fd27d712504e4e2864_html_a28495380c52283fd27d712504e4e2864"><div class="ttname"><a href="structcoro_1_1any_1_1content_a28495380c52283fd27d712504e4e2864.html#a28495380c52283fd27d712504e4e2864">coro::any::content::ptr</a></div><div class="ttdeci">void * ptr</div><div class="ttdoc">pointer to memory, where content is located.</div><div class="ttdef"><b>Definition:</b> <a href="function_8h_source.html#l00315">function.h:315</a></div></div>
-<div class="ttc" id="astructcoro_1_1any_1_1content_afc4d218aff80db81c41549ab5c61bb8d_html_afc4d218aff80db81c41549ab5c61bb8d"><div class="ttname"><a href="structcoro_1_1any_1_1content_afc4d218aff80db81c41549ab5c61bb8d.html#afc4d218aff80db81c41549ab5c61bb8d">coro::any::content::type</a></div><div class="ttdeci">const std::type_info &amp; type</div><div class="ttdoc">reference to type information</div><div class="ttdef"><b>Definition:</b> <a href="function_8h_source.html#l00313">function.h:313</a></div></div>
-<div class="ttc" id="astructcoro_1_1any_1_1content_html"><div class="ttname"><a href="structcoro_1_1any_1_1content.html">coro::any::content</a></div><div class="ttdoc">Contains information about stored content.</div><div class="ttdef"><b>Definition:</b> <a href="function_8h_source.html#l00311">function.h:311</a></div></div>
+<div class="ttc" id="astructcoro_1_1any_1_1content_a0675024be2b7617b9b9d5ded7b0f68ec_html_a0675024be2b7617b9b9d5ded7b0f68ec"><div class="ttname"><a href="structcoro_1_1any_1_1content_a0675024be2b7617b9b9d5ded7b0f68ec.html#a0675024be2b7617b9b9d5ded7b0f68ec">coro::any::content::size</a></div><div class="ttdeci">std::size_t size</div><div class="ttdoc">size in bytes</div><div class="ttdef"><b>Definition:</b> <a href="function_8h_source.html#l00316">function.h:316</a></div></div>
+<div class="ttc" id="astructcoro_1_1any_1_1content_a28495380c52283fd27d712504e4e2864_html_a28495380c52283fd27d712504e4e2864"><div class="ttname"><a href="structcoro_1_1any_1_1content_a28495380c52283fd27d712504e4e2864.html#a28495380c52283fd27d712504e4e2864">coro::any::content::ptr</a></div><div class="ttdeci">void * ptr</div><div class="ttdoc">pointer to memory, where content is located.</div><div class="ttdef"><b>Definition:</b> <a href="function_8h_source.html#l00314">function.h:314</a></div></div>
+<div class="ttc" id="astructcoro_1_1any_1_1content_afc4d218aff80db81c41549ab5c61bb8d_html_afc4d218aff80db81c41549ab5c61bb8d"><div class="ttname"><a href="structcoro_1_1any_1_1content_afc4d218aff80db81c41549ab5c61bb8d.html#afc4d218aff80db81c41549ab5c61bb8d">coro::any::content::type</a></div><div class="ttdeci">const std::type_info &amp; type</div><div class="ttdoc">reference to type information</div><div class="ttdef"><b>Definition:</b> <a href="function_8h_source.html#l00312">function.h:312</a></div></div>
+<div class="ttc" id="astructcoro_1_1any_1_1content_html"><div class="ttname"><a href="structcoro_1_1any_1_1content.html">coro::any::content</a></div><div class="ttdoc">Contains information about stored content.</div><div class="ttdef"><b>Definition:</b> <a href="function_8h_source.html#l00310">function.h:310</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Apr 12 2024 09:32:32 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+Generated on Sat Apr 13 2024 11:27:31 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
 </small></address>
 </body>
 </html>
