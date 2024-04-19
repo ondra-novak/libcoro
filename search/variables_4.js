@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['ptr_389',['ptr',['../structcoro_1_1any_1_1content_a28495380c52283fd27d712504e4e2864.html#a28495380c52283fd27d712504e4e2864',1,'coro::any::content']]]
+  ['lock_5fcallback_5fbuffer_5fsize_401',['lock_callback_buffer_size',['../classcoro_1_1mutex_ae4442e1f6d17f0cf3cfa45a16256b83a.html#ae4442e1f6d17f0cf3cfa45a16256b83a',1,'coro::mutex']]]
 ];

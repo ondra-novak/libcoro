@@ -90,6 +90,9 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1async.html">async</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">COROUTINE: Coroutine for asynchronous operation.  <a href="classcoro_1_1async.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1collector.html">collector</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The collector is a reversed generator. The coroutine consumes values and then returns a result.  <a href="classcoro_1_1collector.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1condition.html">condition</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">await on a condition  <a href="classcoro_1_1condition.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -237,6 +240,18 @@ Variables</h2></td></tr>
 <tr class="memitem:ga74db1a79f7510e368f9f297fdcb7ce61"><td class="memItemLeft" align="right" valign="top">constexpr <a class="el" href="classcoro_1_1std__allocator.html">std_allocator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__allocators_ga74db1a79f7510e368f9f297fdcb7ce61.html#ga74db1a79f7510e368f9f297fdcb7ce61">standard_allocator</a></td></tr>
 <tr class="memdesc:ga74db1a79f7510e368f9f297fdcb7ce61"><td class="mdescLeft">&#160;</td><td class="mdescRight">Global instance for <a class="el" href="classcoro_1_1std__allocator.html" title="represents standard allocator for coroutines">std_allocator</a> which can be used anywhere the allocator is requested.  <a href="group__allocators_ga74db1a79f7510e368f9f297fdcb7ce61.html#ga74db1a79f7510e368f9f297fdcb7ce61">More...</a><br /></td></tr>
 <tr class="separator:ga74db1a79f7510e368f9f297fdcb7ce61"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab6bbf8eeba0385b485961dd047743f7a"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
+<tr class="memitem:ab6bbf8eeba0385b485961dd047743f7a"><td class="memTemplItemLeft" align="right" valign="top">concept&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacecoro_ab6bbf8eeba0385b485961dd047743f7a.html#ab6bbf8eeba0385b485961dd047743f7a">await_suspend_valid_return_value</a> = (std::is_void_v&lt;T&gt;||std::is_convertible_v&lt;T, bool&gt;||std::is_convertible_v&lt;T, std::coroutine_handle&lt;&gt; &gt;)</td></tr>
+<tr class="memdesc:ab6bbf8eeba0385b485961dd047743f7a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Tests, whether T is valid await_suspend return value.  <a href="namespacecoro_ab6bbf8eeba0385b485961dd047743f7a.html#ab6bbf8eeba0385b485961dd047743f7a">More...</a><br /></td></tr>
+<tr class="separator:ab6bbf8eeba0385b485961dd047743f7a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1c717336ee944d298c783226081a749b"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
+<tr class="memitem:a1c717336ee944d298c783226081a749b"><td class="memTemplItemLeft" align="right" valign="top">concept&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacecoro_a1c717336ee944d298c783226081a749b.html#a1c717336ee944d298c783226081a749b">awaitable</a></td></tr>
+<tr class="memdesc:a1c717336ee944d298c783226081a749b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Tests, whether T is coroutine awaitable.  <a href="namespacecoro_a1c717336ee944d298c783226081a749b.html#a1c717336ee944d298c783226081a749b">More...</a><br /></td></tr>
+<tr class="separator:a1c717336ee944d298c783226081a749b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a690c41b818ab7d2d6c554412bbd7cd06"><td class="memTemplParams" colspan="2">template&lt;typename T , typename RetVal &gt; </td></tr>
+<tr class="memitem:a690c41b818ab7d2d6c554412bbd7cd06"><td class="memTemplItemLeft" align="right" valign="top">concept&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacecoro_a690c41b818ab7d2d6c554412bbd7cd06.html#a690c41b818ab7d2d6c554412bbd7cd06">awaitable_r</a></td></tr>
+<tr class="memdesc:a690c41b818ab7d2d6c554412bbd7cd06"><td class="mdescLeft">&#160;</td><td class="mdescRight">Tests, whether T is coroutine awaitable returning given value.  <a href="namespacecoro_a690c41b818ab7d2d6c554412bbd7cd06.html#a690c41b818ab7d2d6c554412bbd7cd06">More...</a><br /></td></tr>
+<tr class="separator:a690c41b818ab7d2d6c554412bbd7cd06"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a022cd45b46966230b4c6ca96acc5d4b1"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
 <tr class="memitem:a022cd45b46966230b4c6ca96acc5d4b1"><td class="memTemplItemLeft" align="right" valign="top">concept&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacecoro_a022cd45b46966230b4c6ca96acc5d4b1.html#a022cd45b46966230b4c6ca96acc5d4b1">iterator_type</a></td></tr>
 <tr class="memdesc:a022cd45b46966230b4c6ca96acc5d4b1"><td class="mdescLeft">&#160;</td><td class="mdescRight">any iterator  <a href="namespacecoro_a022cd45b46966230b4c6ca96acc5d4b1.html#a022cd45b46966230b4c6ca96acc5d4b1">More...</a><br /></td></tr>
@@ -251,7 +266,7 @@ Variables</h2></td></tr>
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Apr 13 2024 11:27:31 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+Generated on Fri Apr 19 2024 17:16:45 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
 </small></address>
 </body>
 </html>

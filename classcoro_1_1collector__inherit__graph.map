@@ -1,0 +1,4 @@
+<map id="coro::collector&lt; Collectible, Result, Alloc &gt;" name="coro::collector&lt; Collectible, Result, Alloc &gt;">
+<area shape="rect" id="node1" title="The collector is a reversed generator. The coroutine consumes values and then returns a result." alt="" coords="5,80,208,121"/>
+<area shape="rect" id="node2" href="$classcoro_1_1future.html" title=" " alt="" coords="23,5,191,32"/>
+</map>

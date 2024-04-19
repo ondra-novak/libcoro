@@ -1,4 +1,4 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$classcoro_1_1future.html" title=" " alt="" coords="5,5,160,32"/>
-<area shape="rect" id="node2" href="$classcoro_1_1all__of.html" title="this awaitable is resolved, when all objects specified by constructor are resolved" alt="" coords="208,5,340,32"/>
+<area shape="rect" id="node1" href="$classcoro_1_1future.html" title=" " alt="" coords="5,5,176,76"/>
+<area shape="rect" id="node2" href="$classcoro_1_1any__of.html" title="Awaitable returns result of a first complete object." alt="" coords="224,27,364,54"/>
 </map>

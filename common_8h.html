@@ -68,13 +68,15 @@ $(function() {
 </div><!-- top -->
 <div class="header">
   <div class="summary">
-<a href="#namespaces">Namespaces</a>  </div>
+<a href="#namespaces">Namespaces</a> &#124;
+<a href="#var-members">Variables</a>  </div>
   <div class="headertitle">
 <div class="title">common.h File Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &lt;coroutine&gt;</code><br />
 <code>#include &lt;atomic&gt;</code><br />
+<code>#include &lt;concepts&gt;</code><br />
 </div><div class="textblock"><div id="dynsection-0" onclick="return toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
   <img id="dynsection-0-trigger" src="closed.png" alt="+"/> Include dependency graph for common.h:</div>
 <div id="dynsection-0-summary" class="dynsummary" style="display:block;">
@@ -82,9 +84,10 @@ $(function() {
 <div id="dynsection-0-content" class="dyncontent" style="display:none;">
 <div class="center"><img src="common_8h__incl.png" border="0" usemap="#asrc_2coro_2common_8h" alt=""/></div>
 <map name="asrc_2coro_2common_8h" id="asrc_2coro_2common_8h">
-<area shape="rect" title=" " alt="" coords="23,5,169,32"/>
+<area shape="rect" title=" " alt="" coords="72,5,219,32"/>
 <area shape="rect" title=" " alt="" coords="5,80,88,107"/>
 <area shape="rect" title=" " alt="" coords="112,80,179,107"/>
+<area shape="rect" title=" " alt="" coords="203,80,283,107"/>
 </map>
 </div>
 </div><div class="textblock"><div id="dynsection-1" onclick="return toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
@@ -94,18 +97,19 @@ $(function() {
 <div id="dynsection-1-content" class="dyncontent" style="display:none;">
 <div class="center"><img src="common_8h__dep__incl.png" border="0" usemap="#asrc_2coro_2common_8hdep" alt=""/></div>
 <map name="asrc_2coro_2common_8hdep" id="asrc_2coro_2common_8hdep">
-<area shape="rect" title=" " alt="" coords="561,5,708,32"/>
-<area shape="rect" href="async_8h_source.html" title=" " alt="" coords="794,155,921,181"/>
-<area shape="rect" href="future_8h_source.html" title=" " alt="" coords="520,80,648,107"/>
-<area shape="rect" href="coro__single_8h_source.html" title=" " alt="" coords="323,304,485,331"/>
-<area shape="rect" href="future__list_8h_source.html" title=" " alt="" coords="780,229,935,256"/>
-<area shape="rect" href="distributor_8h_source.html" title=" " alt="" coords="5,229,160,256"/>
-<area shape="rect" href="generator_8h_source.html" title=" " alt="" coords="274,155,425,181"/>
-<area shape="rect" href="queue_8h_source.html" title=" " alt="" coords="121,155,250,181"/>
-<area shape="rect" href="scheduler_8h_source.html" title=" " alt="" coords="418,229,569,256"/>
-<area shape="rect" href="semaphore_8h_source.html" title=" " alt="" coords="593,229,756,256"/>
-<area shape="rect" href="thread__pool_8h_source.html" title=" " alt="" coords="501,155,667,181"/>
-<area shape="rect" href="aggregator_8h_source.html" title=" " alt="" coords="235,229,394,256"/>
+<area shape="rect" title=" " alt="" coords="591,5,738,32"/>
+<area shape="rect" href="async_8h_source.html" title=" " alt="" coords="916,155,1043,181"/>
+<area shape="rect" href="future_8h_source.html" title=" " alt="" coords="550,80,678,107"/>
+<area shape="rect" href="collector_8h_source.html" title=" " alt="" coords="675,229,819,256"/>
+<area shape="rect" href="coro__single_8h_source.html" title=" " alt="" coords="443,304,606,331"/>
+<area shape="rect" href="future__list_8h_source.html" title=" " alt="" coords="843,229,998,256"/>
+<area shape="rect" href="distributor_8h_source.html" title=" " alt="" coords="270,229,425,256"/>
+<area shape="rect" href="generator_8h_source.html" title=" " alt="" coords="5,155,156,181"/>
+<area shape="rect" href="queue_8h_source.html" title=" " alt="" coords="180,155,309,181"/>
+<area shape="rect" href="scheduler_8h_source.html" title=" " alt="" coords="449,229,600,256"/>
+<area shape="rect" href="semaphore_8h_source.html" title=" " alt="" coords="627,155,790,181"/>
+<area shape="rect" href="thread__pool_8h_source.html" title=" " alt="" coords="436,155,603,181"/>
+<area shape="rect" href="aggregator_8h_source.html" title=" " alt="" coords="36,229,195,256"/>
 </map>
 </div>
 </div>
@@ -116,11 +120,26 @@ Namespaces</h2></td></tr>
 <tr class="memitem:namespacecoro"><td class="memItemLeft" align="right" valign="top"> &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacecoro.html">coro</a></td></tr>
 <tr class="memdesc:namespacecoro"><td class="mdescLeft">&#160;</td><td class="mdescRight">main namespace <br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="var-members"></a>
+Variables</h2></td></tr>
+<tr class="memitem:ab6bbf8eeba0385b485961dd047743f7a"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
+<tr class="memitem:ab6bbf8eeba0385b485961dd047743f7a"><td class="memTemplItemLeft" align="right" valign="top">concept&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacecoro_ab6bbf8eeba0385b485961dd047743f7a.html#ab6bbf8eeba0385b485961dd047743f7a">coro::await_suspend_valid_return_value</a> = (std::is_void_v&lt;T&gt;||std::is_convertible_v&lt;T, bool&gt;||std::is_convertible_v&lt;T, std::coroutine_handle&lt;&gt; &gt;)</td></tr>
+<tr class="memdesc:ab6bbf8eeba0385b485961dd047743f7a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Tests, whether T is valid await_suspend return value.  <a href="namespacecoro_ab6bbf8eeba0385b485961dd047743f7a.html#ab6bbf8eeba0385b485961dd047743f7a">More...</a><br /></td></tr>
+<tr class="separator:ab6bbf8eeba0385b485961dd047743f7a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1c717336ee944d298c783226081a749b"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
+<tr class="memitem:a1c717336ee944d298c783226081a749b"><td class="memTemplItemLeft" align="right" valign="top">concept&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacecoro_a1c717336ee944d298c783226081a749b.html#a1c717336ee944d298c783226081a749b">coro::awaitable</a></td></tr>
+<tr class="memdesc:a1c717336ee944d298c783226081a749b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Tests, whether T is coroutine awaitable.  <a href="namespacecoro_a1c717336ee944d298c783226081a749b.html#a1c717336ee944d298c783226081a749b">More...</a><br /></td></tr>
+<tr class="separator:a1c717336ee944d298c783226081a749b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a690c41b818ab7d2d6c554412bbd7cd06"><td class="memTemplParams" colspan="2">template&lt;typename T , typename RetVal &gt; </td></tr>
+<tr class="memitem:a690c41b818ab7d2d6c554412bbd7cd06"><td class="memTemplItemLeft" align="right" valign="top">concept&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacecoro_a690c41b818ab7d2d6c554412bbd7cd06.html#a690c41b818ab7d2d6c554412bbd7cd06">coro::awaitable_r</a></td></tr>
+<tr class="memdesc:a690c41b818ab7d2d6c554412bbd7cd06"><td class="mdescLeft">&#160;</td><td class="mdescRight">Tests, whether T is coroutine awaitable returning given value.  <a href="namespacecoro_a690c41b818ab7d2d6c554412bbd7cd06.html#a690c41b818ab7d2d6c554412bbd7cd06">More...</a><br /></td></tr>
+<tr class="separator:a690c41b818ab7d2d6c554412bbd7cd06"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Apr 13 2024 11:27:31 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+Generated on Fri Apr 19 2024 17:16:45 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
 </small></address>
 </body>
 </html>
