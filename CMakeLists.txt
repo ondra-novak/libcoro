@@ -24,7 +24,7 @@ include(library.cmake)
 #add_subdirectory("src/examples")
 enable_testing()
 add_subdirectory("src/tests")
-#add_subdirectory("src/tools")
+add_subdirectory("src/usecases/json")
 
 
 # Install the header file to the include directory

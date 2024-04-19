@@ -112,7 +112,7 @@ public:
 
             std::coroutine_handle<> await_suspend(std::coroutine_handle<promise_type> h) noexcept {
                 promise_type &self = h.promise();
-                return self.set_resolved();
+                return self.set_resolved().symmetric_transfer();
             }
         };
 

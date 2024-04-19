@@ -15,6 +15,7 @@
 #include "semaphore.h"
 #include "frame.h"
 #include "sync_await.h"
+#include "collector.h"
 
 
 #endif

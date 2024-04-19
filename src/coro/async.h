@@ -9,7 +9,7 @@ namespace coro {
 #ifdef _MSC_VER
 #ifdef _DEBUG
 ///defined in MSC DEBUG configuration as the symmetric transfer doesn't work here (compiler bug)
-#define LIBCORO_MSC_FAILED_SYMMETRIC_TRANSFER 
+#define LIBCORO_MSC_FAILED_SYMMETRIC_TRANSFER
 #endif
 #endif
 
@@ -54,7 +54,7 @@ template<typename T, coro_allocator Alloc = std_allocator>
 class async {
 public:
 
-    
+
     class promise_type: public _details::coro_promise<T>, public coro_allocator_helper<Alloc> {
     public:
 
@@ -62,16 +62,16 @@ public:
             bool detached;
             bool await_ready() const noexcept {return detached;}
             #ifdef LIBCORO_MSC_FAILED_SYMMETRIC_TRANSFER
-            void await_suspend(std::coroutine_handle<promise_type> h) const noexcept {                
+            void await_suspend(std::coroutine_handle<promise_type> h) const noexcept {
                 promise_type &self = h.promise();
-                std::coroutine_handle<> retval = self.set_resolved();               
+                std::coroutine_handle<> retval = self.set_resolved().symmetric_transfer();
                 h.destroy();
                 return retval.resume();
             }
             #else
-            std::coroutine_handle<>  await_suspend(std::coroutine_handle<promise_type> h) const noexcept {                
+            std::coroutine_handle<>  await_suspend(std::coroutine_handle<promise_type> h) const noexcept {
                 promise_type &self = h.promise();
-                std::coroutine_handle<> retval = self.set_resolved();                
+                std::coroutine_handle<> retval = self.set_resolved().symmetric_transfer();
                 h.destroy();
                 return retval;          //MSC RELEASE BUILD: Handle is passed by a register
             }

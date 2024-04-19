@@ -1164,11 +1164,11 @@ protected:
 
     future<T> *fut = nullptr;
 
-    std::coroutine_handle<> set_resolved()  {
+    prepared_coro set_resolved()  {
         prepared_coro ret;
         auto tmp = std::exchange(fut, nullptr);
         tmp->set_resolved([&](auto &&fn){ret = fn();});
-        return ret.symmetric_transfer();
+        return ret;
     }
     template<typename ... Args>
     void set_value(Args && ... args) const {

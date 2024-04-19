@@ -9,6 +9,7 @@
 #include "../coro/distributor.h"
 #include "../coro/scheduler.h"
 #include "../coro/condition.h"
+#include "../coro/collector.h"
 
 
 template class coro::future<int>;
@@ -23,6 +24,7 @@ template class coro::shared_future<void>;
 template class coro::async<int>;
 template class coro::generator<int>;
 template class coro::generator<int &>;
+template class coro::collector<long, int>;
 template class coro::queue<int>;
 template class coro::distributor<int>;
 template class coro::function<int(int) noexcept>;
