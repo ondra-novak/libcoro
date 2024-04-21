@@ -2,6 +2,7 @@
 
 #include "../../coro/async.h"
 
+#include <iterator>
 #include <span>
 #include <string_view>
 #include <concepts>
@@ -327,7 +328,7 @@ inline coro::async<std::pair<typename JsonFactory::value_type, std::string_view>
         case State::token_check:
             src.put_back();
             for (char x: keyword) {
-                int c = co_await src;
+                c = co_await src;
                 if (c != x) throw json_parse_error(json_parse_error::invalid_keyword, src.get_unused());
             }
             stack.pop();
