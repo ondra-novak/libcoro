@@ -6,17 +6,26 @@
 #include <vector>
 #include <span>
 
+namespace coro_usecases {
+
+namespace json {
+
+
+
 
 class Json;
 
+
+using JsonArray = std::vector<Json>;
+using JsonObject = std::map<std::string, Json>;
 
 using JsonVariant = std::variant<
         std::nullptr_t,
         bool,
         std::string,
         double,
-        std::vector<Json>,
-        std::map<std::string, Json>
+        JsonArray,
+        JsonObject
 >;
 
 class Json: public JsonVariant {
@@ -29,6 +38,7 @@ public:
 class JsonFactory {
 public:
     using value_type = Json;
+    using key_type = std::string;
     static Json new_string(std::string_view s) {
         return Json(std::in_place_type<std::string>, s);
     }
@@ -42,16 +52,19 @@ public:
         return Json(nullptr);
     }
     static Json new_array(std::span<Json> items) {
-        return Json(std::in_place_type<std::vector<Json> >, items.begin(), items.end());
+        return Json(std::in_place_type<JsonArray>, items.begin(), items.end());
     }
-    static Json new_object(std::span<Json> keys, std::span<Json> items) {
+    static Json new_object(std::span<std::string> keys, std::span<Json> items) {
         auto k = keys.begin();
-        std::map<std::string, Json> m;
+        JsonObject m;
         for (auto &x: items) {
-            m.emplace(std::move(std::get<std::string>(*k)), std::move(x));
+            m.emplace(std::move(*k), std::move(x));
             ++k;
         }
         return Json(std::move(m));
+    }
+    static std::string new_key(std::string_view str) {
+        return std::string(str);
     }
 };
 
@@ -59,6 +72,7 @@ public:
 class JsonDecomposer {
 public:
     using value_type = Json;
+    using key_type = std::string;
     static json_value_type type(const Json &v) {
         static constexpr json_value_type types[] = {
                 json_value_type::null,
@@ -70,55 +84,51 @@ public:
         };;
         return types[v.index()];
     }
+    std::string_view get_number(const Json &v) {
+        tmp = std::to_string(std::get<double>(v));
+        return tmp;
+    }
+
+
     std::string_view get_string(const Json &v) {
-        if (std::holds_alternative<double>(v)) {
-            tmp = std::to_string(std::get<double>(v));
-            return tmp;
-        } else if (std::holds_alternative<std::string>(v)) {
-            return std::get<std::string>(v);
-        } else {
-            return {};
-        }
+        return std::get<std::string>(v);
     }
 
     static bool get_bool(const Json &v) {
-        if (std::holds_alternative<bool>(v)) {
-            return std::get<bool>(v);
-        } else {
-            return false;
-        }
+       return std::get<bool>(v);
     }
 
-    static std::size_t get_count(const Json &v) {
-        if (std::holds_alternative<std::vector<Json> >(v)) {
-            return std::get<std::vector<Json> >(v).size();
-        } else if (std::holds_alternative<std::map<std::string, Json> >(v)) {
-            return std::get<std::map<std::string, Json> >(v).size();
-        } else {
-            return 0;
-        }
+    static auto get_array_begin(const Json &v) {
+        return std::get<JsonArray>(v).begin();
     }
-    static const Json &item_at(const Json &v, std::size_t pos) {
-        if (std::holds_alternative<std::vector<Json> >(v)) {
-            return std::get<std::vector<Json> >(v).at(pos);
-        } else if (std::holds_alternative<std::map<std::string, Json> >(v)) {
-            auto beg = std::get<std::map<std::string, Json> >(v).begin();
-            std::advance(beg, pos);
-            return beg->second;
-        } else {
-            throw;
-        }
+    static auto get_array_end(const Json &v) {
+        return std::get<JsonArray>(v).end();
     }
-    static std::string_view key_at(const Json &v, std::size_t pos) {
-        if (std::holds_alternative<std::map<std::string, Json> >(v)) {
-            auto beg = std::get<std::map<std::string, Json> >(v).begin();
-            std::advance(beg, pos);
-            return beg->first;
-        } else {
-            return {};
-        }
+    static const Json &get_value(const JsonArray::const_iterator &iter) {
+        return *iter;
     }
+    static auto get_object_begin(const Json &v) {
+        return std::get<JsonObject>(v).begin();
+    }
+    static auto get_object_end(const Json &v) {
+        return std::get<JsonObject>(v).end();
+    }
+    static const Json &get_value(const JsonObject::const_iterator &iter) {
+        return iter->second;
+    }
+    static std::string_view get_key(const JsonObject::const_iterator &iter) {
+        return iter->first;
+    }
+    static std::size_t get_array_size(const Json &v) {
+        return std::get<JsonArray>(v).size();
+    }
+    static std::size_t get_object_size(const Json &v) {
+        return std::get<JsonObject>(v).size();
+    }
+
 
     std::string tmp;
 
 };
+}
+}

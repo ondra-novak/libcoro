@@ -5,6 +5,11 @@
 #include <iterator>
 #include <stack>
 
+namespace coro_usecases {
+
+namespace json {
+
+
 enum class json_value_type {
     number,
     string,
@@ -17,12 +22,36 @@ enum class json_value_type {
 
 template<typename T>
 concept json_decomposer = requires(T obj, const typename T::value_type &val, std::size_t index) {
+    ///retrieve type of JSON value
     {obj.type(val)} -> std::same_as<json_value_type>;
+    ///retrieve JSON value which is a string (don't need to validate the type)
     {obj.get_string(val)} -> std::same_as<std::string_view>;
+    ///retrieve JSON value which is a number, but convert it to a string (don't need to validate the type)
+    {obj.get_number(val)} -> std::same_as<std::string_view>;
+    ///retrieve JSON value which is a bool  (don't need to validate the type)
     {obj.get_bool(val)} -> std::same_as<bool>;
-    {obj.get_count(val)} -> std::convertible_to<std::size_t>;
-    {obj.item_at(val, index)}->std::same_as<const typename T::value_type &>;
-    {obj.key_at(val, index)}->std::same_as<std::string_view>;
+    ///retrieve an iterator to first item of an array (don't need to validate the type)
+    {obj.get_array_begin(val)} -> std::input_iterator;
+    ///retrieve an iterator after last item of an array (don't need to validate the type)
+    {obj.get_array_end(val)} -> std::input_iterator;
+    ///iterator mus be comparable
+    {obj.get_array_begin(val) == obj.get_array_end(val)};
+    ///retrieve a value at given iterator
+    {obj.get_value(obj.get_array_begin(val))} -> std::same_as<const typename T::value_type &>;
+    ///retrieve an iterator to first item of an object (don't need to validate the type)
+    {obj.get_object_begin(val)} -> std::input_iterator;
+    ///retrieve an iterator after last item of an object(don't need to validate the type)
+    {obj.get_object_end(val)} -> std::input_iterator;
+    ///iterator mus be comparable
+    {obj.get_object_begin(val) == obj.get_object_end(val)};
+    ///retrieve a value at given iterator
+    {obj.get_value(obj.get_object_begin(val))} -> std::same_as<const typename T::value_type &>;
+    ///retrieve a key at given iterator
+    {obj.get_key(obj.get_object_begin(val))} -> std::same_as<std::string_view>;
+    ///retrieve size of array
+    {obj.get_array_size(val)} -> std::convertible_to<std::size_t>;
+    ///retrieve size of object
+    {obj.get_object_size(val)} -> std::convertible_to<std::size_t>;
 };
 
 template<typename InIter, typename OutIter>
@@ -87,6 +116,9 @@ inline coro::async<void> serialize_json(
     static_assert(coro::awaitable<std::invoke_result_t<Target, std::string_view> >, "Result of Target must be awaitable");
 
     using Node = typename JsonDecomp::value_type;
+    using ArrayIter = decltype(decomp.get_array_begin(val));
+    using ObjectIter = decltype(decomp.get_object_begin(val));
+    using Iter = std::variant<std::monostate, ArrayIter, ObjectIter>;
 
     enum class State {
         base_node,
@@ -99,7 +131,8 @@ inline coro::async<void> serialize_json(
     struct Item {
         State st;
         const Node *ref = nullptr;
-        std::size_t pos = 0;
+        Iter iter = {};
+        Iter end = {};
     };
 
     std::stack<Item> st;
@@ -117,34 +150,39 @@ inline coro::async<void> serialize_json(
                 switch (decomp.type(*ref)) {
                     case json_value_type::array: {
                        co_await target("[");
-                       sz = decomp.get_count(*ref);
+                       sz = decomp.get_array_size(*ref);
                        if (sz == 0) {
                            co_await target("]");
                        } else {
-                           st.push({State::array, ref, 0});
-                           st.push({State::base_node, &decomp.item_at(*ref, 0)});
+                           ArrayIter iter = decomp.get_array_begin(*ref);
+                           ArrayIter end = decomp.get_array_end(*ref);
+                           st.push({State::array, ref, iter, end});
+                           st.push({State::base_node, &decomp.get_value(iter)});
                        }
                     } break;
                     case json_value_type::object: {
                         co_await target("{");
-                        sz = decomp.get_count(*ref);
+                        sz = decomp.get_object_size(*ref);
                         if (sz == 0) {
                             co_await target("}");
                         } else {
-                            st.push({State::object, ref, 0});
-                            st.push({State::key, &decomp.item_at(*ref,0)});
+                            ObjectIter iter = decomp.get_object_begin(*ref);
+                            ObjectIter end = decomp.get_object_end(*ref);
+                            st.push({State::object, ref, iter, end});
+                            st.push({State::key, &decomp.get_value(iter)});
                             st.push({State::string});
-                            outstr = decomp.key_at(*ref,0);
+                            outstr = decomp.get_key(iter);
                         }
                     } break;
                     case json_value_type::boolean: {
                         co_await target(decomp.get_bool(*ref)?"true":"false");
                     } break;
+                    default:
                     case json_value_type::null: {
                         co_await target("null");
-                    }
+                    }break;
                     case json_value_type::number: {
-                        co_await target(decomp.get_string(*ref));
+                        co_await target(decomp.get_number(*ref));
                     } break;
                     case json_value_type::string: {
                         outstr = decomp.get_string(*ref);
@@ -153,25 +191,29 @@ inline coro::async<void> serialize_json(
                 }
             }break;
             case State::array: {
-                std::size_t pos = ++st.top().pos;
-                if (pos >= decomp.get_count(*ref)) {
+                ArrayIter &iter = std::get<ArrayIter>(st.top().iter);
+                ArrayIter &end = std::get<ArrayIter>(st.top().end);
+                ++iter;
+                if (iter == end) {
                     co_await target("]");
                     st.pop();
                 } else {
                     co_await target(",");
-                    st.push({State::base_node, &decomp.item_at(*ref, pos)});
+                    st.push({State::base_node, &decomp.get_value(iter)});
                 }
             }break;
             case State::object: {
-                std::size_t pos = ++st.top().pos;
-                if (pos >= decomp.get_count(*ref)) {
+                ObjectIter &iter = std::get<ObjectIter>(st.top().iter);
+                ObjectIter &end = std::get<ObjectIter>(st.top().end);
+                ++iter;
+                if (iter == end) {
                     co_await target("}");
                     st.pop();
                 } else {
                     co_await target(",");
-                    st.push({State::key, &decomp.item_at(*ref, pos)});
+                    st.push({State::key, &decomp.get_value(iter)});
                     st.push({State::string});
-                    outstr = decomp.key_at(*ref,pos);
+                    outstr = decomp.get_key(iter);
                 } break;
             }
             case State::key: {
@@ -194,4 +236,7 @@ inline coro::async<void> serialize_json(
         }
     }
 
+}
+
+}
 }
