@@ -3,6 +3,7 @@
 
 #include "../coro/coroutine.h"
 #include "../coro/async.h"
+#include "../coro/sync_await.h"
 
 
 coro::coroutine bg_task(coro::thread_pool &pool, std::atomic<int> &counter) {
@@ -36,5 +37,5 @@ coro::future<void> test2() {
 
 int main() {
     test1();
-    test2().wait();
+    coro::sync_await(test2());
 }

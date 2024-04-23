@@ -11,19 +11,16 @@ public:
     void resume() {
         _called = true;
         _prom();
-        this->get_handle().destroy();
+        set_done();
     }
 
     //called when fake coroutine is destroyed
     void destroy() {
-        set_done();
         _destroyed = true;
-        _done = this->get_handle().done();
     }
 
     bool _called = false;
     bool _destroyed = false;
-    bool _done = false;
     coro::promise<void> _prom;
 
     //retrieve promise to wait in resumption
@@ -48,10 +45,13 @@ int main() {
     tframe.await(fut);
     //run scheduler, until tframe is completed
     sch.run(tframe.completion());
+    bool done =tframe.get_handle().done();
+    tframe.get_handle().destroy();
+
 
     CHECK(tframe._called);
     CHECK(tframe._destroyed);
-    CHECK(tframe._done);
+    CHECK(done);
 
     return 0;
 }

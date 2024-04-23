@@ -34,7 +34,7 @@ protected:
 }
 
 template<typename Awt>
-decltype(auto) sync_await(Awt &x) {
+decltype(auto) sync_await(Awt &&x) {
     if constexpr(has_co_await_operator<Awt>) {
         return sync_await(x.operator co_await());
     } else {
@@ -46,9 +46,5 @@ decltype(auto) sync_await(Awt &x) {
     }
 }
 
-template<typename Awt>
-auto sync_await(Awt &&x) {
-    return sync_await(x);
-}
 
 }
