@@ -6,6 +6,8 @@
 
 #include <iostream>
 
+using namespace coro_usecases::json;
+
 static_assert(json_factory<JsonFactory>);
 static_assert(json_decomposer<JsonDecomposer>);
 

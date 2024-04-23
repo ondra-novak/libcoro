@@ -2,21 +2,38 @@
 
 #include "../../coro/async.h"
 
+#include <iterator>
 #include <span>
 #include <string_view>
 #include <concepts>
 #include <stack>
+#include <variant>
+
+namespace coro_usecases {
+
+namespace json {
 
 template<typename T>
-concept json_factory = requires(T obj, std::string_view s, bool b,
-        std::span<typename T::value_type> a) {
+concept json_factory = requires(T obj,
+        std::string_view s,
+        bool b,
+        std::span<typename T::value_type> a,
+        std::span<typename T::key_type> k) {
 
+    ///creates JSON value from string
     {obj.new_string(s)}->std::same_as<typename T::value_type>;
+    ///creates JSON value from number - passed as string
     {obj.new_number(s)}->std::same_as<typename T::value_type>;
+    ///creates JSON value from boolean
     {obj.new_bool(b)}->std::same_as<typename T::value_type>;
+    ///creates JSON null
     {obj.new_null()}->std::same_as<typename T::value_type>;
+    ///creates JSON array passing an span of JSON values
     {obj.new_array(a)}->std::same_as<typename T::value_type>;
-    {obj.new_object(a,a)}->std::same_as<typename T::value_type>;
+    ///creates JSON key value (can be string), from a string
+    {obj.new_key(s)}->std::same_as<typename T::key_type>;
+    ///creates JSON object passing an span of JSON keys and JSON values
+    {obj.new_object(k,a)}->std::same_as<typename T::value_type>;
 };
 
 
@@ -197,9 +214,12 @@ inline coro::async<std::pair<typename JsonFactory::value_type, std::string_view>
             parse_json(Source &&source, JsonFactory &&fact = {}) {
 
     using Node = typename JsonFactory::value_type;
+    using KeyNode = typename JsonFactory::key_type;
 
     enum class State {
         base_node,
+        string_node,
+        key_node,
         token_check,
         number_node,
         array_begin,
@@ -215,16 +235,15 @@ inline coro::async<std::pair<typename JsonFactory::value_type, std::string_view>
     };
 
     std::vector<Node> items;
-    std::vector<Node> keys;
+    std::vector<KeyNode> keys;
 
-    std::optional<Node> result;
+    std::variant<std::monostate, Node, KeyNode> result;
     std::stack<Item> stack;
     stack.push(Item{State::base_node});
     CharacterSource src(source);
     std::vector<char> strbuff;
     std::vector<char> strbuff2;
     std::string_view keyword;
-    bool result_is_string = false;
 
 
     while (!stack.empty()) {
@@ -246,22 +265,8 @@ inline coro::async<std::pair<typename JsonFactory::value_type, std::string_view>
                         }
                         break;
                     case '"': {
-                        c = co_await src;
-                        while (c != '"') {
-                            if (c == -1) throw json_parse_error(json_parse_error::unexpected_eof_reading_string, src.get_unused());
-                            strbuff.push_back(static_cast<char>(c));
-                            if (c == '\\') {
-                                c = co_await src;
-                                if (c == -1) throw json_parse_error(json_parse_error::unexpected_eof_reading_string, src.get_unused());
-                                strbuff.push_back(static_cast<char>(c));
-                            }
-                            c = co_await src;
-                        }
-                        json_string_to_utf8(strbuff.begin(), strbuff.end(), std::back_inserter(strbuff2));
-                        result = fact.new_string(std::string_view(strbuff2.data(), strbuff2.size()));
-                        strbuff.clear();
-                        strbuff2.clear();
-                        result_is_string = true;
+                        src.put_back();
+                        stack.push({State::string_node});
                     } break;
                     case 't': keyword = "true";
                               src.put_back();
@@ -284,6 +289,29 @@ inline coro::async<std::pair<typename JsonFactory::value_type, std::string_view>
                               break;
                 }
             }break;
+        case State::key_node:
+        case State::string_node: {
+            c = co_await src;
+            while (c != '"') {
+                if (c == -1) throw json_parse_error(json_parse_error::unexpected_eof_reading_string, src.get_unused());
+                strbuff.push_back(static_cast<char>(c));
+                if (c == '\\') {
+                    c = co_await src;
+                    if (c == -1) throw json_parse_error(json_parse_error::unexpected_eof_reading_string, src.get_unused());
+                    strbuff.push_back(static_cast<char>(c));
+                }
+                c = co_await src;
+            }
+            json_string_to_utf8(strbuff.begin(), strbuff.end(), std::back_inserter(strbuff2));
+            if (stack.top()._st == State::key_node) {
+                result = fact.new_key(std::string_view(strbuff2.data(), strbuff2.size()));
+            } else {
+                result = fact.new_string(std::string_view(strbuff2.data(), strbuff2.size()));
+            }
+            strbuff.clear();
+            strbuff2.clear();
+            stack.pop();
+        } break;
         case State::number_node: {
             if (c == '+' || c == '-') {
                 strbuff.push_back(static_cast<char>(c));
@@ -327,7 +355,7 @@ inline coro::async<std::pair<typename JsonFactory::value_type, std::string_view>
         case State::token_check:
             src.put_back();
             for (char x: keyword) {
-                int c = co_await src;
+                c = co_await src;
                 if (c != x) throw json_parse_error(json_parse_error::invalid_keyword, src.get_unused());
             }
             stack.pop();
@@ -343,9 +371,8 @@ inline coro::async<std::pair<typename JsonFactory::value_type, std::string_view>
             }
         } break;
         case State::array_cont: {
-            items.push_back(std::move(*result));
+            items.push_back(std::move(std::get<Node>(result)));
             ++stack.top()._count;
-            result.reset();
             if (c == ']') {
                 auto iter = items.begin() + items.size() - stack.top()._count;
                 result = fact.new_array(std::span<Node>(iter, items.end()));
@@ -360,42 +387,37 @@ inline coro::async<std::pair<typename JsonFactory::value_type, std::string_view>
         case State::object_begin: {
             stack.pop();
             if (c == '}') {
-                result = fact.new_object(std::span<Node>{},std::span<Node>{});
-            } else {
+                result = fact.new_object(std::span<KeyNode>{},std::span<Node>{});
+            } else if (c == '"') {
                 src.put_back();
                 stack.push({State::object_cont});
                 stack.push({State::object_key});
-                stack.push({State::base_node});
-                result_is_string = false;
+                stack.push({State::key_node});
+            } else {
+                throw json_parse_error(json_parse_error::expected_key_as_string, src.get_unused());
             }
         } break;
         case State::object_key: {
             stack.pop();
-            if (!result_is_string) {
-                throw json_parse_error(json_parse_error::expected_key_as_string, src.get_unused());
-            }
             if (c != ':') {
                 throw json_parse_error(json_parse_error::unexpected_separator, src.get_unused());
             }
-            keys.push_back(std::move(*result));
-            result.reset();
+            keys.push_back(std::move(std::get<KeyNode>(result)));
             stack.push({State::base_node});
         } break;
         case State::object_cont: {
-            items.push_back(std::move(*result));
+            items.push_back(std::move(std::get<Node>(result)));
             ++stack.top()._count;
-            result.reset();
             if (c == '}') {
                 auto iter_n = items.begin() + items.size() - stack.top()._count;
                 auto iter_k = keys.begin() + keys.size() - stack.top()._count;
-                result = fact.new_object(std::span<Node>(iter_k, keys.end()),std::span<Node>(iter_n, items.end()));
+                result = fact.new_object(std::span<KeyNode>(iter_k, keys.end()),std::span<Node>(iter_n, items.end()));
                 items.erase(iter_n,items.end());
                 keys.erase(iter_k,keys.end());
                 stack.pop();
             } else if (c == ',') {
                 stack.push({State::object_key});
-                stack.push({State::base_node});
-                result_is_string = false;
+                stack.push({State::key_node});
             } else {
                 throw json_parse_error(json_parse_error::unexpected_separator, src.get_unused());
             }
@@ -407,7 +429,10 @@ inline coro::async<std::pair<typename JsonFactory::value_type, std::string_view>
     }
 
 
-    co_return std::pair{std::move(*result),src.get_unused()};
+    co_return std::pair{std::move(std::get<Node>(result)),src.get_unused()};
 }
 
+}
+
+}
 
