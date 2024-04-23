@@ -74,7 +74,6 @@ $(function() {
         <table>
           <tr><td class="navtab"><a class="navtab" href="classcoro_1_1frame_ac97cd4ffd69181d206c21033bfce03c2.html#ac97cd4ffd69181d206c21033bfce03c2">await</a></td></tr>
           <tr><td class="navtabHL"><a class="navtab" href="classcoro_1_1frame_a987c806f6a3066a93d4b0c5040819452.html#a987c806f6a3066a93d4b0c5040819452">get_handle</a></td></tr>
-          <tr><td class="navtab"><a class="navtab" href="classcoro_1_1frame_ad4008a7562f154db3286bff00274c6a3.html#ad4008a7562f154db3286bff00274c6a3">set_done</a></td></tr>
           <tr><td class="navtab"><a class="navtab" href="classcoro_1_1frame_a891ec5f64080b81e84b587844235f56a.html#a891ec5f64080b81e84b587844235f56a">try_await</a></td></tr>
         </table>
       </div>
@@ -105,9 +104,10 @@ template&lt;typename T &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p>Retrieve coroutine handle of this frame. </p>
+<p>Sets done flag. </p>
+<p>This causes that h.done() return true. Note that once coroutine is set as done(), it can't be resumed Retrieve coroutine handle of this frame. </p>
 
-<p class="definition">Definition at line <a class="el" href="frame_8h_source.html#l00057">57</a> of file <a class="el" href="frame_8h_source.html">frame.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="frame_8h_source.html#l00138">138</a> of file <a class="el" href="frame_8h_source.html">frame.h</a>.</p>
 <div id="dynsection-0" onclick="return toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
   <img id="dynsection-0-trigger" src="closed.png" alt="+"/> Here is the caller graph for this function:</div>
 <div id="dynsection-0-summary" class="dynsummary" style="display:block;">
@@ -115,7 +115,7 @@ template&lt;typename T &gt; </div>
 <div id="dynsection-0-content" class="dyncontent" style="display:none;">
 <div class="center"><img src="classcoro_1_1frame_a987c806f6a3066a93d4b0c5040819452_a987c806f6a3066a93d4b0c5040819452_icgraph.png" border="0" usemap="#aclasscoro_1_1frame_a987c806f6a3066a93d4b0c5040819452_a987c806f6a3066a93d4b0c5040819452_icgraph" alt=""/></div>
 <map name="aclasscoro_1_1frame_a987c806f6a3066a93d4b0c5040819452_a987c806f6a3066a93d4b0c5040819452_icgraph" id="aclasscoro_1_1frame_a987c806f6a3066a93d4b0c5040819452_a987c806f6a3066a93d4b0c5040819452_icgraph">
-<area shape="rect" title="Retrieve coroutine handle of this frame." alt="" coords="409,5,587,32"/>
+<area shape="rect" title="Sets done flag." alt="" coords="409,5,587,32"/>
 <area shape="rect" href="classcoro_1_1frame_a891ec5f64080b81e84b587844235f56a.html#a891ec5f64080b81e84b587844235f56a" title="Emulates co_await (without await_resume) with no suspend when ready." alt="" coords="195,5,361,32"/>
 <area shape="rect" href="classcoro_1_1frame_ac97cd4ffd69181d206c21033bfce03c2.html#ac97cd4ffd69181d206c21033bfce03c2" title="Emulates co_await (without await_resume)" alt="" coords="5,5,147,32"/>
 </map>
@@ -129,7 +129,7 @@ template&lt;typename T &gt; </div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Apr 22 2024 12:02:06 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+Generated on Tue Apr 23 2024 17:16:35 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
 </small></address>
 </body>
 </html>
