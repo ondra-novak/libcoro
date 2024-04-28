@@ -39,7 +39,7 @@ coro::future<Unmovable> baz() {
 
 coro::coroutine bar() {
     auto f = baz();
-    [[maybe_unused]] Unmovable &s = co_await f;
+    Unmovable &&s = co_await f;
     CHECK(s.valid());
 }
 

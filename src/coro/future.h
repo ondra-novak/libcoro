@@ -144,6 +144,28 @@ public:
             _ptr.reset();
         }
 
+        ///combine notification into one object
+        notify operator+(notify &other) {
+            if (_ptr == nullptr) return std::move(other);
+            _ptr->attach(other._ptr.release());
+            return std::move(*this);
+        }
+
+        ///append a notification
+        notify &operator+=(notify &other) {
+            if (_ptr == nullptr) {
+                _ptr = std::move(other._ptr);
+            } else {
+                _ptr->attach(other._ptr.release());
+            }
+            return *this;
+        }
+
+        ///append a notification
+        notify &operator+=(notify &&other) {
+            return operator+=(other);
+        }
+
     protected:
 
         ///Construct deferred notify from future
@@ -292,21 +314,11 @@ public:
      */
     template<bool f>
     promise operator+(promise<T, f> &other) {
-        static_assert(future<T>::is_chainable(), "Requires T copy constructible");
+        static_assert(std::is_void_v<T> || std::is_copy_constructible_v<T>, "Requires T copy constructible");
         auto a = claim();
         auto b = other.claim();
         if (!a) return promise(b);
-        if (!b) return promise(a);
-        if (a->_chain) {
-            while (b) {
-                auto x = b->_chain;
-                b->_chain = x->_chain;
-                x->_chain = a;
-                a = x;
-            }
-            return promise(a);
-        }
-        a->_chain = b;
+        a->attach(b);
         return promise(a);
     }
 
@@ -648,11 +660,7 @@ public:
     ///Retrieves value, performs synchronous wait
     decltype(auto) get() {
         wait();
-        if constexpr(std::is_void_v<T>) {
-            getInternal();
-        } else {
-            return getInternal();
-        }
+        return await_resume();
     }
 
     ///Retrieves value, performs synchronous wait
@@ -733,8 +741,10 @@ public:
     decltype(auto) await_resume() {
         if constexpr(std::is_void_v<T>) {
             getInternal();
-        } else {
+        } else if constexpr(std::is_reference_v<T>){
             return getInternal();
+        } else {
+            return std::move(getInternal());
         }
     }
 
@@ -825,8 +835,6 @@ public:
     }
 
 
-
-
 protected:
 
     enum class State: char {
@@ -862,18 +870,16 @@ protected:
 
     };
 
-    //chainable futures requires copy constructible of T
-    using ChainPtr = std::conditional_t<std::is_copy_constructible_v<value_store_type>, future *, std::nullptr_t>;
+    using ChainPtr = future *;
 
-    [[no_unique_address]] ChainPtr _chain = {};            //< not null, if chained
+    ChainPtr _chain = {};
     std::atomic<State> _state = {State::resolved}; //< by default, future is resolved in canceled state
     Result _result = Result::not_set; //< by default, future has no value
     bool _awaiter_cleanup = false;   //is set to true, if awaiter must be destroyed (in resolved state)
 
-    static constexpr bool is_chainable() {return !std::is_same_v<ChainPtr, std::nullptr_t>;}
 
     //because deferred and awaited are mutually exclusive,
-    //reuse single space for both functions
+    //reuse single spcopy_ace for both functions
     union {
         awaiter_type _awaiter;
         deferred_eval_fn_type _deferred;
@@ -996,15 +1002,16 @@ protected:
             }
             _result = Result::value;
 
-            //TCO?
-            if constexpr(is_chainable()) {
-                if (_chain) {
-                    if constexpr(std::is_reference_v<T>) {
-                        _chain->set_value(*_value);
-                    } else {
-                        _chain->set_value(_value);
-                    }
-                }
+            if (_chain) {
+                if constexpr(std::is_void_v<T>) {
+                    _chain->set_value();
+                } else if constexpr(std::is_reference_v<T>) {
+                    _chain->set_value(*_value);
+                } else if constexpr(std::is_copy_constructible_v<T>) {
+                    _chain->set_value(_value);
+                } /* else {
+                    will cancel await (exception) as we cannot copy the valUE
+                }*/
             }
         } catch (...) {
             set_exception(std::current_exception());
@@ -1015,9 +1022,7 @@ protected:
         clearStorage();
         std::construct_at(&_exception, std::move(e));
         _result = Result::exception;
-        if constexpr(is_chainable()) {
-            if (_chain) _chain->set_exception(_exception);
-        }
+        if (_chain) _chain->set_exception(_exception);
     }
 
     template<typename SchedulerFn>
@@ -1029,9 +1034,7 @@ protected:
             _awaiter_cleanup = true;
             schfn(_awaiter);
         }
-        if constexpr(is_chainable()) {
-            if (chain) chain->set_resolved(std::forward<SchedulerFn>(schfn));
-        }
+        if (chain) chain->set_resolved(std::forward<SchedulerFn>(schfn));
     }
 
 
@@ -1091,6 +1094,45 @@ protected:
     void checkInProgress() {
         if (is_in_progress()) throw still_pending_exception();
     }
+
+
+    ///Attach future to internal linked list.
+    /**Futures can be chained into linked list. This allows to control
+     * this "internal" linked list. This function is added to support
+     * combining of promises
+     *
+     * @param x pointer to a future object which will be attached to the
+     * current future. If the current future already contains attached
+     * future, a new future is added to the end.
+     *
+     * For better performance, always attach existing linked list to a new root
+     * @code
+     * newitem->attach(list);
+     * list = newitem;
+     * @endcode
+     *
+     * @note Function is not MT-Safe.
+     */
+    void attach(future *x) {
+        future **ch = &_chain;
+        while (*ch) ch = &((*ch)->_chain);
+        *ch = x;
+    }
+
+    ///Detach linked list from the future
+    /**
+     * Detaches existing linked list from this future, if exists
+     *
+     * @return pointer to linked list, or nullptr;
+     *
+     * @note Function is not MT-Safe.
+     */
+    future *detach() {
+        future *r = _chain;
+        if (r) _chain = r->_chain;
+        return r;
+    }
+
     friend class _details::coro_promise_base<T>;
     friend class _details::wait_awaiter<future>;
     friend class promise<T>;
@@ -1528,6 +1570,9 @@ public:
      */
     canceled_awaiter operator!()  {return this;}
 
+
+
+
 protected:
 
     class Shared: public future<T> {
@@ -1628,6 +1673,9 @@ protected:
 
 };
 
+
+#if 0
+
 class future_with_callback {
 public:
 
@@ -1658,7 +1706,6 @@ protected:
     void (*set_cb)(void *fut, function<prepared_coro()>);
 };
 
-#if 0
 
 
 ///Awaitable (future) which is resolved once all of the futures are resolved

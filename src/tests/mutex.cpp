@@ -26,12 +26,17 @@ int main() {
 
     coro::mutex::ownership own3;
 
-    mx.lock_callback([&](coro::mutex::ownership){
+    auto cb1  =mx.lock();
+    cb1 >> [&]{
+        auto own = cb1.await_resume();
         t1_ok = true;
-    });
-    mx.lock_callback([&](coro::mutex::ownership own){
-        own3 = std::move(own);
-    });
+    };
+
+    auto cb2 = mx.lock();
+    cb2 >> [&] {
+        own3 = cb2.get();
+    };
+
 
     CHECK(!t1_ok);
     CHECK(!own3);

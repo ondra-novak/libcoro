@@ -1,5 +1,6 @@
 #pragma once
 #include "prepared_coro.h"
+#include "future.h"
 
 #include <atomic>
 #include <memory>
@@ -45,7 +46,7 @@ public:
         }
         ///dtor releases ownership
         ~ownership() {release();}
-        ///releases ownership exlicitly (unlock)
+        ///releases ownership explicitly (unlock)
         void release() {
             if (_inst) {
                 auto tmp = _inst;
@@ -69,6 +70,137 @@ public:
 
         ownership(mutex *inst):_inst(inst) {}
     };
+
+    ///try to lock
+    /**
+     * @return ownership. If the function fails, the ownership is not given. You need
+     * to convert ownership to bool and test it.
+     */
+    ownership try_lock() {
+        return ownership(try_acquire()?this:nullptr);
+    }
+
+
+    future<ownership> lock() {
+        return [&](auto promise) {
+            do_lock(promise.release());
+        };
+    }
+
+    future<ownership> operator co_await() {
+        return lock();
+    }
+
+    ///lock synchronously
+    ownership lock_sync() {
+        return std::move(lock().get());
+    }
+
+protected:
+    class awaiter : public future<ownership> {
+    public:
+        using future<ownership>::_chain;
+        static awaiter *from_future(future<ownership> *x) {
+            return static_cast<awaiter *>(x);
+        }
+    };
+
+    ///generates special pointer, which is used as locked flag (value 0x00000001)
+    static awaiter *locked() {return reinterpret_cast<awaiter *>(0x1);}
+
+    /**
+     * contains stack of requests, or nullptr when lock is unlocked,
+     * or 0x00000001 when lock is locked with no requests
+     */
+    std::atomic<awaiter *> _req = {nullptr};
+    ///contains queue of requests already registered by the lock
+    /** the queue is always managed by an owner  */
+    awaiter * _que = nullptr;
+
+
+    ///tries to acquire
+    /**
+     * attempts to set _req to locked() if it has nullptr
+     * @retval true success, acquired
+     * @retval false failed, lock is owned
+     */
+    bool try_acquire() {
+        awaiter *need = nullptr;
+        return _req.compare_exchange_strong(need,locked(), std::memory_order_acquire);
+    }
+
+    ///initiate lock operation
+    /**
+     * registers the awaiter as a new request. If it is first request, the
+     * lock has been acquired, builds queue of requests and returns false. Otherwise
+     * keeps awaiter registered and returns true
+     *
+     * @param awt awaiter
+     * @retval false can't registrer, we acquired ownership, so continue
+     * @retval true registered, we can wait
+     */
+    bool do_lock(future<ownership> *fut_awt) {
+        awaiter *awt = awaiter::from_future(fut_awt);
+        awaiter *nx = nullptr;
+        while (!_req.compare_exchange_weak(nx, awt, std::memory_order_relaxed)) {
+            awt->_chain = nx;
+        }
+
+        if (nx == nullptr) {
+            build_queue(_req.exchange(locked(), std::memory_order_acquire), awt);
+            return false;
+        }
+        return true;
+    }
+
+    ///builds internal queue
+    /**
+     * Picks are requests and reorder them in reverse order so stack is converted to
+     * queue. This is done by the owner.
+     *
+     * @param r pointer request stack (linked list)
+     * @param stop pointer to item, which is used as stop item (which is often first
+     * awaiter or locked flag)
+     */
+    void build_queue(awaiter *r, awaiter *stop) {
+        while (r != stop) {
+            auto n = r->_chain;
+            r->_chain = _que;
+            _que = r;
+            r = awaiter::from_future(n);
+        }
+    }
+
+    ///unlock the lock
+    /**
+     * if queue is empty, tries to swap locked() to nullptr, however if this fails,
+     * it builds queue and continues with the queue
+     *
+     * if queue is not empty, retrieves the first awaiter, removes it from the queue
+     * and resumes it, which transfers ownership to the new owner.
+     */
+    promise<ownership>::notify unlock() {
+        if (!_que) {
+            auto lk = locked();
+            auto need = lk;
+            if (_req.compare_exchange_strong(need, nullptr, std::memory_order_release)) return {};
+            build_queue(_req.exchange(lk, std::memory_order_relaxed), lk);
+        }
+        promise<ownership> ret(_que);
+        _que = static_cast<awaiter *>(_que->_chain);
+        return ret(make_ownership());
+    }
+
+
+    ///creates ownership object
+    ownership make_ownership() {return this;}
+
+
+};
+
+#if 0
+
+
 
     ///awaiter is object used in most of cases by coroutines, however it is building block of this class
     /**
@@ -352,6 +484,57 @@ protected:
 };
 
 
+template<typename ... Mutexes>
+class lock: public future<std::tuple<decltype(std::declval<Mutexes>().try_lock())...> > {
+public:
+
+    using ownership = std::tuple<decltype(std::declval<Mutexes>().try_lock())...>;
+
+    lock(Mutexes & ... lst):_mxlist(lst...),_prom(this->get_promise()) {
+        ownership tmp;
+        int r = do_try_lock(-1, tmp, nullptr);
+        if (r < 0) {
+            _prom(std::move(tmp));
+        } else {
+            wait_on(r);
+        }
+    }
+
+
+protected:
+    std::tuple<Mutexes &...> _mxlist;
+    promise<ownership> _prom;
+
+    struct CB {
+        CB(lock *me, int index):_me(me),_index(index) {}
+        void operator()(auto own) {
+            me->on_lock(_index, own);
+        }
+    protected:
+        lock *_me;
+        int _index;
+    };
+
+    template<typename OwnType, int idx = 0>
+    int do_try_lock(int skip, ownership &ownlst, OwnType &&own) {
+        if (idx >= std::tuple_size<ownership>) return -1;
+        if (idx == skip) {
+            if constexpr(std::is_same_v<OwnType, std::tuple_element<idx, ownership> >) {
+                std::get<idx>(ownlist) = std::move(own);
+            }
+        } else {
+            auto x = std::get<idx>(_mxlist).try_lock();
+            if (!x) return idx;
+            return do_try_lock<idx+1>(skip, ownlist, own);
+        }
+    }
+
+    void wait_on
+
+
+
+};
+#endif
 
 }
 
