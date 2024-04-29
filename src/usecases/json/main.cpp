@@ -18,6 +18,7 @@ void test1() {
       "aaa":"bbb",
       "bool":true,
       "bool2":false,
+      "utf-8":"\n\r\\\" ahoj \uD83D\uDE00",
       "n":null,
       "num1":10,
       "num2":-23,
@@ -33,8 +34,12 @@ void test1() {
 }
 )json";
 
-    coro::future<std::string_view> data(text);
-    auto res = parse_json<JsonFactory>(data).run();
+    auto res = parse_json<JsonFactory>([text,done = false]() mutable ->coro::future<std::string_view> {
+        if (done) return "";
+        else {
+            done = true;
+            return text;
+        }}).run();
 
     std::string out;
     serialize_json<JsonDecomposer>(res.first, [&](std::string_view z){

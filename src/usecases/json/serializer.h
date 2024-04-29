@@ -3,7 +3,7 @@
 #include "../../coro/async.h"
 
 #include <iterator>
-#include <stack>
+#include <vector>
 
 namespace coro_usecases {
 
@@ -118,35 +118,35 @@ inline coro::async<void> serialize_json(
     using Node = typename JsonDecomp::value_type;
     using ArrayIter = decltype(decomp.get_array_begin(val));
     using ObjectIter = decltype(decomp.get_object_begin(val));
-    using Iter = std::variant<std::monostate, ArrayIter, ObjectIter>;
+    using ArrayRange = std::pair<ArrayIter,ArrayIter>;
+    using ObjectRange = std::pair<ObjectIter,ObjectIter>;
+    using LevelData = std::variant<std::monostate, ArrayRange, ObjectRange, const Node *>;
 
     enum class State {
-        base_node,
+        base,
         array,
         object,
         key,
         string
     };
 
-    struct Item {
-        State st;
-        const Node *ref = nullptr;
-        Iter iter = {};
-        Iter end = {};
+    struct Level {
+        State state;
+        LevelData data = {};
     };
 
-    std::stack<Item> st;
-    st.push({State::base_node, &val});
+    std::vector<Level> stack;
+    stack.push_back({State::base, &val});
     std::size_t sz;
     std::string_view outstr;
     std::vector<char> strbuff;
 
-    while (!st.empty()) {
-        const Node *ref = st.top().ref;
-        State state = st.top().st;
+    while (!stack.empty()) {
+        State state = stack.back().state;
         switch (state) {
-            case State::base_node: {
-                st.pop();
+            case State::base: {
+                const Node *ref = std::get<const Node *>(stack.back().data);
+                stack.pop_back();
                 switch (decomp.type(*ref)) {
                     case json_value_type::array: {
                        co_await target("[");
@@ -156,8 +156,8 @@ inline coro::async<void> serialize_json(
                        } else {
                            ArrayIter iter = decomp.get_array_begin(*ref);
                            ArrayIter end = decomp.get_array_end(*ref);
-                           st.push({State::array, ref, iter, end});
-                           st.push({State::base_node, &decomp.get_value(iter)});
+                           stack.push_back({State::array, ArrayRange{iter, end}});
+                           stack.push_back({State::base, &decomp.get_value(iter)});
                        }
                     } break;
                     case json_value_type::object: {
@@ -168,9 +168,9 @@ inline coro::async<void> serialize_json(
                         } else {
                             ObjectIter iter = decomp.get_object_begin(*ref);
                             ObjectIter end = decomp.get_object_end(*ref);
-                            st.push({State::object, ref, iter, end});
-                            st.push({State::key, &decomp.get_value(iter)});
-                            st.push({State::string});
+                            stack.push_back({State::object, ObjectRange{iter, end}});
+                            stack.push_back({State::key, &decomp.get_value(iter)});
+                            stack.push_back({State::string});
                             outstr = decomp.get_key(iter);
                         }
                     } break;
@@ -186,40 +186,39 @@ inline coro::async<void> serialize_json(
                     } break;
                     case json_value_type::string: {
                         outstr = decomp.get_string(*ref);
-                        st.push({State::string});
+                        stack.push_back({State::string});
                     } break;
                 }
             }break;
             case State::array: {
-                ArrayIter &iter = std::get<ArrayIter>(st.top().iter);
-                ArrayIter &end = std::get<ArrayIter>(st.top().end);
+                auto &[iter, end] = std::get<ArrayRange>(stack.back().data);
                 ++iter;
                 if (iter == end) {
                     co_await target("]");
-                    st.pop();
+                    stack.pop_back();
                 } else {
                     co_await target(",");
-                    st.push({State::base_node, &decomp.get_value(iter)});
+                    stack.push_back({State::base, &decomp.get_value(iter)});
                 }
             }break;
             case State::object: {
-                ObjectIter &iter = std::get<ObjectIter>(st.top().iter);
-                ObjectIter &end = std::get<ObjectIter>(st.top().end);
+                auto &[iter, end] = std::get<ObjectRange>(stack.back().data);
                 ++iter;
                 if (iter == end) {
                     co_await target("}");
-                    st.pop();
+                    stack.pop_back();
                 } else {
                     co_await target(",");
-                    st.push({State::key, &decomp.get_value(iter)});
-                    st.push({State::string});
+                    stack.push_back({State::key, &decomp.get_value(iter)});
+                    stack.push_back({State::string});
                     outstr = decomp.get_key(iter);
                 } break;
             }
             case State::key: {
-                st.pop();
+                const Node *ref = std::get<const Node *>(stack.back().data);
+                stack.pop_back();
                 co_await target(":");
-                st.push({State::base_node,ref});
+                stack.push_back({State::base,ref});
             }break;
             case State::string: {
                 strbuff.push_back('"');
@@ -227,10 +226,10 @@ inline coro::async<void> serialize_json(
                 strbuff.push_back('"');
                 co_await target(std::string_view(strbuff.data(), strbuff.size()));
                 strbuff.clear();
-                st.pop();
+                stack.pop_back();
             }break;
             default: {
-                st.pop();
+                stack.pop_back();
                 break;
             }
         }
