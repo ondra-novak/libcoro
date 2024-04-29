@@ -1,5 +1,0 @@
-<map id="coro::mutex::awaiter_cb&lt; Fn, static_buffer &gt;" name="coro::mutex::awaiter_cb&lt; Fn, static_buffer &gt;">
-<area shape="rect" id="node1" title="awaiter with a callback function" alt="" coords="5,95,184,136"/>
-<area shape="rect" id="node2" href="$classcoro_1_1mutex_1_1awaiter.html" title="awaiter is object used in most of cases by coroutines, however it is building block of this class" alt="" coords="113,5,271,32"/>
-<area shape="rect" id="node3" href="$classcoro_1_1mutex.html" title="Mutex which allows locking across co_await and co_yield suspend points." alt="" coords="209,102,309,129"/>
-</map>

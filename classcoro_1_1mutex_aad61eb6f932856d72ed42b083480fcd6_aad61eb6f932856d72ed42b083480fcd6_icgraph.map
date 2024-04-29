@@ -1,0 +1,6 @@
+<map id="coro::mutex::unlock" name="coro::mutex::unlock">
+<area shape="rect" id="node1" title="unlock the lock" alt="" coords="451,46,601,73"/>
+<area shape="rect" id="node2" href="$classcoro_1_1mutex_1_1ownership_acfb0b1b61447af6ee622ce814fc6a4d4.html#acfb0b1b61447af6ee622ce814fc6a4d4" title="releases ownership explicitly (unlock)" alt="" coords="228,39,403,80"/>
+<area shape="rect" id="node3" href="$classcoro_1_1mutex_1_1ownership_af6c171ef70fe06ce1a7b8d8764a3b148.html#af6c171ef70fe06ce1a7b8d8764a3b148" title="ownership can be assigned by move" alt="" coords="5,5,180,47"/>
+<area shape="rect" id="node4" href="$classcoro_1_1mutex_1_1ownership_a21199bf1609d55048529c91963ee0909.html#a21199bf1609d55048529c91963ee0909" title="dtor releases ownership" alt="" coords="5,71,180,112"/>
+</map>

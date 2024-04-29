@@ -1,7 +1,4 @@
 <map id="coro::mutex::try_acquire" name="coro::mutex::try_acquire">
-<area shape="rect" id="node1" title="tries to acquire" alt="" coords="639,42,820,69"/>
-<area shape="rect" id="node2" href="$classcoro_1_1mutex_1_1awaiter_a6b5313e3e3cd5ae4ac616ab943db0807.html#a6b5313e3e3cd5ae4ac616ab943db0807" title="coroutine &#45; try to acquire lock" alt="" coords="432,5,589,47"/>
-<area shape="rect" id="node5" href="$classcoro_1_1mutex_a1b5fb2fd2995e2210181de3c4211ca6f.html#a1b5fb2fd2995e2210181de3c4211ca6f" title="try to lock" alt="" coords="431,71,591,98"/>
-<area shape="rect" id="node3" href="$classcoro_1_1mutex_1_1awaiter_ac36f60109b6a68c09cad6f89f98e5f41.html#ac36f60109b6a68c09cad6f89f98e5f41" title="perform synchronou wait on lock" alt="" coords="225,5,383,47"/>
-<area shape="rect" id="node4" href="$classcoro_1_1mutex_a0067038a6413cc3c34bfca3a8ef63314.html#a0067038a6413cc3c34bfca3a8ef63314" title="lock synchronously" alt="" coords="5,13,177,39"/>
+<area shape="rect" id="node1" title="tries to acquire" alt="" coords="213,5,395,32"/>
+<area shape="rect" id="node2" href="$classcoro_1_1mutex_a1b5fb2fd2995e2210181de3c4211ca6f.html#a1b5fb2fd2995e2210181de3c4211ca6f" title="try to lock" alt="" coords="5,5,165,32"/>
 </map>

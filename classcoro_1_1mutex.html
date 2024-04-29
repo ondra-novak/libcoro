@@ -70,7 +70,6 @@ $(function() {
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
-<a href="#pub-static-attribs">Static Public Attributes</a> &#124;
 <a href="#pro-methods">Protected Member Functions</a> &#124;
 <a href="#pro-static-methods">Static Protected Member Functions</a> &#124;
 <a href="#pro-attribs">Protected Attributes</a> &#124;
@@ -84,26 +83,9 @@ $(function() {
  <a href="classcoro_1_1mutex.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="mutex_8h_source.html">mutex.h</a>&gt;</code></p>
-<div id="dynsection-0" onclick="return toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
-  <img id="dynsection-0-trigger" src="closed.png" alt="+"/> Collaboration diagram for coro::mutex:</div>
-<div id="dynsection-0-summary" class="dynsummary" style="display:block;">
-</div>
-<div id="dynsection-0-content" class="dyncontent" style="display:none;">
-<div class="center"><img src="classcoro_1_1mutex__coll__graph.png" border="0" usemap="#acoro_1_1mutex_coll__map" alt="Collaboration graph"/></div>
-<map name="acoro_1_1mutex_coll__map" id="acoro_1_1mutex_coll__map">
-<area shape="rect" title="Mutex which allows locking across co_await and co_yield suspend points." alt="" coords="34,5,134,32"/>
-<area shape="rect" href="classcoro_1_1mutex_1_1awaiter.html" title="awaiter is object used in most of cases by coroutines, however it is building block of this class" alt="" coords="5,95,163,121"/>
-</map>
-<center><span class="legend">[<a href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Classes</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1mutex_1_1awaiter.html">awaiter</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">awaiter is object used in most of cases by coroutines, however it is building block of this class  <a href="classcoro_1_1mutex_1_1awaiter.html#details">More...</a><br /></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1mutex_1_1awaiter__cb.html">awaiter_cb</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">awaiter with a callback function  <a href="classcoro_1_1mutex_1_1awaiter__cb.html#details">More...</a><br /></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1mutex_1_1ownership.html">ownership</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">tracks ownership  <a href="classcoro_1_1mutex_1_1ownership.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -113,74 +95,63 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a1b5fb2fd2995e2210181de3c4211ca6f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classcoro_1_1mutex_1_1ownership.html">ownership</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1mutex_a1b5fb2fd2995e2210181de3c4211ca6f.html#a1b5fb2fd2995e2210181de3c4211ca6f">try_lock</a> ()</td></tr>
 <tr class="memdesc:a1b5fb2fd2995e2210181de3c4211ca6f"><td class="mdescLeft">&#160;</td><td class="mdescRight">try to lock  <a href="classcoro_1_1mutex_a1b5fb2fd2995e2210181de3c4211ca6f.html#a1b5fb2fd2995e2210181de3c4211ca6f">More...</a><br /></td></tr>
 <tr class="separator:a1b5fb2fd2995e2210181de3c4211ca6f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acd530af9e366966cc459b81cd4850705"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classcoro_1_1mutex_1_1awaiter.html">awaiter</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1mutex_acd530af9e366966cc459b81cd4850705.html#acd530af9e366966cc459b81cd4850705">operator co_await</a> ()</td></tr>
-<tr class="memdesc:acd530af9e366966cc459b81cd4850705"><td class="mdescLeft">&#160;</td><td class="mdescRight"><b>co_await</b> support  <a href="classcoro_1_1mutex_acd530af9e366966cc459b81cd4850705.html#acd530af9e366966cc459b81cd4850705">More...</a><br /></td></tr>
-<tr class="separator:acd530af9e366966cc459b81cd4850705"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a09acdcaaaf6689b7c5fcdf272448aab8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classcoro_1_1future.html">future</a>&lt; <a class="el" href="classcoro_1_1mutex_1_1ownership.html">ownership</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1mutex_a09acdcaaaf6689b7c5fcdf272448aab8.html#a09acdcaaaf6689b7c5fcdf272448aab8">lock</a> ()</td></tr>
+<tr class="memdesc:a09acdcaaaf6689b7c5fcdf272448aab8"><td class="mdescLeft">&#160;</td><td class="mdescRight">lock the mutex, retrieve future ownership  <a href="classcoro_1_1mutex_a09acdcaaaf6689b7c5fcdf272448aab8.html#a09acdcaaaf6689b7c5fcdf272448aab8">More...</a><br /></td></tr>
+<tr class="separator:a09acdcaaaf6689b7c5fcdf272448aab8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeaba66eafc692c884b16176f985bec78"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classcoro_1_1future.html">future</a>&lt; <a class="el" href="classcoro_1_1mutex_1_1ownership.html">ownership</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1mutex_aeaba66eafc692c884b16176f985bec78.html#aeaba66eafc692c884b16176f985bec78">operator co_await</a> ()</td></tr>
+<tr class="memdesc:aeaba66eafc692c884b16176f985bec78"><td class="mdescLeft">&#160;</td><td class="mdescRight">lock the mutex co_awaitable  <a href="classcoro_1_1mutex_aeaba66eafc692c884b16176f985bec78.html#aeaba66eafc692c884b16176f985bec78">More...</a><br /></td></tr>
+<tr class="separator:aeaba66eafc692c884b16176f985bec78"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0067038a6413cc3c34bfca3a8ef63314"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classcoro_1_1mutex_1_1ownership.html">ownership</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1mutex_a0067038a6413cc3c34bfca3a8ef63314.html#a0067038a6413cc3c34bfca3a8ef63314">lock_sync</a> ()</td></tr>
 <tr class="memdesc:a0067038a6413cc3c34bfca3a8ef63314"><td class="mdescLeft">&#160;</td><td class="mdescRight">lock synchronously  <a href="classcoro_1_1mutex_a0067038a6413cc3c34bfca3a8ef63314.html#a0067038a6413cc3c34bfca3a8ef63314">More...</a><br /></td></tr>
 <tr class="separator:a0067038a6413cc3c34bfca3a8ef63314"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a66fc3958880800e8420a2b2ef34932c1"><td class="memTemplParams" colspan="2">template&lt;std::invocable&lt; ownership &gt; Fn&gt; </td></tr>
-<tr class="memitem:a66fc3958880800e8420a2b2ef34932c1"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classcoro_1_1mutex_a66fc3958880800e8420a2b2ef34932c1.html#a66fc3958880800e8420a2b2ef34932c1">lock_callback</a> (Fn &amp;&amp;fn) noexcept</td></tr>
-<tr class="memdesc:a66fc3958880800e8420a2b2ef34932c1"><td class="mdescLeft">&#160;</td><td class="mdescRight">lock and call a function when access is granted  <a href="classcoro_1_1mutex_a66fc3958880800e8420a2b2ef34932c1.html#a66fc3958880800e8420a2b2ef34932c1">More...</a><br /></td></tr>
-<tr class="separator:a66fc3958880800e8420a2b2ef34932c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adc0ff76f662e2b2dfddf1501f8d54e67"><td class="memTemplParams" colspan="2">template&lt;std::invocable&lt; ownership &gt; Fn, std::size_t sz&gt; </td></tr>
-<tr class="memitem:adc0ff76f662e2b2dfddf1501f8d54e67"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classcoro_1_1mutex_adc0ff76f662e2b2dfddf1501f8d54e67.html#adc0ff76f662e2b2dfddf1501f8d54e67">lock_callback</a> (Fn &amp;&amp;fn, char(&amp;buffer)[sz])</td></tr>
-<tr class="memdesc:adc0ff76f662e2b2dfddf1501f8d54e67"><td class="mdescLeft">&#160;</td><td class="mdescRight">lock and call a function when access is granted  <a href="classcoro_1_1mutex_adc0ff76f662e2b2dfddf1501f8d54e67.html#adc0ff76f662e2b2dfddf1501f8d54e67">More...</a><br /></td></tr>
-<tr class="separator:adc0ff76f662e2b2dfddf1501f8d54e67"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-attribs"></a>
-Static Public Attributes</h2></td></tr>
-<tr class="memitem:ae4442e1f6d17f0cf3cfa45a16256b83a"><td class="memTemplParams" colspan="2">template&lt;typename Fn &gt; </td></tr>
-<tr class="memitem:ae4442e1f6d17f0cf3cfa45a16256b83a"><td class="memTemplItemLeft" align="right" valign="top">static constexpr std::size_t&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classcoro_1_1mutex_ae4442e1f6d17f0cf3cfa45a16256b83a.html#ae4442e1f6d17f0cf3cfa45a16256b83a">lock_callback_buffer_size</a> = sizeof(<a class="el" href="classcoro_1_1mutex_1_1awaiter__cb.html">awaiter_cb</a>&lt;Fn, true&gt;)</td></tr>
-<tr class="memdesc:ae4442e1f6d17f0cf3cfa45a16256b83a"><td class="mdescLeft">&#160;</td><td class="mdescRight">contains required size of static buffer to hold awaiter for given function  <a href="classcoro_1_1mutex_ae4442e1f6d17f0cf3cfa45a16256b83a.html#ae4442e1f6d17f0cf3cfa45a16256b83a">More...</a><br /></td></tr>
-<tr class="separator:ae4442e1f6d17f0cf3cfa45a16256b83a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
 <tr class="memitem:ae9c73d87232d3dd22e4dd45c0719206e"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1mutex_ae9c73d87232d3dd22e4dd45c0719206e.html#ae9c73d87232d3dd22e4dd45c0719206e">try_acquire</a> ()</td></tr>
 <tr class="memdesc:ae9c73d87232d3dd22e4dd45c0719206e"><td class="mdescLeft">&#160;</td><td class="mdescRight">tries to acquire  <a href="classcoro_1_1mutex_ae9c73d87232d3dd22e4dd45c0719206e.html#ae9c73d87232d3dd22e4dd45c0719206e">More...</a><br /></td></tr>
 <tr class="separator:ae9c73d87232d3dd22e4dd45c0719206e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad0e661447e136717a63e38cf9047f20b"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1mutex_ad0e661447e136717a63e38cf9047f20b.html#ad0e661447e136717a63e38cf9047f20b">do_lock</a> (<a class="el" href="classcoro_1_1mutex_1_1awaiter.html">awaiter</a> *awt)</td></tr>
-<tr class="memdesc:ad0e661447e136717a63e38cf9047f20b"><td class="mdescLeft">&#160;</td><td class="mdescRight">initiate lock operation  <a href="classcoro_1_1mutex_ad0e661447e136717a63e38cf9047f20b.html#ad0e661447e136717a63e38cf9047f20b">More...</a><br /></td></tr>
-<tr class="separator:ad0e661447e136717a63e38cf9047f20b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a62a4ba298325045f272db9ea9c2e5098"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1mutex_a62a4ba298325045f272db9ea9c2e5098.html#a62a4ba298325045f272db9ea9c2e5098">build_queue</a> (<a class="el" href="classcoro_1_1mutex_1_1awaiter.html">awaiter</a> *r, <a class="el" href="classcoro_1_1mutex_1_1awaiter.html">awaiter</a> *stop)</td></tr>
+<tr class="memitem:a332daa03fef87a9174c026bee2f7aaa0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classcoro_1_1promise.html">promise</a>&lt; <a class="el" href="classcoro_1_1mutex_1_1ownership.html">ownership</a> &gt;::notify&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1mutex_a332daa03fef87a9174c026bee2f7aaa0.html#a332daa03fef87a9174c026bee2f7aaa0">do_lock</a> (<a class="el" href="classcoro_1_1future.html">future</a>&lt; <a class="el" href="classcoro_1_1mutex_1_1ownership.html">ownership</a> &gt; *fut_awt)</td></tr>
+<tr class="memdesc:a332daa03fef87a9174c026bee2f7aaa0"><td class="mdescLeft">&#160;</td><td class="mdescRight">initiate lock operation  <a href="classcoro_1_1mutex_a332daa03fef87a9174c026bee2f7aaa0.html#a332daa03fef87a9174c026bee2f7aaa0">More...</a><br /></td></tr>
+<tr class="separator:a332daa03fef87a9174c026bee2f7aaa0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a62a4ba298325045f272db9ea9c2e5098"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1mutex_a62a4ba298325045f272db9ea9c2e5098.html#a62a4ba298325045f272db9ea9c2e5098">build_queue</a> (awaiter *r, awaiter *stop)</td></tr>
 <tr class="memdesc:a62a4ba298325045f272db9ea9c2e5098"><td class="mdescLeft">&#160;</td><td class="mdescRight">builds internal queue  <a href="classcoro_1_1mutex_a62a4ba298325045f272db9ea9c2e5098.html#a62a4ba298325045f272db9ea9c2e5098">More...</a><br /></td></tr>
 <tr class="separator:a62a4ba298325045f272db9ea9c2e5098"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adda886fc0b4171935329781e05d92d24"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classcoro_1_1prepared__coro.html">prepared_coro</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1mutex_adda886fc0b4171935329781e05d92d24.html#adda886fc0b4171935329781e05d92d24">unlock</a> ()</td></tr>
-<tr class="memdesc:adda886fc0b4171935329781e05d92d24"><td class="mdescLeft">&#160;</td><td class="mdescRight">unlock the lock  <a href="classcoro_1_1mutex_adda886fc0b4171935329781e05d92d24.html#adda886fc0b4171935329781e05d92d24">More...</a><br /></td></tr>
-<tr class="separator:adda886fc0b4171935329781e05d92d24"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aad61eb6f932856d72ed42b083480fcd6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classcoro_1_1promise.html">promise</a>&lt; <a class="el" href="classcoro_1_1mutex_1_1ownership.html">ownership</a> &gt;::notify&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1mutex_aad61eb6f932856d72ed42b083480fcd6.html#aad61eb6f932856d72ed42b083480fcd6">unlock</a> ()</td></tr>
+<tr class="memdesc:aad61eb6f932856d72ed42b083480fcd6"><td class="mdescLeft">&#160;</td><td class="mdescRight">unlock the lock  <a href="classcoro_1_1mutex_aad61eb6f932856d72ed42b083480fcd6.html#aad61eb6f932856d72ed42b083480fcd6">More...</a><br /></td></tr>
+<tr class="separator:aad61eb6f932856d72ed42b083480fcd6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab59c072bf2835eff157b8c59adf1c0ad"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classcoro_1_1mutex_1_1ownership.html">ownership</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1mutex_ab59c072bf2835eff157b8c59adf1c0ad.html#ab59c072bf2835eff157b8c59adf1c0ad">make_ownership</a> ()</td></tr>
 <tr class="memdesc:ab59c072bf2835eff157b8c59adf1c0ad"><td class="mdescLeft">&#160;</td><td class="mdescRight">creates ownership object  <a href="classcoro_1_1mutex_ab59c072bf2835eff157b8c59adf1c0ad.html#ab59c072bf2835eff157b8c59adf1c0ad">More...</a><br /></td></tr>
 <tr class="separator:ab59c072bf2835eff157b8c59adf1c0ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-static-methods"></a>
 Static Protected Member Functions</h2></td></tr>
-<tr class="memitem:a6d73b5920fdf3bd9e2959a26ffb20402"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="classcoro_1_1mutex_1_1awaiter.html">awaiter</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1mutex_a6d73b5920fdf3bd9e2959a26ffb20402.html#a6d73b5920fdf3bd9e2959a26ffb20402">locked</a> ()</td></tr>
+<tr class="memitem:a6d73b5920fdf3bd9e2959a26ffb20402"><td class="memItemLeft" align="right" valign="top">static awaiter *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1mutex_a6d73b5920fdf3bd9e2959a26ffb20402.html#a6d73b5920fdf3bd9e2959a26ffb20402">locked</a> ()</td></tr>
 <tr class="memdesc:a6d73b5920fdf3bd9e2959a26ffb20402"><td class="mdescLeft">&#160;</td><td class="mdescRight">generates special pointer, which is used as locked flag (value 0x00000001)  <a href="classcoro_1_1mutex_a6d73b5920fdf3bd9e2959a26ffb20402.html#a6d73b5920fdf3bd9e2959a26ffb20402">More...</a><br /></td></tr>
 <tr class="separator:a6d73b5920fdf3bd9e2959a26ffb20402"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-attribs"></a>
 Protected Attributes</h2></td></tr>
-<tr class="memitem:a6699913b9e97fc8f728baf404674ecaf"><td class="memItemLeft" align="right" valign="top">std::atomic&lt; <a class="el" href="classcoro_1_1mutex_1_1awaiter.html">awaiter</a> * &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1mutex_a6699913b9e97fc8f728baf404674ecaf.html#a6699913b9e97fc8f728baf404674ecaf">_req</a> = {nullptr}</td></tr>
+<tr class="memitem:a6699913b9e97fc8f728baf404674ecaf"><td class="memItemLeft" align="right" valign="top">std::atomic&lt; awaiter * &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1mutex_a6699913b9e97fc8f728baf404674ecaf.html#a6699913b9e97fc8f728baf404674ecaf">_req</a> = {nullptr}</td></tr>
 <tr class="separator:a6699913b9e97fc8f728baf404674ecaf"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a283b0c85b2776e768ed3ae13a4aca584"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classcoro_1_1mutex_1_1awaiter.html">awaiter</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1mutex_a283b0c85b2776e768ed3ae13a4aca584.html#a283b0c85b2776e768ed3ae13a4aca584">_que</a> = nullptr</td></tr>
+<tr class="memitem:a283b0c85b2776e768ed3ae13a4aca584"><td class="memItemLeft" align="right" valign="top">awaiter *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1mutex_a283b0c85b2776e768ed3ae13a4aca584.html#a283b0c85b2776e768ed3ae13a4aca584">_que</a> = nullptr</td></tr>
 <tr class="memdesc:a283b0c85b2776e768ed3ae13a4aca584"><td class="mdescLeft">&#160;</td><td class="mdescRight">contains queue of requests already registered by the lock  <a href="classcoro_1_1mutex_a283b0c85b2776e768ed3ae13a4aca584.html#a283b0c85b2776e768ed3ae13a4aca584">More...</a><br /></td></tr>
 <tr class="separator:a283b0c85b2776e768ed3ae13a4aca584"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Mutex which allows locking across <b>co_await</b> and <b>co_yield</b> suspend points. </p>
 <p>This object can be used to hold exclusive access to a resource while the coroutine is suspended on <b>co_await</b> on <b>co_yield</b>. Standard mutex can't support such feature. This mutex is also co_awaitable.</p>
-<p>The object suports lock and try_lock. However the lock protocol is different. When lock success, you receive an ownership object, which must be held to keep exclusive access. Once the ownership is released, the mutex is unlocked. The ownership object uses RAII to track to mutex ownership. So there is no explicit <a class="el" href="classcoro_1_1mutex_adda886fc0b4171935329781e05d92d24.html#adda886fc0b4171935329781e05d92d24" title="unlock the lock">unlock()</a> function.</p>
-<p>The mutex object support <b>co_await</b>, <a class="el" href="classcoro_1_1mutex_a0067038a6413cc3c34bfca3a8ef63314.html#a0067038a6413cc3c34bfca3a8ef63314" title="lock synchronously">lock_sync()</a> and <a class="el" href="classcoro_1_1mutex_a66fc3958880800e8420a2b2ef34932c1.html#a66fc3958880800e8420a2b2ef34932c1" title="lock and call a function when access is granted">lock_callback()</a>. The third function allows to call a callback when lock is acquired. </p>
+<p>The object suports lock and try_lock. However the lock protocol is different. When lock success, you receive an ownership object, which must be held to keep exclusive access. Once the ownership is released, the mutex is unlocked. The ownership object uses RAII to track to mutex ownership. So there is no explicit <a class="el" href="classcoro_1_1mutex_aad61eb6f932856d72ed42b083480fcd6.html#aad61eb6f932856d72ed42b083480fcd6" title="unlock the lock">unlock()</a> function.</p>
+<p>The mutex object support <b>co_await</b>, <a class="el" href="classcoro_1_1mutex_a0067038a6413cc3c34bfca3a8ef63314.html#a0067038a6413cc3c34bfca3a8ef63314" title="lock synchronously">lock_sync()</a></p>
+<p>Attempt to lock the mutex always return a future with ownership. </p>
 
-<p class="definition">Definition at line <a class="el" href="mutex_8h_source.html#l00027">27</a> of file <a class="el" href="mutex_8h_source.html">mutex.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="mutex_8h_source.html#l00030">30</a> of file <a class="el" href="mutex_8h_source.html">mutex.h</a>.</p>
 </div><hr/>The documentation for this class was generated from the following file:<ul>
 <li>src/coro/<a class="el" href="mutex_8h_source.html">mutex.h</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Apr 29 2024 15:45:18 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+Generated on Mon Apr 29 2024 20:02:58 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
 </small></address>
 </body>
 </html>

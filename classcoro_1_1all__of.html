@@ -97,12 +97,14 @@ $(function() {
 <div id="dynsection-1-content" class="dyncontent" style="display:none;">
 <div class="center"><img src="classcoro_1_1all__of__coll__graph.png" border="0" usemap="#acoro_1_1all__of_3_01_t_01_4_coll__map" alt="Collaboration graph"/></div>
 <map name="acoro_1_1all__of_3_01_t_01_4_coll__map" id="acoro_1_1all__of_3_01_t_01_4_coll__map">
-<area shape="rect" title="this awaitable is resolved, when all objects specified by constructor are resolved" alt="" coords="567,126,699,153"/>
-<area shape="rect" href="classcoro_1_1future.html" title=" " alt="" coords="311,93,466,119"/>
+<area shape="rect" title="this awaitable is resolved, when all objects specified by constructor are resolved" alt="" coords="859,189,991,215"/>
+<area shape="rect" href="classcoro_1_1future.html" title=" " alt="" coords="603,155,758,182"/>
 <area shape="rect" href="classcoro_1_1function.html" title=" " alt="" coords="5,5,189,47"/>
+<area shape="rect" href="classcoro_1_1future.html" title="Contains future value of T, can be co_awaited in coroutine." alt="" coords="328,121,463,147"/>
 <area shape="rect" href="classcoro_1_1function.html" title=" " alt="" coords="6,71,189,141"/>
-<area shape="rect" href="classcoro_1_1function.html" title=" " alt="" coords="5,165,189,207"/>
-<area shape="rect" href="classcoro_1_1promise.html" title=" " alt="" coords="304,143,473,170"/>
+<area shape="rect" href="classcoro_1_1function.html" title=" " alt="" coords="5,169,189,211"/>
+<area shape="rect" href="classcoro_1_1function.html" title=" " alt="" coords="304,244,487,315"/>
+<area shape="rect" href="classcoro_1_1promise.html" title=" " alt="" coords="596,206,765,233"/>
 </map>
 <center><span class="legend">[<a href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
@@ -211,6 +213,12 @@ Additional Inherited Members</h2></td></tr>
 <tr class="memitem:a3f727444dea9f3e2e4888cf00c6a48e9 inherit pro_methods_classcoro_1_1future"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1future_a3f727444dea9f3e2e4888cf00c6a48e9.html#a3f727444dea9f3e2e4888cf00c6a48e9">setDeferredEvaluation</a> (Fn &amp;&amp;fn)</td></tr>
 <tr class="memdesc:a3f727444dea9f3e2e4888cf00c6a48e9 inherit pro_methods_classcoro_1_1future"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes deferred evaluation.  <a href="classcoro_1_1future_a3f727444dea9f3e2e4888cf00c6a48e9.html#a3f727444dea9f3e2e4888cf00c6a48e9">More...</a><br /></td></tr>
 <tr class="separator:a3f727444dea9f3e2e4888cf00c6a48e9 inherit pro_methods_classcoro_1_1future"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abc2b0722662eb6df514f83f46182bdb8 inherit pro_methods_classcoro_1_1future"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1future_abc2b0722662eb6df514f83f46182bdb8.html#abc2b0722662eb6df514f83f46182bdb8">attach</a> (<a class="el" href="classcoro_1_1future.html">future</a> *x)</td></tr>
+<tr class="memdesc:abc2b0722662eb6df514f83f46182bdb8 inherit pro_methods_classcoro_1_1future"><td class="mdescLeft">&#160;</td><td class="mdescRight">Attach future to internal linked list.  <a href="classcoro_1_1future_abc2b0722662eb6df514f83f46182bdb8.html#abc2b0722662eb6df514f83f46182bdb8">More...</a><br /></td></tr>
+<tr class="separator:abc2b0722662eb6df514f83f46182bdb8 inherit pro_methods_classcoro_1_1future"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abe82ebc81cdcba991186fc036cab246d inherit pro_methods_classcoro_1_1future"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classcoro_1_1future.html">future</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1future_abe82ebc81cdcba991186fc036cab246d.html#abe82ebc81cdcba991186fc036cab246d">detach</a> ()</td></tr>
+<tr class="memdesc:abe82ebc81cdcba991186fc036cab246d inherit pro_methods_classcoro_1_1future"><td class="mdescLeft">&#160;</td><td class="mdescRight">Detach linked list from the future.  <a href="classcoro_1_1future_abe82ebc81cdcba991186fc036cab246d.html#abe82ebc81cdcba991186fc036cab246d">More...</a><br /></td></tr>
+<tr class="separator:abe82ebc81cdcba991186fc036cab246d inherit pro_methods_classcoro_1_1future"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><h3>template&lt;typename T&gt;<br />
@@ -237,7 +245,7 @@ class coro::all_of&lt; T &gt;</h3>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Apr 29 2024 15:45:18 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+Generated on Mon Apr 29 2024 20:02:58 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
 </small></address>
 </body>
 </html>
