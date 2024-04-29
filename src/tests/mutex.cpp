@@ -13,8 +13,10 @@ coro::coroutine mutex_test(coro::mutex &mx, bool &out) {
 }
 
 
+template class coro::lock<coro::mutex, coro::mutex, coro::mutex>;
 
-int main() {
+
+int test1() {
     coro::mutex mx;
 
     bool t1_ok = false;
@@ -53,5 +55,36 @@ int main() {
 
 
 
-
+return 0;
 }
+
+int test2() {
+    coro::mutex mx1;
+    coro::mutex mx2;
+    coro::mutex mx3;
+
+    auto own2 = mx2.lock_sync();
+    auto own3 = mx3.lock_sync();
+
+    auto f = coro::lock(mx1,mx2,mx3);
+    CHECK(f.is_pending());
+
+    own2.release();
+    CHECK(f.is_pending());
+    auto own1 = mx1.lock_sync();
+    own3.release();
+    CHECK(f.is_pending());
+    own1.release();
+    CHECK(!f.is_pending());
+
+    return 0;
+}
+
+
+int main() {
+    test1();
+    test2();
+    return 0;
+}
+
+

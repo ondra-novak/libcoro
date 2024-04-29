@@ -4,6 +4,7 @@
 
 #include <atomic>
 #include <memory>
+#include <variant>
 
 
 namespace coro {
@@ -20,8 +21,9 @@ namespace coro {
  * The ownership object uses RAII to track to mutex ownership. So there is no
  * explicit unlock() function.
  *
- * The mutex object support @b co_await, lock_sync() and lock_callback(). The third
- * function allows to call a callback when lock is acquired.
+ * The mutex object support @b co_await, lock_sync()
+ *
+ * Attempt to lock the mutex always return a future with ownership.
  *
  * @ingroup awaitable
  */
@@ -81,12 +83,14 @@ public:
     }
 
 
+    ///lock the mutex, retrieve future ownership
     future<ownership> lock() {
         return [&](auto promise) {
             do_lock(promise.release());
         };
     }
 
+    ///lock the mutex co_awaitable
     future<ownership> operator co_await() {
         return lock();
     }
@@ -139,7 +143,7 @@ protected:
      * @retval false can't registrer, we acquired ownership, so continue
      * @retval true registered, we can wait
      */
-    bool do_lock(future<ownership> *fut_awt) {
+    promise<ownership>::notify do_lock(future<ownership> *fut_awt) {
         awaiter *awt = awaiter::from_future(fut_awt);
         awaiter *nx = nullptr;
         while (!_req.compare_exchange_weak(nx, awt, std::memory_order_relaxed)) {
@@ -148,9 +152,9 @@ protected:
 
         if (nx == nullptr) {
             build_queue(_req.exchange(locked(), std::memory_order_acquire), awt);
-            return false;
+            return promise<ownership>(fut_awt)(make_ownership());
         }
-        return true;
+        return {};
     }
 
     ///builds internal queue
@@ -195,293 +199,33 @@ protected:
     ///creates ownership object
     ownership make_ownership() {return this;}
 
-
 };
 
-#if 0
-
-
-
-    ///awaiter is object used in most of cases by coroutines, however it is building block of this class
-    /**
-     * The awaiter must be constructed to acquire the lock. The awaiter
-     * can be configured to resume coroutine, send a signal to blocked thread or
-     * to call a callback.
-     */
-    class awaiter {
-    public:
-
-        enum Mode {
-            //not configures (should not be used to waiting)
-            none,
-            //resume coroutine
-            coroutine,
-            //synchronize
-            sync,
-            //call a callback
-            callback
-        };
-
-        ///awaiter is copyable, however it must not be copied while it is waiting
-        awaiter(const awaiter &other):_owner(other._owner) {}
-        ///awaiter is not assignable
-        awaiter &operator=(const awaiter &other) = delete;
-
-        ///dtor
-        ~awaiter() {
-            switch (_mode) {
-                default: break;
-                case coroutine: std::destroy_at(&_coro); break;
-                case sync: std::destroy_at(&_sync);break;
-                case callback: std::destroy_at(&_resume_cb);break;
-            }
-        }
-
-        ///coroutine - try to acquire lock
-        bool await_ready() const noexcept {return _owner.try_acquire();}
-        ///coroutine - request the lock and suspend
-        bool await_suspend(std::coroutine_handle<> h) noexcept {
-            _mode = coroutine;
-            std::construct_at(&_coro,h);
-            return _owner.do_lock(this);
-        }
-        ///coroutine - retrieve ownership
-        ownership await_resume() const noexcept {
-            return _owner.make_ownership();
-        }
-
-        ///perform synchronou wait on lock
-        /**
-         * @return ownership
-         */
-        ownership wait() {
-            if (!await_ready()) {
-                _mode = sync;
-                std::construct_at(&_sync, false);
-                if (_owner.do_lock(this)) {
-                    _sync.wait(false);
-                }
-            }
-            return await_resume();
-        }
-
-    protected:
-        mutex &_owner;
-        awaiter *_next = nullptr;
-        Mode _mode = none;
-        union {
-            std::coroutine_handle<> _coro;
-            std::atomic<bool> _sync;
-            void (*_resume_cb)(awaiter *);
-        };
-
-        awaiter(mutex &owner):_owner(owner) {}
-
-        prepared_coro resume() {
-            switch (_mode) {
-                default: break;
-                case coroutine: return _coro;
-                case sync:
-                    _sync.store(true, std::memory_order_release);
-                    _sync.notify_all();
-                    break;
-                case callback:
-                    _resume_cb(this);
-                    break;
-            }
-            return {};
-        }
-
-        void init_cb(void (*cb)(awaiter *)) {
-            _mode = callback;
-            _resume_cb = cb;
-        }
-
-        friend class mutex;
+namespace _details {
+    template<typename T, typename Tuple> struct tuple_add;
+    template<typename T, typename ... Us> struct tuple_add<T, std::tuple<Us...> > {
+        using type = std::tuple<T, Us...>;
     };
 
-    ///awaiter with a callback function
-    /**
-     * This object is never used directly
-     *
-     * @tparam Fn callback function
-     * @tparam static_buffer set true, if the awaiter is constructed in static buffer
-     */
-    template<typename Fn, bool static_buffer>
-    class awaiter_cb: public awaiter {
-    public:
-
-        awaiter_cb(mutex &owner, Fn &&fn):awaiter(owner), _fn(std::forward<Fn>(fn)) {
-            init_cb(&cb_entry);
-        }
-        awaiter_cb(const awaiter_cb &) = delete;
-
-        void resume() noexcept {
-            _fn(_owner.make_ownership());
-            if constexpr (static_buffer) {
-                std::destroy_at(this);
-            } else {
-                delete this;
-            }
-        }
-
-    protected:
-
-        Fn _fn;
-
-        static void cb_entry(awaiter *me) {
-            auto self = static_cast<awaiter_cb *>(me);
-            self->resume();
-        }
+    template <typename Tuple> struct make_unique_types;
+    template <typename T, typename... Us> struct make_unique_types<std::tuple<T, Us...> > {
+        using type = std::conditional_t<
+                (std::is_same_v<T, Us> || ...),
+                typename make_unique_types<std::tuple<Us ...> >::type,
+                typename tuple_add<T, typename make_unique_types<std::tuple<Us...> >::type>::type>;
     };
 
-    ///contains required size of static buffer to hold awaiter for given function
-    /**
-     * @tparam Fn callback function type
-     */
-    template<typename Fn>
-    static constexpr std::size_t lock_callback_buffer_size = sizeof(awaiter_cb<Fn, true>);
+    template <> struct make_unique_types< std::tuple<> > {
+        using type = std::tuple<>;
+    };
 
-    ///try to lock
-    /**
-     * @return ownership. If the function fails, the ownership is not given. You need
-     * to convert ownership to bool and test it.
-     */
-    ownership try_lock() {
-        return ownership(try_acquire()?this:nullptr);
-    }
-
-    ///@b co_await support
-    awaiter operator co_await() {return *this;}
-
-    ///lock synchronously
-    ownership lock_sync() {
-        awaiter awt(*this);
-        return awt.wait();
-    }
-
-    ///lock and call a function when access is granted
-    /**
-     * @param fn function to call. The function accepts an ownership. The function must
-     * not throw any exception
-     *
-     * @note this function allocates an awaiter on the heap, it is automatically released
-     * after call is done.
-     */
-    template<std::invocable<ownership> Fn>
-    void lock_callback(Fn &&fn) noexcept {
-        auto a = new awaiter_cb<Fn, false>(*this, std::forward<Fn>(fn));
-        if (do_lock(a)) return;
-        a->resume();
-    }
-
-    ///lock and call a function when access is granted
-    /**
-     * The awaiter is allocated in static buffer. Size of the static buffer
-     * can be determined by a constant lock_callback_buffer_size
-     *
-     * @param fn instance of function to call
-     * @param buffer reserved space of sufficient size, where the awaiter is
-     * temporary allocated. The buffer must stay valid until the callback
-     * is called
-     *
-     * @note doesn't allocate on heap
-     */
-    template<std::invocable<ownership> Fn, std::size_t sz>
-    void lock_callback(Fn &&fn, char (&buffer)[sz]) {
-        static_assert(sz <= lock_callback_buffer_size<Fn>, "Buffer is too small");
-        auto a = new(buffer) awaiter_cb<Fn, true>(*this, std::forward<Fn>(fn));
-        if (do_lock(a)) return;
-        a->resume();
-    }
-
-
-protected:
-
-    ///generates special pointer, which is used as locked flag (value 0x00000001)
-    static awaiter *locked() {return reinterpret_cast<awaiter *>(0x1);}
-    /**
-     * contains stack of requests, or nullptr when lock is unlocked,
-     * or 0x00000001 when lock is locked with no requests
-     */
-    std::atomic<awaiter *> _req = {nullptr};
-    ///contains queue of requests already registered by the lock
-    /** the queue is always managed by an owner  */
-    awaiter * _que = nullptr;
-
-
-    ///tries to acquire
-    /**
-     * attempts to set _req to locked() if it has nullptr
-     * @retval true success, acquired
-     * @retval false failed, lock is owned
-     */
-    bool try_acquire() {
-        awaiter *need = nullptr;
-        return _req.compare_exchange_strong(need,locked(), std::memory_order_acquire);
-    }
-
-    ///initiate lock operation
-    /**
-     * registers the awaiter as a new request. If it is first request, the
-     * lock has been acquired, builds queue of requests and returns false. Otherwise
-     * keeps awaiter registered and returns true
-     *
-     * @param awt awaiter
-     * @retval false can't registrer, we acquired ownership, so continue
-     * @retval true registered, we can wait
-     */
-    bool do_lock(awaiter *awt) {
-        while (!_req.compare_exchange_strong(awt->_next, awt, std::memory_order_relaxed));
-        if (awt->_next == nullptr) {
-            build_queue(_req.exchange(locked(), std::memory_order_acquire), awt);
-            return false;
-        }
-        return true;
-    }
-
-    ///builds internal queue
-    /**
-     * Picks are requests and reorder them in reverse order so stack is converted to
-     * queue. This is done by the owner.
-     *
-     * @param r pointer request stack (linked list)
-     * @param stop pointer to item, which is used as stop item (which is often first
-     * awaiter or locked flag)
-     */
-    void build_queue(awaiter *r, awaiter *stop) {
-        while (r != stop) {
-            auto n = r->_next;
-            r->_next = _que;
-            _que = r;
-            r = n;
-        }
-    }
-
-    ///unlock the lock
-    /**
-     * if queue is empty, tries to swap locked() to nullptr, however if this fails,
-     * it builds queue and continues with the queue
-     *
-     * if queue is not empty, retrieves the first awaiter, removes it from the queue
-     * and resumes it, which transfers ownership to the new owner.
-     */
-    prepared_coro unlock() {
-        if (!_que) {
-            auto lk = locked();
-            auto need = lk;
-            if (_req.compare_exchange_strong(need, nullptr, std::memory_order_release)) return {};
-            build_queue(_req.exchange(lk, std::memory_order_relaxed), lk);
-        }
-        auto x = _que;
-        _que = _que->_next;
-        return x->resume();
-    }
-
-
-    ///creates ownership object
-    ownership make_ownership() {return this;}
-};
+    template<typename Tuple> struct make_variant_from_tuple;
+    template<typename ... Ts> struct make_variant_from_tuple<std::tuple<Ts...> > {
+        using type = std::variant<Ts...>;
+    };
+    template<typename ... Ts> using variant_of_t = typename make_variant_from_tuple<
+            typename make_unique_types<std::tuple<Ts...> >::type>::type;
+}
 
 
 template<typename ... Mutexes>
@@ -489,52 +233,88 @@ class lock: public future<std::tuple<decltype(std::declval<Mutexes>().try_lock()
 public:
 
     using ownership = std::tuple<decltype(std::declval<Mutexes>().try_lock())...>;
+    using future_variant = _details::variant_of_t<std::monostate,
+            decltype(std::declval<Mutexes>().lock())...>;
 
     lock(Mutexes & ... lst):_mxlist(lst...),_prom(this->get_promise()) {
-        ownership tmp;
-        int r = do_try_lock(-1, tmp, nullptr);
-        if (r < 0) {
-            _prom(std::move(tmp));
-        } else {
-            wait_on(r);
-        }
+        ownership ownlist;
+        if (finish_lock(-1, ownlist)) {
+            _prom(std::move(ownlist));
+        } //if failed, ownership is released and so all held locks
     }
 
 
 protected:
     std::tuple<Mutexes &...> _mxlist;
     promise<ownership> _prom;
+    future_variant _fut;
 
-    struct CB {
-        CB(lock *me, int index):_me(me),_index(index) {}
-        void operator()(auto own) {
-            me->on_lock(_index, own);
-        }
-    protected:
-        lock *_me;
-        int _index;
-    };
-
-    template<typename OwnType, int idx = 0>
-    int do_try_lock(int skip, ownership &ownlst, OwnType &&own) {
-        if (idx >= std::tuple_size<ownership>) return -1;
-        if (idx == skip) {
-            if constexpr(std::is_same_v<OwnType, std::tuple_element<idx, ownership> >) {
-                std::get<idx>(ownlist) = std::move(own);
-            }
-        } else {
-            auto x = std::get<idx>(_mxlist).try_lock();
-            if (!x) return idx;
-            return do_try_lock<idx+1>(skip, ownlist, own);
+    ///called when lock on particular mutex is complete
+    /**
+     * @tparam idx index of mutex
+     */
+    template<int idx>
+    void on_lock() {
+        auto &mx = std::get<idx>(_mxlist);
+        using LkType = decltype(mx.lock());
+        ownership ownlist;
+        std::get<idx>(ownlist) = std::get<LkType>(_fut).await_resume();
+        if (finish_lock(idx,ownlist)) {
+            _prom(std::move(ownlist));
         }
     }
 
-    void wait_on
-
-
-
+    ///finishes locking of all locks
+    /**
+     * @tparam idx index of starting lock (default 0)
+     * @param skip index of lock which is already locked (to skip)
+     * @param ownlist result ownership variable
+     * @retval true all locks are locked
+     * @retval false failure some lock was not locked, waiting callback installed
+     */
+    template<int idx = 0>
+    bool finish_lock(int skip, ownership &ownlist) {
+        //idx out of range? success
+        if constexpr(idx >= std::tuple_size_v<ownership>) {
+            return true;
+        } else {
+            //idx == skip - skip it
+            if (idx == skip) {
+                return finish_lock<idx+1>(skip,ownlist);
+            } else {
+                //retrieve ownership
+                auto &own = std::get<idx>(ownlist);
+                //retrieve lock
+                auto &mx = std::get<idx>(_mxlist);
+                //try to lock
+                own = std::get<idx>(_mxlist).try_lock();
+                //we success
+                if (own) {
+                    //continue by next lock
+                    return finish_lock<idx+1>(skip,ownlist);
+                } else {
+                    //failure
+                    using LkType = decltype(mx.lock());
+                    //construct future object
+                    _fut.template emplace<LkType>();
+                    LkType &fut = std::get<LkType>(_fut);
+                    //acquire lock
+                    fut << [&]{return mx.lock();};
+                    //install callback, if failed
+                    if (fut.set_callback([this]{ on_lock<idx>();}) == false) {
+                        //we got ownership
+                        own = fut.get();
+                        //continue locking
+                        return finish_lock<idx+1>(skip,ownlist);
+                    }
+                    //return failure
+                    return false;
+                }
+            }
+        }
+    }
 };
-#endif
+
 
 }
 

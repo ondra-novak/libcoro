@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../../coro/async.h"
-#include "../../coro/construct.h"
+#include "../../coro/on_leave.h"
 
 #include <iterator>
 #include <span>
@@ -42,9 +42,7 @@ class json_parse_error: public std::exception {
 public:
 
     enum error_t {
-        unexpected_eof_reading_string,
-        unexpected_eof_reading_next_value,
-        unexpected_eof_reading_array,
+        unexpected_eof,
         unexpected_character,
         unexpected_separator,
         invalid_number,
@@ -58,9 +56,7 @@ public:
     const char *what() const noexcept override {
         switch (_err) {
             default: return "unknown error";
-            case unexpected_eof_reading_string: return "unexpected eof reading string";
-            case unexpected_eof_reading_next_value: return "unexpected eof reading next value";
-            case unexpected_eof_reading_array: return "unexpected eof reading an array";
+            case unexpected_eof: return "unexpected eof";
             case unexpected_character: return "unexpected character";
             case unexpected_separator: return "unexpected separator";
             case invalid_number: return "invalid number";
@@ -95,8 +91,7 @@ public:
      * @retval true need next character
      * @retval false retrieved end of string ('"')
      */
-    bool operator()(int c) {
-        if (c == -1) throw json_parse_error::unexpected_eof_reading_string;
+    bool operator()(char c) {
         switch (state) {
             default:
                 if (c == '"') {
@@ -217,9 +212,9 @@ protected:
  * @param fact instance of factory (optional)
  * @return returns pair {result object, unprocessed output}
  */
-template<json_factory JsonFactory, std::invocable<> Source>
+template<coro::coro_allocator Allocator, json_factory JsonFactory, std::invocable<> Source>
 inline coro::async<std::pair<typename JsonFactory::value_type, std::string_view> >
-            parse_json(Source &&source, JsonFactory &&fact = {}) {
+            parse_json(Allocator &, Source source, JsonFactory fact = {}) {
 
     using SourceAwaiter = std::invoke_result_t<Source>;
     static_assert(coro::awaitable_r<SourceAwaiter, std::string_view>, "Source must returns string_view and must be avaitable");
@@ -241,26 +236,39 @@ inline coro::async<std::pair<typename JsonFactory::value_type, std::string_view>
         CharacterSource(Source &&src):_src(std::forward<Source>(src)) {}
         ~CharacterSource() {}
 
-
         bool await_ready()  {
-            //we need fetch next string if position is at the end of current string
-            //if request_next() returns false, we need to suspend coroutine
-            return _pos < _str.length() || request_next();
+            if (_pos < _str.length()) return true;
+            //start lifetime of SourceAwaiter (return value of _src())
+            new (&_srcawt) SourceAwaiter(_src());
+            //new data fetched
+            _fetched = true;
+            //ask whether data are ready
+            return _srcawt.await_ready();
         }
         auto await_suspend(std::coroutine_handle<> h) {
             //forward await_suspend to source awaiter
             return _srcawt.await_suspend(h);
         }
-        int await_resume() {
+        char await_resume() {
             //if we fetched from source awaiter
             if (_fetched) {
-                //retrieve next string, false report EOF
-                if (!retrieve_next()) return -1;
+                //action perfomed on exit (exception)
+                coro::on_leave finally=[this]{
+                    //clear the flag
+                    _fetched = false;
+                    //end of lifetime of source awaiter
+                    _srcawt.~SourceAwaiter();
+                };
+                //reset the position
+                _pos = 0;
+                //read string (can throw)
+                _str = _srcawt.await_resume();
+                //detect EOF
+                if (_str.empty()) throw json_parse_error::unexpected_eof;
             }
             //return characted and advance position
             return static_cast<unsigned char>(_str[_pos++]);
         }
-
         //retrieve unused string
         std::string_view get_unused() const {
             return _str.substr(_pos);
@@ -269,35 +277,6 @@ inline coro::async<std::pair<typename JsonFactory::value_type, std::string_view>
         void put_back() {
             --_pos;
         }
-
-        bool request_next() {
-            //start lifetime of SourceAwaiter (return value of _src())
-            new (&_srcawt) SourceAwaiter(_src());
-            //new data fetched
-            _fetched = true;
-            //ask whether data are ready
-            return _srcawt.await_ready();
-        }
-        bool retrieve_next() {
-            //clear the flag
-            _fetched = false;
-            try {
-                //retrieve string from the awaiter
-                _str = _srcawt.await_resume();
-                //reset the position
-                _pos = 0;
-                //end lifetime of SourceAwaiter();
-                _srcawt.~SourceAwaiter();
-                //detect EOF
-                return !_str.empty();
-            } catch (...) {
-                _srcawt.~SourceAwaiter();
-                throw;
-            }
-        }
-
-
-
     };
 
     using Node = typename JsonFactory::value_type;
@@ -322,24 +301,27 @@ inline coro::async<std::pair<typename JsonFactory::value_type, std::string_view>
     std::vector<KeyNode> keys;      //stack of keys
     std::vector<Level> levels;      //stack of levels
 
-    levels.push_back(Level{State::detect});
     CharacterSource src{std::forward<Source>(source)};
+
+    levels.push_back(Level{State::detect});
     std::vector<char> strbuff;
-    std::string_view keyword;
-    int c;
+    char c;
+
+    static constexpr std::string_view str_true ("true");
+    static constexpr std::string_view str_false("false");
+    static constexpr std::string_view str_null ("null");
 
     try {
 
         while (!levels.empty()) {
 
-            do {
-                c = co_await src;
-                if (c == -1) throw json_parse_error::unexpected_eof_reading_next_value;
-            } while (c < 33);
+            do c = co_await src;  while (c>=0 && c <= 32);
 
             switch(levels.back()._st) {
 
                 case State::detect: {
+                    std::string_view keyword;
+
                     levels.pop_back();
                     switch (c) {
                         default:
@@ -357,30 +339,33 @@ inline coro::async<std::pair<typename JsonFactory::value_type, std::string_view>
                                     strbuff.push_back(c);
                                     c = co_await src;
                                 }
-                                if (c == '.') {
-                                    strbuff.push_back(c);
-                                    c = co_await src;
-                                    if (!is_number(c)) throw json_parse_error::invalid_number;
-                                    while (is_number(c)) {
+                                try {
+                                    if (c == '.') {
                                         strbuff.push_back(c);
                                         c = co_await src;
+                                        if (!is_number(c)) throw json_parse_error::invalid_number;
+                                        while (is_number(c)) {
+                                            strbuff.push_back(c);
+                                            c = co_await src;
+                                        }
                                     }
-                                }
-                                if (is_e(c)) {
-                                    strbuff.push_back(c);
-                                    c = co_await src;
-                                    if (is_sign(c)) {
+                                    if (is_e(c)) {
                                         strbuff.push_back(c);
                                         c = co_await src;
+                                        if (is_sign(c)) {
+                                            strbuff.push_back(c);
+                                            c = co_await src;
+                                        }
+                                        if (!is_number(c)) throw json_parse_error::invalid_number;
+                                        while (is_number(c)) {
+                                            strbuff.push_back(c);
+                                            c = co_await src;
+                                        }
                                     }
-                                    if (!is_number(c)) throw json_parse_error::invalid_number;
-                                    while (is_number(c)) {
-                                        strbuff.push_back(c);
-                                        c = co_await src;
-                                    }
-                                }
-                                if (c != -1) {
                                     src.put_back();
+                                } catch (json_parse_error::error_t e) {
+                                    //EOF on top level is OK, otherwise rethrow
+                                    if (e != json_parse_error::unexpected_eof || !levels.empty()) throw;
                                 }
                                 strbuff.push_back('\0'); //for easy parse
                                 items.push_back(fact.new_number(std::string_view(strbuff.data(), strbuff.size()-1)));
@@ -395,13 +380,13 @@ inline coro::async<std::pair<typename JsonFactory::value_type, std::string_view>
                             items.push_back(fact.new_string(std::string_view(strbuff.data(), strbuff.size())));
                             strbuff.clear();
                         } continue;
-                        case 't': keyword = "rue";
+                        case str_true[0]: keyword = str_true.substr(1);
                                   items.push_back(fact.new_bool(true));
                                   break;
-                        case 'f': keyword = "alse";
+                        case str_false[0]: keyword = str_false.substr(1);
                                   items.push_back(fact.new_bool(false));
                                   break;
-                        case 'n': keyword = "ull";
+                        case str_null[0]: keyword = str_null.substr(1);
                                   items.push_back(fact.new_null());
                                   break;
                         case '{': levels.push_back({State::object_begin});
@@ -502,6 +487,13 @@ inline coro::async<std::pair<typename JsonFactory::value_type, std::string_view>
         throw json_parse_error(e, src.get_unused());
     }
 }
+
+template<json_factory JsonFactory, std::invocable<> Source>
+inline coro::async<std::pair<typename JsonFactory::value_type, std::string_view> >
+            parse_json(Source &&source, JsonFactory &&fact = {}) {
+    return parse_json(coro::standard_allocator, std::forward<Source>(source), std::forward<JsonFactory>(fact));
+}
+
 
 }
 
