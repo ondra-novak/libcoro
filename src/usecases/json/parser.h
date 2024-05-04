@@ -77,103 +77,9 @@ protected:
 };
 
 ///converts json string to utf-8 string
-template<typename Iter>
-class json_string_to_utf_8 {
-public:
-    ///construct convertor
-    /**
-     * @param output output iterator
-     */
-    json_string_to_utf_8(Iter output):output(output) {}
-    ///process next character
-    /**
-     * @param c next character to process, result is written to output iterator
-     * @retval true need next character
-     * @retval false retrieved end of string ('"')
-     */
-    bool operator()(char c) {
-        switch (state) {
-            default:
-                if (c == '"') {
-                    return false;
-                } else if (c == '\\') {
-                    state = State::special;
-                }  else {
-                    *output++ = c;
-                }
-            break;
-            case State::special:
-                state = State::character;
-                switch (c) {
-                    default:
-                        *output++ = c;
-                        break;
-                    case 'b':
-                        *output++ = '\b';
-                        break;
-                    case 'f':
-                        *output++ = '\f';
-                        break;
-                    case 'n':
-                        *output++ = '\n';
-                        break;
-                    case 'r':
-                        *output++ = '\r';
-                        break;
-                    case 't':
-                        *output++ = '\t';
-                        break;
-                    case 'u':
-                        state = State::codepoint1;
-                        codepoint = 0;
-                        break;
-                    }
-            break;
-            case State::codepoint1:
-            case State::codepoint2:
-            case State::codepoint3:
-            case State::codepoint4:
-                if (!std::isxdigit(c)) throw json_parse_error::invalid_unicode;
-                codepoint = (codepoint << 4) | hex_to_int(c);
-                if (state == State::codepoint4) {
-                    state = State::character;
-                    if (codepoint >= 0xD800 && codepoint <= 0xDFFF) {
-                        if (first_codepoint) {
-                            if (first_codepoint > codepoint) std::swap(first_codepoint, codepoint);
-                            codepoint = 0x10000 + ((first_codepoint - 0xD800) << 10) + (codepoint - 0xDC00);
-                            first_codepoint = 0;
-                        } else {
-                            first_codepoint = codepoint;
-                            break;
-                        }
-                    }
-                    if (codepoint <= 0x7F) {
-                        *output++ = static_cast<char>(codepoint);
-                    } else if (codepoint <= 0x7FF) {
-                        *output++ = static_cast<char>(0xC0 | ((codepoint >> 6) & 0x1F));
-                        *output++ = static_cast<char>(0x80 | (codepoint & 0x3F));
-                    } else if (codepoint <= 0xFFFF) {
-                        *output++ = static_cast<char>(0xE0 | ((codepoint >> 12) & 0x0F));
-                        *output++ = static_cast<char>(0x80 | ((codepoint >> 6) & 0x3F));
-                        *output++ = static_cast<char>(0x80 | (codepoint & 0x3F));
-                    } else if (codepoint <= 0x10FFFF) {
-                        *output++ = static_cast<char>(0xF0 | ((codepoint >> 18) & 0x07));
-                        *output++ = static_cast<char>(0x80 | ((codepoint >> 12) & 0x3F));
-                        *output++ = static_cast<char>(0x80 | ((codepoint >> 6) & 0x3F));
-                        *output++ = static_cast<char>(0x80 | (codepoint & 0x3F));
-                    }
-                } else {
-                    state = static_cast<State>(static_cast<int>(state)+1);
-                }
-            break;
-        }
-    return true;
-    }
+template<std::invocable<char> Output>
+inline auto json_string_to_utf_8(Output output) {
 
-    ///convert to output iterator
-    operator Iter() const {return output;}
-
-protected:
     enum class State {
         character,  ///<next character is standard character
         special,    ///<next character is special character
@@ -183,26 +89,88 @@ protected:
         codepoint4,  ///<next character is unicode endpoint
     };
 
-    State state = State::character; ///<current state
-    Iter output;                    ///<output iterator
-    int codepoint = 0;              ///<current codepoint
-    int first_codepoint = 0;        ///<first codepoint when surrogate pairs
+    return [output,
+            state = State::character,
+            codepoint = 0,
+            first_codepoint = 0](char c) mutable -> bool {
 
-
-
-    static int hex_to_int(char hex) {
-        if (hex >= '0' && hex <= '9') {
-            return hex - '0';
-        } else if (hex >= 'A' && hex <= 'F') {
-            return hex - 'A' + 10;
-        } else if (hex >= 'a' && hex <= 'f') {
-            return hex - 'a' + 10;
+        switch (state) {
+            default:
+                if (c == '"') return false;
+                else if (c == '\\') state = State::special;
+                else output(c);
+                break;
+            case State::special:
+                state = State::character;
+                switch (c) {
+                    default:
+                        output(c);
+                        break;
+                    case 'b':
+                        output('\b');
+                        break;
+                    case 'f':
+                        output('\f');
+                        break;
+                    case 'n':
+                        output('\n');
+                        break;
+                    case 'r':
+                        output('\r');
+                        break;
+                    case 't':
+                        output('\t');
+                        break;
+                    case 'u':
+                        state = State::codepoint1;
+                        codepoint = 0;
+                        break;
+                    }
+                break;
+            case State::codepoint1:
+            case State::codepoint2:
+            case State::codepoint3:
+            case State::codepoint4:
+                codepoint = codepoint << 4;
+                if (c >= '0' && c <= '9') codepoint |= (c - '0');
+                else if (c >= 'A' && c <= 'F') codepoint |= (c - 'A' +  10);
+                else if (c >= 'a' && c <= 'f') codepoint |= (c - 'a' +  10);
+                else throw json_parse_error::invalid_unicode;
+                if (state == State::codepoint4) {
+                    state = State::character;
+                    if (codepoint >= 0xD800 && codepoint <= 0xDFFF) {
+                        if (first_codepoint) {
+                            if (first_codepoint > codepoint) std::swap(first_codepoint, codepoint);
+                            codepoint = 0x10000 + ((first_codepoint - 0xD800) << 10) + (codepoint - 0xDC00);
+                        } else {
+                            first_codepoint = codepoint;
+                            break;
+                        }
+                    }
+                    if (codepoint <= 0x7F) {
+                        output(static_cast<char>(codepoint));
+                    } else if (codepoint <= 0x7FF) {
+                        output(static_cast<char>(0xC0 | ((codepoint >> 6) & 0x1F)));
+                        output(static_cast<char>(0x80 | (codepoint & 0x3F)));
+                    } else if (codepoint <= 0xFFFF) {
+                        output(static_cast<char>(0xE0 | ((codepoint >> 12) & 0x0F)));
+                        output(static_cast<char>(0x80 | ((codepoint >> 6) & 0x3F)));
+                        output(static_cast<char>(0x80 | (codepoint & 0x3F)));
+                    } else if (codepoint <= 0x10FFFF) {
+                        output(static_cast<char>(0xF0 | ((codepoint >> 18) & 0x07)));
+                        output(static_cast<char>(0x80 | ((codepoint >> 12) & 0x3F)));
+                        output(static_cast<char>(0x80 | ((codepoint >> 6) & 0x3F)));
+                        output(static_cast<char>(0x80 | (codepoint & 0x3F)));
+                    }
+                    first_codepoint = 0;
+                } else {
+                    state = static_cast<State>(static_cast<int>(state)+1);
+                }
+                break;
         }
-        return 0;
-
-    }
-
-};
+    return true;
+    };
+}
 ///parse JSON format as coroutine
 /**
  * @tparam JsonFactory Json factory - see json_factory concept. The factory must define value_type which
@@ -221,7 +189,7 @@ inline coro::async<std::pair<typename JsonFactory::value_type, std::string_view>
 
     struct CharacterSource {
         //source reference (function)
-        Source &&_src;
+        Source &_src;
         //current string
         std::string_view _str = {};
         //current position
@@ -233,7 +201,7 @@ inline coro::async<std::pair<typename JsonFactory::value_type, std::string_view>
             SourceAwaiter _srcawt;
         };
 
-        CharacterSource(Source &&src):_src(std::forward<Source>(src)) {}
+        CharacterSource(Source &src):_src(src) {}
         ~CharacterSource() {}
 
         bool await_ready()  {
@@ -267,7 +235,7 @@ inline coro::async<std::pair<typename JsonFactory::value_type, std::string_view>
                 if (_str.empty()) throw json_parse_error::unexpected_eof;
             }
             //return characted and advance position
-            return static_cast<unsigned char>(_str[_pos++]);
+            return _str[_pos++];
         }
         //retrieve unused string
         std::string_view get_unused() const {
@@ -297,26 +265,29 @@ inline coro::async<std::pair<typename JsonFactory::value_type, std::string_view>
         std::size_t _count = 0;
     };
 
-    std::vector<Node> items;        //stack of items
-    std::vector<KeyNode> keys;      //stack of keys
-    std::vector<Level> levels;      //stack of levels
-
-    CharacterSource src{std::forward<Source>(source)};
-
-    levels.push_back(Level{State::detect});
-    std::vector<char> strbuff;
-    char c;
-
     static constexpr std::string_view str_true ("true");
     static constexpr std::string_view str_false("false");
     static constexpr std::string_view str_null ("null");
 
+    static constexpr auto is_number = [](int c) {return c >= '0' && c <= '9';};
+    static constexpr auto is_e = [](int c) {return c == 'e' || c == 'E';};
+    static constexpr auto is_sign = [](int c) {return c == '+' || c == '-';};
+
+
+    std::vector<Node> items;        //stack of items
+    std::vector<KeyNode> keys;      //stack of keys
+    std::vector<Level> levels;      //stack of levels
+    std::vector<char> strbuff;
+
+    CharacterSource src{source};
+
+    levels.push_back(Level{State::detect});
+
+    char c;
+
     try {
-
         while (!levels.empty()) {
-
             do c = co_await src;  while (c>=0 && c <= 32);
-
             switch(levels.back()._st) {
 
                 case State::detect: {
@@ -325,10 +296,7 @@ inline coro::async<std::pair<typename JsonFactory::value_type, std::string_view>
                     levels.pop_back();
                     switch (c) {
                         default:
-                            if ((c >= '0' && c <= '9') || c == '+' || c == '-') {
-                                static constexpr auto is_number = [](int c) {return c >= '0' && c <= '9';};
-                                static constexpr auto is_e = [](int c) {return c == 'e' || c == 'E';};
-                                static constexpr auto is_sign = [](int c) {return c == '+' || c == '-';};
+                            if (is_number(c) || is_sign(c)) {
 
                                 if (is_sign(c)) {
                                     strbuff.push_back(c);
@@ -365,7 +333,9 @@ inline coro::async<std::pair<typename JsonFactory::value_type, std::string_view>
                                     src.put_back();
                                 } catch (json_parse_error::error_t e) {
                                     //EOF on top level is OK, otherwise rethrow
-                                    if (e != json_parse_error::unexpected_eof || !levels.empty()) throw;
+                                    if (e != json_parse_error::unexpected_eof
+                                            || !levels.empty()
+                                            || !is_number(strbuff.back())) throw;
                                 }
                                 strbuff.push_back('\0'); //for easy parse
                                 items.push_back(fact.new_number(std::string_view(strbuff.data(), strbuff.size()-1)));
@@ -375,7 +345,7 @@ inline coro::async<std::pair<typename JsonFactory::value_type, std::string_view>
                             }
                             continue;
                         case '"': {
-                            json_string_to_utf_8 strconv(std::back_inserter(strbuff));
+                            auto strconv = json_string_to_utf_8([&](char c){strbuff.push_back(c);});
                             while (strconv(co_await src));
                             items.push_back(fact.new_string(std::string_view(strbuff.data(), strbuff.size())));
                             strbuff.clear();
@@ -403,7 +373,7 @@ inline coro::async<std::pair<typename JsonFactory::value_type, std::string_view>
             case State::key: {
                 levels.pop_back();
                 if (c != '"') throw json_parse_error::expected_key_as_string;
-                json_string_to_utf_8 strconv(std::back_inserter(strbuff));
+                auto strconv = json_string_to_utf_8([&](char c){strbuff.push_back(c);});
                 while (strconv(co_await src));
                 keys.push_back(fact.new_key(std::string_view(strbuff.data(), strbuff.size())));
                 strbuff.clear();

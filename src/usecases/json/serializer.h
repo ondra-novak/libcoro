@@ -10,48 +10,40 @@ namespace coro_usecases {
 namespace json {
 
 
-enum class json_value_type {
-    number,
-    string,
-    boolean,
-    null,
-    array,
-    object
+template<typename StringType, typename NumberType, typename ArrayRange, typename ObjectRange>
+struct json_visitor_placeholder {
+    struct RetVal {};
+
+    RetVal operator()(std::nullptr_t) const;
+    RetVal operator()(bool) const;
+    RetVal operator()(StringType) const;
+    RetVal operator()(NumberType) const;
+    RetVal operator()(ArrayRange) const;
+    RetVal operator()(ObjectRange) const;
 };
 
-
 template<typename T>
-concept json_decomposer = requires(T obj, const typename T::value_type &val, std::size_t index) {
-    ///retrieve type of JSON value
-    {obj.type(val)} -> std::same_as<json_value_type>;
-    ///retrieve JSON value which is a string (don't need to validate the type)
-    {obj.get_string(val)} -> std::same_as<std::string_view>;
-    ///retrieve JSON value which is a number, but convert it to a string (don't need to validate the type)
-    {obj.get_number(val)} -> std::same_as<std::string_view>;
-    ///retrieve JSON value which is a bool  (don't need to validate the type)
-    {obj.get_bool(val)} -> std::same_as<bool>;
-    ///retrieve an iterator to first item of an array (don't need to validate the type)
-    {obj.get_array_begin(val)} -> std::input_iterator;
-    ///retrieve an iterator after last item of an array (don't need to validate the type)
-    {obj.get_array_end(val)} -> std::input_iterator;
-    ///iterator mus be comparable
-    {obj.get_array_begin(val) == obj.get_array_end(val)};
-    ///retrieve a value at given iterator
-    {obj.get_value(obj.get_array_begin(val))} -> std::same_as<const typename T::value_type &>;
-    ///retrieve an iterator to first item of an object (don't need to validate the type)
-    {obj.get_object_begin(val)} -> std::input_iterator;
-    ///retrieve an iterator after last item of an object(don't need to validate the type)
-    {obj.get_object_end(val)} -> std::input_iterator;
-    ///iterator mus be comparable
-    {obj.get_object_begin(val) == obj.get_object_end(val)};
-    ///retrieve a value at given iterator
-    {obj.get_value(obj.get_object_begin(val))} -> std::same_as<const typename T::value_type &>;
-    ///retrieve a key at given iterator
-    {obj.get_key(obj.get_object_begin(val))} -> std::same_as<std::string_view>;
-    ///retrieve size of array
-    {obj.get_array_size(val)} -> std::convertible_to<std::size_t>;
-    ///retrieve size of object
-    {obj.get_object_size(val)} -> std::convertible_to<std::size_t>;
+concept json_decomposer = requires(T obj, json_visitor_placeholder<
+        typename std::decay_t<T>::string_type,
+        typename std::decay_t<T>::number_type,
+        typename std::decay_t<T>::array_range,
+        typename std::decay_t<T>::object_range
+> visitor, typename std::decay_t<T>::value_type value,
+        typename std::decay_t<T>::array_range array_range,
+        typename std::decay_t<T>::object_range object_range) {
+    requires std::is_convertible_v<typename std::decay_t<T>::string_type, std::string_view>;
+    requires std::is_convertible_v<typename std::decay_t<T>::number_type, std::string_view>;
+    {array_range.begin()}->std::input_or_output_iterator;
+    {array_range.end()}->std::input_or_output_iterator;
+    {object_range.begin()}->std::input_or_output_iterator;
+    {object_range.end()}->std::input_or_output_iterator;
+    {object_range.begin() == object_range.end()} -> std::convertible_to<bool>;
+    {array_range.begin() == array_range.end()} -> std::convertible_to<bool>;
+    {obj.visit(visitor, value)}->std::same_as<std::invoke_result_t<decltype(visitor), std::nullptr_t> >;
+    {obj.key(object_range.begin())}->std::convertible_to<std::string_view>;
+    {obj.value(object_range.begin())}->std::convertible_to<const typename std::decay_t<T>::value_type &>;
+    {obj.value(array_range.begin())}->std::convertible_to<const typename std::decay_t<T>::value_type &>;
+
 };
 
 template<typename InIter, typename OutIter>
@@ -115,9 +107,11 @@ inline coro::async<void> serialize_json(
 
     static_assert(coro::awaitable<std::invoke_result_t<Target, std::string_view> >, "Result of Target must be awaitable");
 
+    using JsonInfo = std::decay_t<JsonDecomp>;
+
     using Node = typename JsonDecomp::value_type;
-    using ArrayIter = decltype(decomp.get_array_begin(val));
-    using ObjectIter = decltype(decomp.get_object_begin(val));
+    using ArrayIter = decltype(std::declval<typename JsonInfo::array_range>().begin());
+    using ObjectIter = decltype(std::declval<typename JsonInfo::object_range>().begin());
     using ArrayRange = std::pair<ArrayIter,ArrayIter>;
     using ObjectRange = std::pair<ObjectIter,ObjectIter>;
     using LevelData = std::variant<std::monostate, ArrayRange, ObjectRange, const Node *>;
@@ -137,7 +131,6 @@ inline coro::async<void> serialize_json(
 
     std::vector<Level> stack;
     stack.push_back({State::base, &val});
-    std::size_t sz;
     std::string_view outstr;
     std::vector<char> strbuff;
 
@@ -147,48 +140,42 @@ inline coro::async<void> serialize_json(
             case State::base: {
                 const Node *ref = std::get<const Node *>(stack.back().data);
                 stack.pop_back();
-                switch (decomp.type(*ref)) {
-                    case json_value_type::array: {
-                       co_await target("[");
-                       sz = decomp.get_array_size(*ref);
-                       if (sz == 0) {
-                           co_await target("]");
-                       } else {
-                           ArrayIter iter = decomp.get_array_begin(*ref);
-                           ArrayIter end = decomp.get_array_end(*ref);
-                           stack.push_back({State::array, ArrayRange{iter, end}});
-                           stack.push_back({State::base, &decomp.get_value(iter)});
-                       }
-                    } break;
-                    case json_value_type::object: {
-                        co_await target("{");
-                        sz = decomp.get_object_size(*ref);
-                        if (sz == 0) {
-                            co_await target("}");
-                        } else {
-                            ObjectIter iter = decomp.get_object_begin(*ref);
-                            ObjectIter end = decomp.get_object_end(*ref);
-                            stack.push_back({State::object, ObjectRange{iter, end}});
-                            stack.push_back({State::key, &decomp.get_value(iter)});
-                            stack.push_back({State::string});
-                            outstr = decomp.get_key(iter);
-                        }
-                    } break;
-                    case json_value_type::boolean: {
-                        co_await target(decomp.get_bool(*ref)?"true":"false");
-                    } break;
-                    default:
-                    case json_value_type::null: {
-                        co_await target("null");
-                    }break;
-                    case json_value_type::number: {
-                        co_await target(decomp.get_number(*ref));
-                    } break;
-                    case json_value_type::string: {
-                        outstr = decomp.get_string(*ref);
+                auto to_write = decomp.visit([&](auto x)->std::string_view{
+                    using Type = std::decay_t<decltype(x)>;
+                    if constexpr(std::is_same_v<Type, std::nullptr_t>) {
+                        return "null";
+                    } else if constexpr(std::is_same_v<Type, bool>) {
+                        return x?"true":"false";
+                    } else if constexpr(std::is_same_v<Type, typename JsonInfo::number_type>) {
+                        return x;
+                    } else if constexpr(std::is_same_v<Type, typename JsonInfo::string_type>) {
+                        outstr = x;
                         stack.push_back({State::string});
-                    } break;
-                }
+                        return {};
+                    } else if constexpr(std::is_same_v<Type, typename JsonInfo::array_range>) {
+                        ArrayIter beg = x.begin();
+                        ArrayIter end = x.end();
+                        if (beg == end) return "[]";
+                        else {
+                            stack.push_back({State::array, ArrayRange{beg, end}});
+                            stack.push_back({State::base, &decomp.value(beg)});
+                        }
+                        return "[";
+                    } else {
+                        static_assert(std::is_same_v<Type, typename JsonInfo::object_range>);
+                        ObjectIter beg = x.begin();
+                        ObjectIter end = x.end();
+                        if (beg == end) return "{}";
+                        else {
+                            stack.push_back({State::object, ObjectRange{beg, end}});
+                            stack.push_back({State::key, &decomp.value(beg)});
+                            stack.push_back({State::string});
+                            outstr = decomp.key(beg);
+                        }
+                        return "{";
+                    }
+                }, *ref);
+                if (!to_write.empty()) co_await target(to_write);
             }break;
             case State::array: {
                 auto &[iter, end] = std::get<ArrayRange>(stack.back().data);
@@ -198,7 +185,7 @@ inline coro::async<void> serialize_json(
                     stack.pop_back();
                 } else {
                     co_await target(",");
-                    stack.push_back({State::base, &decomp.get_value(iter)});
+                    stack.push_back({State::base, &decomp.value(iter)});
                 }
             }break;
             case State::object: {
@@ -209,9 +196,9 @@ inline coro::async<void> serialize_json(
                     stack.pop_back();
                 } else {
                     co_await target(",");
-                    stack.push_back({State::key, &decomp.get_value(iter)});
+                    stack.push_back({State::key, &decomp.value(iter)});
                     stack.push_back({State::string});
-                    outstr = decomp.get_key(iter);
+                    outstr = decomp.key(iter);
                 } break;
             }
             case State::key: {

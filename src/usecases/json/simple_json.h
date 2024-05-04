@@ -69,64 +69,64 @@ public:
 };
 
 
+
 class JsonDecomposer {
 public:
+    class number_type: public std::string_view {
+    public:
+        using std::string_view::string_view;
+        number_type(std::string_view x):std::string_view(x) {}
+    };
+    class string_type: public std::string_view {
+    public:
+        using std::string_view::string_view;
+        string_type(std::string_view x):std::string_view(x) {}
+    };
     using value_type = Json;
-    using key_type = std::string;
-    static json_value_type type(const Json &v) {
-        static constexpr json_value_type types[] = {
-                json_value_type::null,
-                json_value_type::boolean,
-                json_value_type::string,
-                json_value_type::number,
-                json_value_type::array,
-                json_value_type::object,
-        };;
-        return types[v.index()];
-    }
-    std::string_view get_number(const Json &v) {
-        tmp = std::to_string(std::get<double>(v));
-        return tmp;
+
+    template<typename Iter>
+    class range: std::pair<Iter,Iter> {
+    public:
+        using std::pair<Iter,Iter>::pair;
+        Iter begin() const {return this->first;}
+        Iter end() const {return this->second;}
+    };
+
+    using array_range = range<JsonArray::const_iterator>;
+    using object_range =range<JsonObject::const_iterator>;
+
+    template<typename Fn>
+    auto visit(Fn &&fn, const Json &v) {
+        return std::visit([&](const auto &x){
+           using T = std::decay_t<decltype(x)>;
+           if constexpr(std::is_same_v<T, std::nullptr_t>) {
+               return fn(nullptr);
+           } else if constexpr(std::is_same_v<T, bool>) {
+               return fn(x);
+           } else if constexpr(std::is_same_v<T, std::string>) {
+               return fn(string_type(x));
+           } else if constexpr(std::is_same_v<T, double>) {
+               tmp = std::to_string(x);
+               return fn(number_type(tmp));
+           } else if constexpr(std::is_same_v<T, JsonArray>) {
+               return fn(array_range(x.begin(), x.end()));
+           } else if constexpr(std::is_same_v<T, JsonObject>) {
+               return fn(object_range(x.begin(), x.end()));
+           }
+        },v);
     }
 
-
-    std::string_view get_string(const Json &v) {
-        return std::get<std::string>(v);
-    }
-
-    static bool get_bool(const Json &v) {
-       return std::get<bool>(v);
-    }
-
-    static auto get_array_begin(const Json &v) {
-        return std::get<JsonArray>(v).begin();
-    }
-    static auto get_array_end(const Json &v) {
-        return std::get<JsonArray>(v).end();
-    }
-    static const Json &get_value(const JsonArray::const_iterator &iter) {
-        return *iter;
-    }
-    static auto get_object_begin(const Json &v) {
-        return std::get<JsonObject>(v).begin();
-    }
-    static auto get_object_end(const Json &v) {
-        return std::get<JsonObject>(v).end();
-    }
-    static const Json &get_value(const JsonObject::const_iterator &iter) {
-        return iter->second;
-    }
-    static std::string_view get_key(const JsonObject::const_iterator &iter) {
+    static std::string_view key(const JsonObject::const_iterator &iter) {
         return iter->first;
     }
-    static std::size_t get_array_size(const Json &v) {
-        return std::get<JsonArray>(v).size();
+    static const Json & value(const JsonObject::const_iterator &iter) {
+        return iter->second;
     }
-    static std::size_t get_object_size(const Json &v) {
-        return std::get<JsonObject>(v).size();
+    static const Json & value(const JsonArray::const_iterator &iter) {
+        return *iter;
     }
 
-
+protected:
     std::string tmp;
 
 };
