@@ -1,7 +1,10 @@
 #pragma once
 
+#include "../../coro/generator.h"
 #include "../../coro/async.h"
 #include "../../coro/on_leave.h"
+#include "../../coro/make_awaitable.h"
+
 
 #include <iterator>
 #include <span>
@@ -22,19 +25,19 @@ concept json_factory = requires(T obj,
         std::span<typename T::key_type> k) {
 
     ///creates JSON value from string
-    {obj.new_string(s)}->std::same_as<typename T::value_type>;
+    {obj.new_string(s)}->coro::maybe_awaitable<typename T::value_type>;
     ///creates JSON value from number - passed as string
-    {obj.new_number(s)}->std::same_as<typename T::value_type>;
+    {obj.new_number(s)}->coro::maybe_awaitable<typename T::value_type>;
     ///creates JSON value from boolean
-    {obj.new_bool(b)}->std::same_as<typename T::value_type>;
+    {obj.new_bool(b)}->coro::maybe_awaitable<typename T::value_type>;
     ///creates JSON null
-    {obj.new_null()}->std::same_as<typename T::value_type>;
+    {obj.new_null()}->coro::maybe_awaitable<typename T::value_type>;
     ///creates JSON array passing an span of JSON values
-    {obj.new_array(a)}->std::same_as<typename T::value_type>;
+    {obj.new_array(a)}->coro::maybe_awaitable<typename T::value_type>;
     ///creates JSON key value (can be string), from a string
-    {obj.new_key(s)}->std::same_as<typename T::key_type>;
+    {obj.new_key(s)}->coro::maybe_awaitable<typename T::key_type>;
     ///creates JSON object passing an span of JSON keys and JSON values
-    {obj.new_object(k,a)}->std::same_as<typename T::value_type>;
+    {obj.new_object(k,a)}->coro::maybe_awaitable<typename T::value_type>;
 };
 
 
@@ -171,21 +174,27 @@ inline auto json_string_to_utf_8(Output output) {
     return true;
     };
 }
-///parse JSON format as coroutine
+///Construct JSON parser / generator
 /**
- * @tparam JsonFactory Json factory - see json_factory concept. The factory must define value_type which
- * contains type of Json note object. This object is returned
- * @tparam Source Awaitable object, which returns std::string_view everytime co_await is used
- * @param source instance of source
- * @param fact instance of factory (optional)
- * @return returns pair {result object, unprocessed output}
+ * result of this function is generator with argument, where argument is source
+ * @tparam Allocator coro allocator to allocate coroutine frame
+ * @tparam JsonFactory type resposible to create JSON objects
+ * @tparam Source type, which acts as function returning awaitable, which returns std::string_view
+ * @param Allocator allocator instance
+ * @param fact json factory instance
+ * @return returns function, which is called with instance of Source. The function returns
+ * future, which eventually returns pair of result and unprocessed input.
+ *
+ * @note you need to avoid destruction of the parser, before it generates result. You
+ * can reuse parser to parse multiple JSONs in sequence (never in parallel).
  */
 template<coro::coro_allocator Allocator, json_factory JsonFactory, std::invocable<> Source>
-inline coro::async<std::pair<typename JsonFactory::value_type, std::string_view> >
-            parse_json(Allocator &, Source source, JsonFactory fact = {}) {
+inline coro::generator<std::pair<typename JsonFactory::value_type, std::string_view>(Source &) >
+            json_parser(Allocator &, JsonFactory fact = {}) {
 
-    using SourceAwaiter = std::invoke_result_t<Source>;
+    using SourceAwaiter = coro::make_awaitable<Source>;
     static_assert(coro::awaitable_r<SourceAwaiter, std::string_view>, "Source must returns string_view and must be avaitable");
+
 
     struct CharacterSource {
         //source reference (function)
@@ -205,9 +214,11 @@ inline coro::async<std::pair<typename JsonFactory::value_type, std::string_view>
         ~CharacterSource() {}
 
         bool await_ready()  {
-            if (_pos < _str.length()) return true;
+            if (_pos < _str.length()) [[likely]] {
+                return true;
+            }
             //start lifetime of SourceAwaiter (return value of _src())
-            new (&_srcawt) SourceAwaiter(_src());
+            new (&_srcawt) SourceAwaiter(_src);
             //new data fetched
             _fetched = true;
             //ask whether data are ready
@@ -219,7 +230,7 @@ inline coro::async<std::pair<typename JsonFactory::value_type, std::string_view>
         }
         char await_resume() {
             //if we fetched from source awaiter
-            if (_fetched) {
+            if (_fetched) [[unlikely]]{
                 //action perfomed on exit (exception)
                 coro::on_leave finally=[this]{
                     //clear the flag
@@ -278,190 +289,229 @@ inline coro::async<std::pair<typename JsonFactory::value_type, std::string_view>
     std::vector<KeyNode> keys;      //stack of keys
     std::vector<Level> levels;      //stack of levels
     std::vector<char> strbuff;
-
-    CharacterSource src{source};
-
-    levels.push_back(Level{State::detect});
+    std::exception_ptr e;
 
     char c;
 
-    try {
-        while (!levels.empty()) {
-            do c = co_await src;  while (c>=0 && c <= 32);
-            switch(levels.back()._st) {
+    do {
 
-                case State::detect: {
-                    std::string_view keyword;
 
-                    levels.pop_back();
-                    switch (c) {
-                        default:
-                            if (is_number(c) || is_sign(c)) {
+        auto &[source] = co_yield coro::fetch_args;
+        CharacterSource src{source};
 
-                                if (is_sign(c)) {
-                                    strbuff.push_back(c);
-                                    c = co_await src;
-                                }
-                                if (!is_number(c)) throw json_parse_error::invalid_number;
-                                while (is_number(c)) {
-                                    strbuff.push_back(c);
-                                    c = co_await src;
-                                }
-                                try {
-                                    if (c == '.') {
+        levels.push_back(Level{State::detect});
+
+        try {
+            while (!levels.empty()) {
+                do c = co_await src;  while (c>=0 && c <= 32);
+                switch(levels.back()._st) {
+
+                    case State::detect: {
+                        std::string_view keyword;
+
+                        levels.pop_back();
+                        switch (c) {
+                            default:
+                                if (is_number(c) || is_sign(c)) {
+
+                                    if (is_sign(c)) {
                                         strbuff.push_back(c);
                                         c = co_await src;
-                                        if (!is_number(c)) throw json_parse_error::invalid_number;
-                                        while (is_number(c)) {
-                                            strbuff.push_back(c);
-                                            c = co_await src;
-                                        }
                                     }
-                                    if (is_e(c)) {
+                                    if (!is_number(c)) throw json_parse_error::invalid_number;
+                                    while (is_number(c)) {
                                         strbuff.push_back(c);
                                         c = co_await src;
-                                        if (is_sign(c)) {
-                                            strbuff.push_back(c);
-                                            c = co_await src;
-                                        }
-                                        if (!is_number(c)) throw json_parse_error::invalid_number;
-                                        while (is_number(c)) {
-                                            strbuff.push_back(c);
-                                            c = co_await src;
-                                        }
                                     }
-                                    src.put_back();
-                                } catch (json_parse_error::error_t e) {
-                                    //EOF on top level is OK, otherwise rethrow
-                                    if (e != json_parse_error::unexpected_eof
-                                            || !levels.empty()
-                                            || !is_number(strbuff.back())) throw;
+                                    try {
+                                        if (c == '.') {
+                                            strbuff.push_back(c);
+                                            c = co_await src;
+                                            if (!is_number(c)) throw json_parse_error::invalid_number;
+                                            while (is_number(c)) {
+                                                strbuff.push_back(c);
+                                                c = co_await src;
+                                            }
+                                        }
+                                        if (is_e(c)) {
+                                            strbuff.push_back(c);
+                                            c = co_await src;
+                                            if (is_sign(c)) {
+                                                strbuff.push_back(c);
+                                                c = co_await src;
+                                            }
+                                            if (!is_number(c)) throw json_parse_error::invalid_number;
+                                            while (is_number(c)) {
+                                                strbuff.push_back(c);
+                                                c = co_await src;
+                                            }
+                                        }
+                                        src.put_back();
+                                    } catch (json_parse_error::error_t e) {
+                                        //EOF on top level is OK, otherwise rethrow
+                                        if (e != json_parse_error::unexpected_eof
+                                                || !levels.empty()
+                                                || !is_number(strbuff.back())) throw;
+                                    }
+                                    strbuff.push_back('\0'); //for easy parse
+                                    items.push_back(co_await coro::make_awaitable([&]{
+                                        return fact.new_number(std::string_view(strbuff.data(), strbuff.size()-1));
+                                    }));
+                                    strbuff.clear();
+                                } else{
+                                    throw json_parse_error::unexpected_character;
                                 }
-                                strbuff.push_back('\0'); //for easy parse
-                                items.push_back(fact.new_number(std::string_view(strbuff.data(), strbuff.size()-1)));
+                                continue;
+                            case '"': {
+                                auto strconv = json_string_to_utf_8([&](char c){strbuff.push_back(c);});
+                                while (strconv(co_await src));
+                                items.push_back(co_await coro::make_awaitable([&]{
+                                    return fact.new_string(std::string_view(strbuff.data(), strbuff.size()));
+                                }));
                                 strbuff.clear();
-                            } else{
-                                throw json_parse_error::unexpected_character;
-                            }
-                            continue;
-                        case '"': {
-                            auto strconv = json_string_to_utf_8([&](char c){strbuff.push_back(c);});
-                            while (strconv(co_await src));
-                            items.push_back(fact.new_string(std::string_view(strbuff.data(), strbuff.size())));
-                            strbuff.clear();
-                        } continue;
-                        case str_true[0]: keyword = str_true.substr(1);
-                                  items.push_back(fact.new_bool(true));
-                                  break;
-                        case str_false[0]: keyword = str_false.substr(1);
-                                  items.push_back(fact.new_bool(false));
-                                  break;
-                        case str_null[0]: keyword = str_null.substr(1);
-                                  items.push_back(fact.new_null());
-                                  break;
-                        case '{': levels.push_back({State::object_begin});
-                                  continue;
-                        case '[': levels.push_back({State::array_begin});
-                                  continue;
-                    }
-                    for (char x: keyword) {
-                        c = co_await src;
-                        if (c != x) throw json_parse_error::invalid_keyword;
-                    }
-                }break;
+                            } continue;
+                            case str_true[0]: keyword = str_true.substr(1);
+                                      items.push_back(co_await coro::make_awaitable([&]{
+                                          return fact.new_bool(true);
+                                      }));
+                                      break;
+                            case str_false[0]: keyword = str_false.substr(1);
+                                      items.push_back(co_await coro::make_awaitable([&]{
+                                          return fact.new_bool(false);
+                                      }));
+                                      break;
+                            case str_null[0]: keyword = str_null.substr(1);
+                                      items.push_back(co_await coro::make_awaitable([&]{
+                                          return fact.new_null();
+                                      }));
+                                      break;
+                            case '{': levels.push_back({State::object_begin});
+                                      continue;
+                            case '[': levels.push_back({State::array_begin});
+                                      continue;
+                        }
+                        for (char x: keyword) {
+                            c = co_await src;
+                            if (c != x) throw json_parse_error::invalid_keyword;
+                        }
+                    }break;
 
-            case State::key: {
-                levels.pop_back();
-                if (c != '"') throw json_parse_error::expected_key_as_string;
-                auto strconv = json_string_to_utf_8([&](char c){strbuff.push_back(c);});
-                while (strconv(co_await src));
-                keys.push_back(fact.new_key(std::string_view(strbuff.data(), strbuff.size())));
-                strbuff.clear();
-            }
-                break;
-
-            case State::array_begin:
-                levels.pop_back();
-                if (c == ']') {
-                    items.push_back(fact.new_array(std::span<Node>{}));
-                } else {
-                    src.put_back();
-                    levels.push_back({State::array_cont});
-                    levels.push_back({State::detect});
-                }
-             break;
-
-            case State::array_cont:
-                ++levels.back()._count;
-                if (c == ']') {
-                    auto iter = items.begin() + items.size() - levels.back()._count;
-                    auto result = fact.new_array(std::span<Node>(iter, items.end()));
-                    items.erase(iter,items.end());
-                    items.push_back(std::move(result));
+                case State::key: {
                     levels.pop_back();
-                } else if (c == ',') {
-                    levels.push_back({State::detect});
-                } else {
-                    throw json_parse_error::unexpected_separator;
+                    if (c != '"') throw json_parse_error::expected_key_as_string;
+                    auto strconv = json_string_to_utf_8([&](char c){strbuff.push_back(c);});
+                    while (strconv(co_await src));
+                    keys.push_back(co_await coro::make_awaitable([&]{
+                        return fact.new_key(std::string_view(strbuff.data(), strbuff.size()));
+                    }));
+                    strbuff.clear();
                 }
-             break;
+                    break;
 
-            case State::object_begin: {
-                levels.pop_back();
-                if (c == '}') {
-                    items.push_back(fact.new_object(std::span<KeyNode>{},std::span<Node>{}));
-                } else if (c == '"') {
-                    src.put_back();
-                    levels.push_back({State::object_cont});
-                    levels.push_back({State::object_key});
-                    levels.push_back({State::key});
-                } else {
-                    throw json_parse_error::expected_key_as_string;
-                }
-            } break;
-
-            case State::object_key: {
-                levels.pop_back();
-                if (c != ':') {
-                    throw json_parse_error::unexpected_separator;
-                }
-                levels.push_back({State::detect});
-            } break;
-
-            case State::object_cont: {
-                ++levels.back()._count;
-                if (c == '}') {
-                    auto iter_n = items.begin() + items.size() - levels.back()._count;
-                    auto iter_k = keys.begin() + keys.size() - levels.back()._count;
-                    auto result = fact.new_object(std::span<KeyNode>(iter_k, keys.end()),std::span<Node>(iter_n, items.end()));
-                    items.erase(iter_n,items.end());
-                    keys.erase(iter_k,keys.end());
+                case State::array_begin:
                     levels.pop_back();
-                    items.push_back(std::move(result));
-                } else if (c == ',') {
-                    levels.push_back({State::object_key});
-                    levels.push_back({State::key});
-                } else {
-                    throw json_parse_error::unexpected_separator;
-                }
-            } break;
-            default:
-                throw json_parse_error::internal_error_invalid_state;
+                    if (c == ']') {
+                        items.push_back(co_await coro::make_awaitable([&]{
+                            return fact.new_array(std::span<Node>{});
+                        }));
+                    } else {
+                        src.put_back();
+                        levels.push_back({State::array_cont});
+                        levels.push_back({State::detect});
+                    }
+                 break;
 
+                case State::array_cont:
+                    ++levels.back()._count;
+                    if (c == ']') {
+                        auto iter = items.begin() + items.size() - levels.back()._count;
+                        auto result = co_await coro::make_awaitable([&]{
+                            return fact.new_array(std::span<Node>(iter, items.end()));
+                        });
+                        items.erase(iter,items.end());
+                        items.push_back(std::move(result));
+                        levels.pop_back();
+                    } else if (c == ',') {
+                        levels.push_back({State::detect});
+                    } else {
+                        throw json_parse_error::unexpected_separator;
+                    }
+                 break;
+
+                case State::object_begin: {
+                    levels.pop_back();
+                    if (c == '}') {
+                        items.push_back(co_await coro::make_awaitable([&]{
+                            return fact.new_object(std::span<KeyNode>{},std::span<Node>{});
+                        }));
+                    } else if (c == '"') {
+                        src.put_back();
+                        levels.push_back({State::object_cont});
+                        levels.push_back({State::object_key});
+                        levels.push_back({State::key});
+                    } else {
+                        throw json_parse_error::expected_key_as_string;
+                    }
+                } break;
+
+                case State::object_key: {
+                    levels.pop_back();
+                    if (c != ':') {
+                        throw json_parse_error::unexpected_separator;
+                    }
+                    levels.push_back({State::detect});
+                } break;
+
+                case State::object_cont: {
+                    ++levels.back()._count;
+                    if (c == '}') {
+                        auto iter_n = items.begin() + items.size() - levels.back()._count;
+                        auto iter_k = keys.begin() + keys.size() - levels.back()._count;
+                        auto result = co_await coro::make_awaitable([&]{
+                            return fact.new_object(std::span<KeyNode>(iter_k, keys.end()),std::span<Node>(iter_n, items.end()));
+                        });
+                        items.erase(iter_n,items.end());
+                        keys.erase(iter_k,keys.end());
+                        levels.pop_back();
+                        items.push_back(std::move(result));
+                    } else if (c == ',') {
+                        levels.push_back({State::object_key});
+                        levels.push_back({State::key});
+                    } else {
+                        throw json_parse_error::unexpected_separator;
+                    }
+                } break;
+                default:
+                    throw json_parse_error::internal_error_invalid_state;
+
+                }
             }
+
+            co_yield std::pair{std::move(items.back()),src.get_unused()};
+
+            items.clear();
+            levels.clear();
+            keys.clear();
+
+            continue;
+
+        } catch (const json_parse_error::error_t &ep) {
+            e = std::make_exception_ptr(json_parse_error(ep, src.get_unused()));
         }
+        co_yield e;
 
-        co_return std::pair{std::move(items.back()),src.get_unused()};
+        items.clear();
+        levels.clear();
+        keys.clear();
 
-    } catch (const json_parse_error::error_t &e) {
-        throw json_parse_error(e, src.get_unused());
-    }
+    } while (true);
 }
 
 template<json_factory JsonFactory, std::invocable<> Source>
-inline coro::async<std::pair<typename JsonFactory::value_type, std::string_view> >
-            parse_json(Source &&source, JsonFactory &&fact = {}) {
-    return parse_json(coro::standard_allocator, std::forward<Source>(source), std::forward<JsonFactory>(fact));
+inline coro::generator<std::pair<typename JsonFactory::value_type, std::string_view>(Source &) >
+            json_parser(JsonFactory fact = {}) {
+
+    return json_parser<const coro::std_allocator, JsonFactory, Source>(coro::standard_allocator, std::forward<JsonFactory>(fact));
 }
 
 

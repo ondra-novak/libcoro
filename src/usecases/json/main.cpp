@@ -7,7 +7,6 @@
 #include <iostream>
 
 using namespace coro_usecases::json;
-
 static_assert(json_factory<JsonFactory>);
 static_assert(json_decomposer<JsonDecomposer>);
 
@@ -34,12 +33,26 @@ void test1() {
 }
 )json";
 
-    auto res = parse_json<JsonFactory>([text,done = false]() mutable ->coro::future<std::string_view> {
+    auto source = [text,done = false]() mutable ->coro::future<std::string_view> {
         if (done) return "";
         else {
             done = true;
             return text;
-        }}).run();
+        }};
+
+    auto parser = json_parser<JsonFactory, decltype(source)>();
+    auto res = parser(source).get();
+
+    auto source2 = [text, done = false]() mutable -> std::string_view {
+        if (done) return "";
+        else {
+            done = true;
+            return text;
+        }};
+
+    auto parser2 = json_parser<JsonFactory, decltype(source2)>();
+    res = parser2(source2).get();
+
 
     std::string out;
     serialize_json<JsonDecomposer>(res.first, [&](std::string_view z){
