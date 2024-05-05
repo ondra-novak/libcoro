@@ -83,34 +83,52 @@ $(function() {
 <div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;<span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</div>
 <div class="line"><a name="l00058"></a><span class="lineno"><a class="line" href="namespacecoro_ab6bbf8eeba0385b485961dd047743f7a.html#ab6bbf8eeba0385b485961dd047743f7a">   58</a></span>&#160;concept <a class="code" href="namespacecoro_ab6bbf8eeba0385b485961dd047743f7a.html#ab6bbf8eeba0385b485961dd047743f7a">await_suspend_valid_return_value</a> = (std::is_void_v&lt;T&gt;||std::is_convertible_v&lt;T, bool&gt;||std::is_convertible_v&lt;T, std::coroutine_handle&lt;&gt; &gt;);</div>
 <div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160; </div>
-<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;<span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</div>
-<div class="line"><a name="l00062"></a><span class="lineno"><a class="line" href="namespacecoro_a1c717336ee944d298c783226081a749b.html#a1c717336ee944d298c783226081a749b">   62</a></span>&#160;concept <a class="code" href="namespacecoro_a1c717336ee944d298c783226081a749b.html#a1c717336ee944d298c783226081a749b">awaitable</a> = requires(T v, std::coroutine_handle&lt;&gt; h) {</div>
-<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;    {v.await_ready()}-&gt;std::convertible_to&lt;<span class="keywordtype">bool</span>&gt;;</div>
-<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;    {v.await_suspend(h)}-&gt;await_suspend_valid_return_value;</div>
-<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;    {v.await_resume()};</div>
-<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;};</div>
-<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160; </div>
-<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;<span class="keyword">template</span>&lt;<span class="keyword">typename</span> T, <span class="keyword">typename</span> RetVal&gt;</div>
-<div class="line"><a name="l00070"></a><span class="lineno"><a class="line" href="namespacecoro_a690c41b818ab7d2d6c554412bbd7cd06.html#a690c41b818ab7d2d6c554412bbd7cd06">   70</a></span>&#160;concept <a class="code" href="namespacecoro_a690c41b818ab7d2d6c554412bbd7cd06.html#a690c41b818ab7d2d6c554412bbd7cd06">awaitable_r</a> = requires(T v, std::coroutine_handle&lt;&gt; h) {</div>
-<div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160;    {v.await_ready()}-&gt;std::convertible_to&lt;<span class="keywordtype">bool</span>&gt;;</div>
-<div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160;    {v.await_suspend(h)}-&gt;await_suspend_valid_return_value;</div>
-<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;    {v.await_resume()}-&gt;std::convertible_to&lt;RetVal&gt;;</div>
-<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;};</div>
+<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;<span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</div>
+<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;concept directly_awaitable = requires(T v, std::coroutine_handle&lt;&gt; h) {</div>
+<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;    {v.await_ready()}-&gt;std::convertible_to&lt;<span class="keywordtype">bool</span>&gt;;</div>
+<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;    {v.await_suspend(h)}-&gt;await_suspend_valid_return_value;</div>
+<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;    {v.await_resume()};</div>
+<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;};</div>
+<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160; </div>
+<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;<span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</div>
+<div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160;concept indirectly_awaitable = requires(T v) {</div>
+<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;    {v.operator co_await()} -&gt; directly_awaitable;</div>
+<div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160;};</div>
+<div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160; </div>
+<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;<span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</div>
+<div class="line"><a name="l00074"></a><span class="lineno"><a class="line" href="namespacecoro_a1c717336ee944d298c783226081a749b.html#a1c717336ee944d298c783226081a749b">   74</a></span>&#160;concept <a class="code" href="namespacecoro_a1c717336ee944d298c783226081a749b.html#a1c717336ee944d298c783226081a749b">awaitable</a> = directly_awaitable&lt;T&gt; || indirectly_awaitable&lt;T&gt;;</div>
 <div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160; </div>
-<div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160; </div>
-<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;}</div>
-<div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160; </div>
-<div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160; </div>
-<div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160; </div>
-<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160; </div>
-<div class="ttc" id="anamespacecoro_a1c717336ee944d298c783226081a749b_html_a1c717336ee944d298c783226081a749b"><div class="ttname"><a href="namespacecoro_a1c717336ee944d298c783226081a749b.html#a1c717336ee944d298c783226081a749b">coro::awaitable</a></div><div class="ttdeci">concept awaitable</div><div class="ttdoc">Tests, whether T is coroutine awaitable.</div><div class="ttdef"><b>Definition:</b> <a href="common_8h_source.html#l00062">common.h:62</a></div></div>
-<div class="ttc" id="anamespacecoro_a690c41b818ab7d2d6c554412bbd7cd06_html_a690c41b818ab7d2d6c554412bbd7cd06"><div class="ttname"><a href="namespacecoro_a690c41b818ab7d2d6c554412bbd7cd06.html#a690c41b818ab7d2d6c554412bbd7cd06">coro::awaitable_r</a></div><div class="ttdeci">concept awaitable_r</div><div class="ttdoc">Tests, whether T is coroutine awaitable returning given value.</div><div class="ttdef"><b>Definition:</b> <a href="common_8h_source.html#l00070">common.h:70</a></div></div>
+<div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160;<span class="keyword">template</span>&lt;<span class="keyword">typename</span> T, <span class="keyword">typename</span> RetVal&gt;</div>
+<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;concept directly_awaitable_r = requires(T v, std::coroutine_handle&lt;&gt; h) {</div>
+<div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160;    {v.await_ready()}-&gt;std::convertible_to&lt;<span class="keywordtype">bool</span>&gt;;</div>
+<div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;    {v.await_suspend(h)}-&gt;await_suspend_valid_return_value;</div>
+<div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160;    {v.await_resume()}-&gt;std::convertible_to&lt;RetVal&gt;;</div>
+<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;};</div>
+<div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160; </div>
+<div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160;<span class="keyword">template</span>&lt;<span class="keyword">typename</span> T, <span class="keyword">typename</span> RetVal&gt;</div>
+<div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160;concept indirectly_awaitable_r = requires(T v) {</div>
+<div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160;    {v.operator co_await()} -&gt; directly_awaitable_r&lt;RetVal&gt;;</div>
+<div class="line"><a name="l00086"></a><span class="lineno">   86</span>&#160;};</div>
+<div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160; </div>
+<div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;<span class="keyword">template</span>&lt;<span class="keyword">typename</span> T, <span class="keyword">typename</span> RetVal&gt;</div>
+<div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160;concept awaitable_r = directly_awaitable_r&lt;T,RetVal&gt; || indirectly_awaitable_r&lt;T,RetVal&gt;;</div>
+<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160; </div>
+<div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160; </div>
+<div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160; </div>
+<div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160; </div>
+<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160; </div>
+<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;}</div>
+<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160; </div>
+<div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160; </div>
+<div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160; </div>
+<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160; </div>
+<div class="ttc" id="anamespacecoro_a1c717336ee944d298c783226081a749b_html_a1c717336ee944d298c783226081a749b"><div class="ttname"><a href="namespacecoro_a1c717336ee944d298c783226081a749b.html#a1c717336ee944d298c783226081a749b">coro::awaitable</a></div><div class="ttdeci">concept awaitable</div><div class="ttdoc">Tests, whether T is coroutine awaitable.</div><div class="ttdef"><b>Definition:</b> <a href="common_8h_source.html#l00074">common.h:74</a></div></div>
 <div class="ttc" id="anamespacecoro_ab6bbf8eeba0385b485961dd047743f7a_html_ab6bbf8eeba0385b485961dd047743f7a"><div class="ttname"><a href="namespacecoro_ab6bbf8eeba0385b485961dd047743f7a.html#ab6bbf8eeba0385b485961dd047743f7a">coro::await_suspend_valid_return_value</a></div><div class="ttdeci">concept await_suspend_valid_return_value</div><div class="ttdoc">Tests, whether T is valid await_suspend return value.</div><div class="ttdef"><b>Definition:</b> <a href="common_8h_source.html#l00058">common.h:58</a></div></div>
 <div class="ttc" id="anamespacecoro_html"><div class="ttname"><a href="namespacecoro.html">coro</a></div><div class="ttdoc">main namespace</div><div class="ttdef"><b>Definition:</b> <a href="aggregator_8h_source.html#l00008">aggregator.h:8</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat May 4 2024 10:50:43 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+Generated on Sun May 5 2024 12:01:03 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
 </small></address>
 </body>
 </html>
