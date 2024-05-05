@@ -16,6 +16,7 @@
 #include "frame.h"
 #include "sync_await.h"
 #include "collector.h"
+#include "make_awaitable.h"
 
 
 #endif

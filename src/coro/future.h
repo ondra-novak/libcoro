@@ -1225,6 +1225,9 @@ protected:
     }
 
 
+    void set_exception(std::exception_ptr e) {
+        if (fut) fut->set_exception(std::move(e));
+    }
 
 
 

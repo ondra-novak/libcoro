@@ -117,9 +117,10 @@ public:
         };
 
 
-        template<std::convertible_to<T> X>
-        switch_awaiter yield_value(X && val) {
-            this->set_value(std::forward<X>(val));
+        template<typename Arg>
+        requires future_constructible<T, Arg>
+        switch_awaiter yield_value(Arg && val) {
+            this->set_value(std::forward<Arg>(val));
             return {};
         }
 
@@ -215,6 +216,190 @@ protected:
     template<typename A, coro_allocator B> friend class generator;
 
     std::unique_ptr<promise_type,deleter> _prom;
+
+};
+
+///Specialization for R() - works similar as standard generator
+template<typename R, coro_allocator Alloc>
+class generator<R(), Alloc>: public generator<R, Alloc> {
+public:
+    using generator<R, Alloc>::generator;
+};
+
+class fetch_args_tag {};
+
+inline constexpr fetch_args_tag fetch_args = {};
+
+///Generator with arguments
+/**
+ * This generator can generate values depend on arguments passed to the function.
+ * It is declared as specialization, which used function prototype instead of return
+ * value. The function prototype can contain return value and arguments
+ *
+ * @tparam R return value
+ * @tparam Alloc arguments
+ * @tparam Args arguments
+ *
+ * To use this generator you simply call it with arguments. To write a coroutine, you
+ * need to use `co_yield coro::fetch_args` to fetch arguments. They are returned
+ * as a tuple (so you can use structural binding)
+ *
+ * @code
+ * auto [arg1, arg2, arg3 ... ] = co_yield coro::fetch_args;
+ * @endcode
+ *
+ * The return value is also returned over co_yield
+ *
+ * @code
+ * co_yield result;
+ * @endcode
+ *
+ * It is also possible to yield return value and fetch arguments in one command
+ * @code
+ * auto [arg1, arg2, arg3 ... ] = co_yield result;
+ * @endcode
+ *
+ *
+ */
+template<typename R, coro_allocator Alloc, typename ... Args>
+class generator<R(Args...), Alloc> {
+public:
+
+    using return_type = R;
+
+    using arg_type = std::tuple<Args...>;
+
+    ///generator's internal promise type
+    class promise_type: public _details::coro_promise_base<R>,
+                        public coro_allocator_helper<Alloc> {
+    public:
+
+        constexpr std::suspend_always initial_suspend() const {return {};}
+
+        struct fetch_arg_awaiter {
+            arg_type *arg;
+            static constexpr bool await_ready() noexcept {return true;}
+            static constexpr void await_suspend(std::coroutine_handle<>) noexcept {}
+            arg_type &await_resume() noexcept {return *arg;};
+        };
+
+        struct switch_awaiter {
+            promise_type *self = nullptr;
+            static constexpr bool await_ready() noexcept {return false;}
+            arg_type &await_resume() noexcept {return *self->arg;}
+
+            std::coroutine_handle<> await_suspend(std::coroutine_handle<promise_type> h) noexcept {
+                self = &h.promise();
+                return self->set_resolved().symmetric_transfer();
+            }
+        };
+
+        template<typename Arg>
+        requires future_constructible<R, Arg>
+        switch_awaiter yield_value(Arg && val) {
+            this->set_value(std::forward<Arg>(val));
+            return {};
+        }
+
+        switch_awaiter yield_value(std::exception_ptr e) {
+            this->set_exception(std::move(e));
+            return {};
+        }
+
+
+        fetch_arg_awaiter yield_value(std::nullptr_t) {
+            return {&(*arg)};
+        }
+
+        fetch_arg_awaiter yield_value(fetch_args_tag) {
+            return {&(*arg)};
+        }
+
+        switch_awaiter final_suspend() noexcept {
+            return {};
+        }
+
+        void return_void() {
+        }
+
+        bool done() const {
+            return std::coroutine_handle<const promise_type>::from_promise(*this).done();
+        }
+
+        generator get_return_object() {return this;}
+
+        future<R> resume() {
+            return [this](auto promise)  {
+                if (done()) return;
+                this->fut = promise.release();
+                std::coroutine_handle<promise_type>::from_promise(*this).resume();
+            };
+        }
+
+        std::optional<arg_type> arg;
+
+        template<typename ... XArgs>
+        void set_arg(XArgs && ... args) {
+            arg.emplace(std::forward<XArgs>(args)...);
+        }
+    };
+    ///Determines state of generator
+    /**
+     * @retval true, generator is generating
+     * @retval false, generator is done
+     *
+     * @note if you call the generator, this state is not updated until you actually
+     * access the returned (future) value.
+     */
+    explicit operator bool() const {
+        return !_prom->done();
+    }
+
+    ///object can be default constructed
+    generator() = default;
+
+    ///convert from different allocator
+    template<typename A>
+    generator(generator<R(Args...), A> &&other): _prom(cast_promise(other._prom.release())) {
+
+    }
+
+    ///call the generator
+    /**
+     * @param args arguments
+     * @return future value, note that generator is actually called once the
+     * value is requested.
+     */
+    template<typename ... XArgs>
+    future<R> operator()(XArgs &&... args) {
+        static_assert(std::is_constructible_v<arg_type, XArgs...>);
+        _prom->set_arg(std::forward<XArgs>(args)...);
+        return _prom->resume();
+    }
+
+
+
+protected:
+
+    template<typename X>
+    static promise_type *cast_promise(X *other) {
+        return static_cast<promise_type *>(static_cast<_details::coro_promise_base<R> *>(other));
+    }
+
+    generator(promise_type *p):_prom(p) {}
+
+    struct deleter {
+        void operator()(promise_type *x) {
+            auto h = std::coroutine_handle<promise_type>::from_promise(*x);
+            h.destroy();
+        }
+    };
+
+    template<typename A, coro_allocator B> friend class generator;
+
+    std::unique_ptr<promise_type,deleter> _prom;
+
+
 
 };
 

@@ -57,21 +57,39 @@ namespace coro {
 template<typename T>
 concept await_suspend_valid_return_value = (std::is_void_v<T>||std::is_convertible_v<T, bool>||std::is_convertible_v<T, std::coroutine_handle<> >);
 
-///Tests, whether T is coroutine awaitable
 template<typename T>
-concept awaitable = requires(T v, std::coroutine_handle<> h) {
+concept directly_awaitable = requires(T v, std::coroutine_handle<> h) {
     {v.await_ready()}->std::convertible_to<bool>;
     {v.await_suspend(h)}->await_suspend_valid_return_value;
     {v.await_resume()};
 };
 
-///Tests, whether T is coroutine awaitable returning given value
+template<typename T>
+concept indirectly_awaitable = requires(T v) {
+    {v.operator co_await()} -> directly_awaitable;
+};
+
+///Tests, whether T is coroutine awaitable
+template<typename T>
+concept awaitable = directly_awaitable<T> || indirectly_awaitable<T>;
+
 template<typename T, typename RetVal>
-concept awaitable_r = requires(T v, std::coroutine_handle<> h) {
+concept directly_awaitable_r = requires(T v, std::coroutine_handle<> h) {
     {v.await_ready()}->std::convertible_to<bool>;
     {v.await_suspend(h)}->await_suspend_valid_return_value;
     {v.await_resume()}->std::convertible_to<RetVal>;
 };
+
+template<typename T, typename RetVal>
+concept indirectly_awaitable_r = requires(T v) {
+    {v.operator co_await()} -> directly_awaitable_r<RetVal>;
+};
+
+template<typename T, typename RetVal>
+concept awaitable_r = directly_awaitable_r<T,RetVal> || indirectly_awaitable_r<T,RetVal>;
+
+
+
 
 
 }

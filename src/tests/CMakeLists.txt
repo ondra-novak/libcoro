@@ -23,6 +23,8 @@ set(testFiles all_compile.cpp
                future_all_any.cpp
                frame.cpp
                collector.cpp
+               generator_args.cpp
+               make_awaitable.cpp
                 )
                 
 if (ENABLE_FIBER) 
