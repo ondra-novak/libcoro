@@ -24,7 +24,8 @@ void test1() {
       "num3":1.324,
       "num4":-12.980,
       "num5":1.8921e14,
-      "num6":+1.333e-0007,
+      "num6":1.333e-0003,
+      "num7":2.5449733e+60,
       "arr":[1,2,3,true,false,"hallo"],
       "obj":{"sub1":null},
       "arr2":[],
@@ -33,22 +34,24 @@ void test1() {
 }
 )json";
 
-    auto source = [text,done = false]() mutable ->coro::future<std::string_view> {
+    auto source = [text, done = false]() mutable -> std::string_view {
         if (done) return "";
         else {
             done = true;
             return text;
         }};
+
+    auto source2 = [text,p = 0UL]() mutable ->coro::future<std::string_view> {
+        if (p < text.size()) {
+            return std::string_view(text.data()+(p++), 1);
+        } else {
+            return std::string_view();
+        }
+    };
 
     auto parser = json_parser<JsonFactory, decltype(source)>();
     auto res = parser(source).get();
 
-    auto source2 = [text, done = false]() mutable -> std::string_view {
-        if (done) return "";
-        else {
-            done = true;
-            return text;
-        }};
 
     auto parser2 = json_parser<JsonFactory, decltype(source2)>();
     res = parser2(source2).get();

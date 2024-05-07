@@ -12,6 +12,7 @@
 #include <concepts>
 #include <vector>
 #include <variant>
+#include <cstring>
 
 namespace coro_usecases {
 
@@ -79,101 +80,124 @@ protected:
     std::string_view _unused;
 };
 
-///converts json string to utf-8 string
-template<std::invocable<char> Output>
-inline auto json_string_to_utf_8(Output output) {
+template<typename Source>
+struct CharacterSource {
 
-    enum class State {
-        character,  ///<next character is standard character
-        special,    ///<next character is special character
-        codepoint1,  ///<next character is unicode endpoint
-        codepoint2,  ///<next character is unicode endpoint
-        codepoint3,  ///<next character is unicode endpoint
-        codepoint4,  ///<next character is unicode endpoint
+    using SourceAwaiter = coro::make_awaitable<Source>;
+    static_assert(coro::awaitable_r<SourceAwaiter, std::string_view>, "Source must returns string_view and must be avaitable");
+
+
+    //source reference (function)
+    Source &_src;
+    //current string
+    std::string_view _str = {};
+    //current position
+    std::size_t _pos = 0;
+    //signal true, if await_resume must process awaiter result
+    bool _fetched = false;
+
+
+    //space reserved to store source awaiter
+    union {
+        SourceAwaiter _srcawt;
     };
 
-    return [output,
-            state = State::character,
-            codepoint = 0,
-            first_codepoint = 0](char c) mutable -> bool {
+    CharacterSource(Source &src):_src(src) {}
+    ~CharacterSource() {}
 
-        switch (state) {
-            default:
-                if (c == '"') return false;
-                else if (c == '\\') state = State::special;
-                else output(c);
-                break;
-            case State::special:
-                state = State::character;
-                switch (c) {
-                    default:
-                        output(c);
-                        break;
-                    case 'b':
-                        output('\b');
-                        break;
-                    case 'f':
-                        output('\f');
-                        break;
-                    case 'n':
-                        output('\n');
-                        break;
-                    case 'r':
-                        output('\r');
-                        break;
-                    case 't':
-                        output('\t');
-                        break;
-                    case 'u':
-                        state = State::codepoint1;
-                        codepoint = 0;
-                        break;
-                    }
-                break;
-            case State::codepoint1:
-            case State::codepoint2:
-            case State::codepoint3:
-            case State::codepoint4:
-                codepoint = codepoint << 4;
-                if (c >= '0' && c <= '9') codepoint |= (c - '0');
-                else if (c >= 'A' && c <= 'F') codepoint |= (c - 'A' +  10);
-                else if (c >= 'a' && c <= 'f') codepoint |= (c - 'a' +  10);
-                else throw json_parse_error::invalid_unicode;
-                if (state == State::codepoint4) {
-                    state = State::character;
-                    if (codepoint >= 0xD800 && codepoint <= 0xDFFF) {
-                        if (first_codepoint) {
-                            if (first_codepoint > codepoint) std::swap(first_codepoint, codepoint);
-                            codepoint = 0x10000 + ((first_codepoint - 0xD800) << 10) + (codepoint - 0xDC00);
-                        } else {
-                            first_codepoint = codepoint;
-                            break;
-                        }
-                    }
-                    if (codepoint <= 0x7F) {
-                        output(static_cast<char>(codepoint));
-                    } else if (codepoint <= 0x7FF) {
-                        output(static_cast<char>(0xC0 | ((codepoint >> 6) & 0x1F)));
-                        output(static_cast<char>(0x80 | (codepoint & 0x3F)));
-                    } else if (codepoint <= 0xFFFF) {
-                        output(static_cast<char>(0xE0 | ((codepoint >> 12) & 0x0F)));
-                        output(static_cast<char>(0x80 | ((codepoint >> 6) & 0x3F)));
-                        output(static_cast<char>(0x80 | (codepoint & 0x3F)));
-                    } else if (codepoint <= 0x10FFFF) {
-                        output(static_cast<char>(0xF0 | ((codepoint >> 18) & 0x07)));
-                        output(static_cast<char>(0x80 | ((codepoint >> 12) & 0x3F)));
-                        output(static_cast<char>(0x80 | ((codepoint >> 6) & 0x3F)));
-                        output(static_cast<char>(0x80 | (codepoint & 0x3F)));
-                    }
-                    first_codepoint = 0;
-                } else {
-                    state = static_cast<State>(static_cast<int>(state)+1);
-                }
-                break;
+    bool await_ready()  {
+        //clear the flag
+        _fetched = false;
+
+        if (_pos < _str.length()) [[likely]] {
+            return true;
         }
-    return true;
-    };
-}
+        //start lifetime of SourceAwaiter (return value of _src())
+        new (&_srcawt) SourceAwaiter(_src);
+        //new data fetched
+        _fetched = true;
+        //ask whether data are ready
+        return _srcawt.await_ready();
+    }
+    auto await_suspend(std::coroutine_handle<> h) {
+        //forward await_suspend to source awaiter
+        return _srcawt.await_suspend(h);
+    }
+    char await_resume() {
+        //if we fetched from source awaiter
+        if (_fetched) [[unlikely]]{
+            //action perfomed on exit (exception)
+            coro::on_leave finally=[this]{
+                //end of lifetime of source awaiter
+                _srcawt.~SourceAwaiter();
+            };
+            //reset the position
+            _pos = 0;
+            //read string (can throw)
+            _str = _srcawt.await_resume();
+            //detect EOF
+            if (_str.empty()) throw json_parse_error::unexpected_eof;
+        }
+        //return characted and advance position
+        return _str[_pos++];
+    }
+    //retrieve unused string
+    std::string_view get_unused() const {
+        return _str.substr(_pos);
+    }
+    //move position one back to reread last item
+    void put_back() {
+        --_pos;
+    }
+    void eat_white() {
+#if 1
+        while (_pos < _str.length()) {
+            char c = _str[_pos];
+            if (c != '\r' && c != '\n' && c != '\t' && c != ' ') break;
+            ++_pos;
+        }
+#else
+        const char *b = _str.data();
+        const char *c = b +_pos;
+        const char *e = b +_str.length();
+        while (c != e) {
+            char x = *c;
+            if (x != '\r' && x != '\n' && x != '\t' && x != ' ') break;
+            ++c;
+        }
+        _pos=c-b;
+
+#endif
+    }
+    template<std::invocable<char> Condition>
+    void copy_until(Condition &&cond, std::vector<char> &cont) {
+#if 1
+        const char *b = _str.data();
+        const char *c = b +_pos;
+        const char *e = b +_str.length();
+        while (c != e) {
+            if (cond(*c)) break;
+            ++c;
+        }
+        std::size_t fnd = c- b;
+#else
+        auto fnd = _pos;
+        while (fnd < _str.length()) {
+            if (cond(_str[fnd])) break;
+            ++fnd;
+        }
+#endif
+        if (fnd == _pos) return;
+        auto sz = (fnd-_pos);
+        auto bufsz = cont.size();
+        cont.resize(bufsz+sz);
+        std::copy(_str.data()+_pos, _str.data()+_pos+sz, cont.data()+bufsz);
+        _pos = fnd;
+
+    }
+};
+
+
 ///Construct JSON parser / generator
 /**
  * result of this function is generator with argument, where argument is source
@@ -192,78 +216,14 @@ template<coro::coro_allocator Allocator, json_factory JsonFactory, std::invocabl
 inline coro::generator<std::pair<typename JsonFactory::value_type, std::string_view>(Source &) >
             json_parser(Allocator &, JsonFactory fact = {}) {
 
-    using SourceAwaiter = coro::make_awaitable<Source>;
-    static_assert(coro::awaitable_r<SourceAwaiter, std::string_view>, "Source must returns string_view and must be avaitable");
 
 
-    struct CharacterSource {
-        //source reference (function)
-        Source &_src;
-        //current string
-        std::string_view _str = {};
-        //current position
-        std::size_t _pos = 0;
-        //signal true, if await_resume must process awaiter result
-        bool _fetched = false;
-        //space reserved to store source awaiter
-        union {
-            SourceAwaiter _srcawt;
-        };
-
-        CharacterSource(Source &src):_src(src) {}
-        ~CharacterSource() {}
-
-        bool await_ready()  {
-            if (_pos < _str.length()) [[likely]] {
-                return true;
-            }
-            //start lifetime of SourceAwaiter (return value of _src())
-            new (&_srcawt) SourceAwaiter(_src);
-            //new data fetched
-            _fetched = true;
-            //ask whether data are ready
-            return _srcawt.await_ready();
-        }
-        auto await_suspend(std::coroutine_handle<> h) {
-            //forward await_suspend to source awaiter
-            return _srcawt.await_suspend(h);
-        }
-        char await_resume() {
-            //if we fetched from source awaiter
-            if (_fetched) [[unlikely]]{
-                //action perfomed on exit (exception)
-                coro::on_leave finally=[this]{
-                    //clear the flag
-                    _fetched = false;
-                    //end of lifetime of source awaiter
-                    _srcawt.~SourceAwaiter();
-                };
-                //reset the position
-                _pos = 0;
-                //read string (can throw)
-                _str = _srcawt.await_resume();
-                //detect EOF
-                if (_str.empty()) throw json_parse_error::unexpected_eof;
-            }
-            //return characted and advance position
-            return _str[_pos++];
-        }
-        //retrieve unused string
-        std::string_view get_unused() const {
-            return _str.substr(_pos);
-        }
-        //move position one back to reread last item
-        void put_back() {
-            --_pos;
-        }
-    };
 
     using Node = typename JsonFactory::value_type;
     using KeyNode = typename JsonFactory::key_type;
 
     enum class State {
         detect, //<detect next element
-        key,    //<reading key (string)
         array_begin,  //<begin or array (item or ])
         array_cont,   //<continue of array (, or ])
         object_begin, //<begin of object (item or })
@@ -290,8 +250,10 @@ inline coro::generator<std::pair<typename JsonFactory::value_type, std::string_v
     std::vector<Level> levels;      //stack of levels
     std::vector<char> strbuff;
     std::exception_ptr e;
+    bool key_req = false;
 
     char c;
+    strbuff.reserve(100);
 
     do {
 
@@ -303,7 +265,10 @@ inline coro::generator<std::pair<typename JsonFactory::value_type, std::string_v
 
         try {
             while (!levels.empty()) {
-                do c = co_await src;  while (c>=0 && c <= 32);
+                do {
+                    src.eat_white();
+                    c = co_await src;
+                } while (c == '\r' || c == '\n' || c == ' ' || c == '\t');
                 switch(levels.back()._st) {
 
                     case State::detect: {
@@ -312,62 +277,189 @@ inline coro::generator<std::pair<typename JsonFactory::value_type, std::string_v
                         levels.pop_back();
                         switch (c) {
                             default:
-                                if (is_number(c) || is_sign(c)) {
-
-                                    if (is_sign(c)) {
+                                if (c == '-' || is_number(c)) {
+#if 1
+                                    static constexpr auto cond = [](char c) {
+                                        return ((c == ',') || (c == '}') || (c == ']') );
+                                    };
+                                    do {
                                         strbuff.push_back(c);
+                                        src.copy_until(cond, strbuff);
                                         c = co_await src;
+                                    } while (!cond(c));
+                                    strbuff.push_back(' ');
+                                    std::size_t pos =0;
+                                    if (strbuff[pos] == '-') ++pos;
+                                    if (strbuff[pos] == '0') ++pos;
+                                    else if (is_number(strbuff[pos])) {
+                                        ++pos;
+                                        while (is_number(strbuff[pos])) ++pos;
+                                    } else {
+                                        throw json_parse_error::invalid_number;
+                                    }
+                                    if (strbuff[pos] == '.') {
+                                        ++pos;
+                                        if (is_number(strbuff[pos])) {
+                                            ++pos;
+                                            while (is_number(strbuff[pos])) ++pos;
+                                        } else {
+                                            throw json_parse_error::invalid_number;
+                                        }
+                                    }
+                                    if (is_e(strbuff[pos])) {
+                                        ++pos;
+                                        if (is_sign(strbuff[pos])) {
+                                            ++pos;
+                                        }
+                                        if (is_number(strbuff[pos])) {
+                                            ++pos;
+                                            while (is_number(strbuff[pos])) ++pos;
+                                        } else {
+                                            throw json_parse_error::invalid_number;
+                                        }
+                                    }
+                                    auto end_of_numb = pos;
+                                    while (pos < strbuff.size()) {
+                                        if (static_cast<unsigned char>(strbuff[pos])>32) {
+                                            throw json_parse_error::invalid_number;
+                                        }
+                                        ++pos;
+                                    }
+                                    items.push_back(co_await coro::make_awaitable([&]{
+                                        return fact.new_number(std::string_view(strbuff.data(), end_of_numb));
+                                    }));
+                                    strbuff.clear();
+                                    src.put_back();
+#else
+                                    if (is_sign(c)) {
+                                       strbuff.push_back(c);
+                                       c = co_await src;
                                     }
                                     if (!is_number(c)) throw json_parse_error::invalid_number;
                                     while (is_number(c)) {
-                                        strbuff.push_back(c);
-                                        c = co_await src;
+                                       strbuff.push_back(c);
+                                       c = co_await src;
                                     }
                                     try {
-                                        if (c == '.') {
-                                            strbuff.push_back(c);
-                                            c = co_await src;
-                                            if (!is_number(c)) throw json_parse_error::invalid_number;
-                                            while (is_number(c)) {
-                                                strbuff.push_back(c);
-                                                c = co_await src;
-                                            }
-                                        }
-                                        if (is_e(c)) {
-                                            strbuff.push_back(c);
-                                            c = co_await src;
-                                            if (is_sign(c)) {
-                                                strbuff.push_back(c);
-                                                c = co_await src;
-                                            }
-                                            if (!is_number(c)) throw json_parse_error::invalid_number;
-                                            while (is_number(c)) {
-                                                strbuff.push_back(c);
-                                                c = co_await src;
-                                            }
-                                        }
-                                        src.put_back();
+                                       if (c == '.') {
+                                           strbuff.push_back(c);
+                                           c = co_await src;
+                                           if (!is_number(c)) throw json_parse_error::invalid_number;
+                                           while (is_number(c)) {
+                                               strbuff.push_back(c);
+                                               c = co_await src;
+                                           }
+                                       }
+                                       if (is_e(c)) {
+                                           strbuff.push_back(c);
+                                           c = co_await src;
+                                           if (is_sign(c)) {
+                                               strbuff.push_back(c);
+                                               c = co_await src;
+                                           }
+                                           if (!is_number(c)) throw json_parse_error::invalid_number;
+                                           while (is_number(c)) {
+                                               strbuff.push_back(c);
+                                               c = co_await src;
+                                           }
+                                       }
+                                       src.put_back();
                                     } catch (json_parse_error::error_t e) {
-                                        //EOF on top level is OK, otherwise rethrow
-                                        if (e != json_parse_error::unexpected_eof
-                                                || !levels.empty()
-                                                || !is_number(strbuff.back())) throw;
+                                       //EOF on top level is OK, otherwise rethrow
+                                       if (e != json_parse_error::unexpected_eof
+                                               || !levels.empty()
+                                               || !is_number(strbuff.back())) throw;
                                     }
                                     strbuff.push_back('\0'); //for easy parse
                                     items.push_back(co_await coro::make_awaitable([&]{
-                                        return fact.new_number(std::string_view(strbuff.data(), strbuff.size()-1));
-                                    }));
-                                    strbuff.clear();
+                                       return fact.new_number(std::string_view(strbuff.data(), strbuff.size()-1));
+                                   }));
+                                   strbuff.clear();
+#endif
                                 } else{
                                     throw json_parse_error::unexpected_character;
                                 }
                                 continue;
-                            case '"': {
-                                auto strconv = json_string_to_utf_8([&](char c){strbuff.push_back(c);});
-                                while (strconv(co_await src));
-                                items.push_back(co_await coro::make_awaitable([&]{
-                                    return fact.new_string(std::string_view(strbuff.data(), strbuff.size()));
-                                }));
+case '"': {
+int first_codepoint = 0;
+do {
+    src.copy_until([](char c){return bool(c == '"')| bool(c == '\\');}, strbuff);
+    c = co_await src;
+    if (c == '"') break;
+    if (c == '\\') {
+        c = co_await src;
+        switch (c) {
+              default:
+                  strbuff.push_back(c);
+                  break;
+              case 'b':
+                  strbuff.push_back('\b');
+                  break;
+              case 'f':
+                  strbuff.push_back('\f');
+                  break;
+              case 'n':
+                  strbuff.push_back('\n');
+                  break;
+              case 'r':
+                  strbuff.push_back('\r');
+                  break;
+              case 't':
+                  strbuff.push_back('\t');
+                  break;
+              case 'u': {
+                  int codepoint = 0;
+                  for (int i = 0; i < 4; ++i) {
+                      c = co_await src;
+                      codepoint<<=4;
+                      if (c >= '0' && c <= '9') codepoint |= (c - '0');
+                      else if (c >= 'A' && c <= 'F') codepoint |= (c - 'A' +  10);
+                      else if (c >= 'a' && c <= 'f') codepoint |= (c - 'a' +  10);
+                      else throw json_parse_error::invalid_unicode;
+                  }
+                  if (codepoint >= 0xD800 && codepoint <= 0xDFFF) {
+                      if (first_codepoint) {
+                          if (first_codepoint > codepoint) std::swap(first_codepoint, codepoint);
+                          codepoint = 0x10000 + ((first_codepoint - 0xD800) << 10) + (codepoint - 0xDC00);
+                      } else {
+                          first_codepoint = codepoint;
+                          break;
+                      }
+                  }
+                  if (codepoint <= 0x7F) {
+                      strbuff.push_back(static_cast<char>(codepoint));
+                  } else if (codepoint <= 0x7FF) {
+                      strbuff.push_back(static_cast<char>(0xC0 | ((codepoint >> 6) & 0x1F)));
+                      strbuff.push_back(static_cast<char>(0x80 | (codepoint & 0x3F)));
+                  } else if (codepoint <= 0xFFFF) {
+                      strbuff.push_back(static_cast<char>(0xE0 | ((codepoint >> 12) & 0x0F)));
+                      strbuff.push_back(static_cast<char>(0x80 | ((codepoint >> 6) & 0x3F)));
+                      strbuff.push_back(static_cast<char>(0x80 | (codepoint & 0x3F)));
+                  } else if (codepoint <= 0x10FFFF) {
+                      strbuff.push_back(static_cast<char>(0xF0 | ((codepoint >> 18) & 0x07)));
+                      strbuff.push_back(static_cast<char>(0x80 | ((codepoint >> 12) & 0x3F)));
+                      strbuff.push_back(static_cast<char>(0x80 | ((codepoint >> 6) & 0x3F)));
+                      strbuff.push_back(static_cast<char>(0x80 | (codepoint & 0x3F)));
+                  }
+                  first_codepoint = 0;
+              } break;
+        }
+    } else {
+        strbuff.push_back(c);
+    }
+} while (true);
+
+                                if (key_req) {
+                                    key_req = false;
+                                    keys.push_back(co_await coro::make_awaitable([&]{
+                                        return fact.new_key(std::string_view(strbuff.data(), strbuff.size()));
+                                    }));
+                                } else {
+                                    items.push_back(co_await coro::make_awaitable([&]{
+                                        return fact.new_string(std::string_view(strbuff.data(), strbuff.size()));
+                                    }));
+
+                                }
                                 strbuff.clear();
                             } continue;
                             case str_true[0]: keyword = str_true.substr(1);
@@ -396,17 +488,6 @@ inline coro::generator<std::pair<typename JsonFactory::value_type, std::string_v
                         }
                     }break;
 
-                case State::key: {
-                    levels.pop_back();
-                    if (c != '"') throw json_parse_error::expected_key_as_string;
-                    auto strconv = json_string_to_utf_8([&](char c){strbuff.push_back(c);});
-                    while (strconv(co_await src));
-                    keys.push_back(co_await coro::make_awaitable([&]{
-                        return fact.new_key(std::string_view(strbuff.data(), strbuff.size()));
-                    }));
-                    strbuff.clear();
-                }
-                    break;
 
                 case State::array_begin:
                     levels.pop_back();
@@ -448,7 +529,8 @@ inline coro::generator<std::pair<typename JsonFactory::value_type, std::string_v
                         src.put_back();
                         levels.push_back({State::object_cont});
                         levels.push_back({State::object_key});
-                        levels.push_back({State::key});
+                        levels.push_back({State::detect});
+                        key_req = true;
                     } else {
                         throw json_parse_error::expected_key_as_string;
                     }
@@ -476,7 +558,8 @@ inline coro::generator<std::pair<typename JsonFactory::value_type, std::string_v
                         items.push_back(std::move(result));
                     } else if (c == ',') {
                         levels.push_back({State::object_key});
-                        levels.push_back({State::key});
+                        levels.push_back({State::detect});
+                        key_req = true;
                     } else {
                         throw json_parse_error::unexpected_separator;
                     }
