@@ -149,44 +149,13 @@ struct CharacterSource {
     void put_back() {
         --_pos;
     }
-    void eat_white() {
-#if 1
-        while (_pos < _str.length()) {
-            char c = _str[_pos];
-            if (c != '\r' && c != '\n' && c != '\t' && c != ' ') break;
-            ++_pos;
-        }
-#else
-        const char *b = _str.data();
-        const char *c = b +_pos;
-        const char *e = b +_str.length();
-        while (c != e) {
-            char x = *c;
-            if (x != '\r' && x != '\n' && x != '\t' && x != ' ') break;
-            ++c;
-        }
-        _pos=c-b;
-
-#endif
-    }
     template<std::invocable<char> Condition>
     void copy_until(Condition &&cond, std::vector<char> &cont) {
-#if 1
         const char *b = _str.data();
         const char *c = b +_pos;
         const char *e = b +_str.length();
-        while (c != e) {
-            if (cond(*c)) break;
-            ++c;
-        }
+        while (c != e && !cond(*c)) ++c;
         std::size_t fnd = c- b;
-#else
-        auto fnd = _pos;
-        while (fnd < _str.length()) {
-            if (cond(_str[fnd])) break;
-            ++fnd;
-        }
-#endif
         if (fnd == _pos) return;
         auto sz = (fnd-_pos);
         auto bufsz = cont.size();
@@ -266,7 +235,6 @@ inline coro::generator<std::pair<typename JsonFactory::value_type, std::string_v
         try {
             while (!levels.empty()) {
                 do {
-                    src.eat_white();
                     c = co_await src;
                 } while (c == '\r' || c == '\n' || c == ' ' || c == '\t');
                 switch(levels.back()._st) {
@@ -278,7 +246,6 @@ inline coro::generator<std::pair<typename JsonFactory::value_type, std::string_v
                         switch (c) {
                             default:
                                 if (c == '-' || is_number(c)) {
-#if 1
                                     static constexpr auto cond = [](char c) {
                                         return ((c == ',') || (c == '}') || (c == ']') );
                                     };
@@ -330,124 +297,70 @@ inline coro::generator<std::pair<typename JsonFactory::value_type, std::string_v
                                     }));
                                     strbuff.clear();
                                     src.put_back();
-#else
-                                    if (is_sign(c)) {
-                                       strbuff.push_back(c);
-                                       c = co_await src;
-                                    }
-                                    if (!is_number(c)) throw json_parse_error::invalid_number;
-                                    while (is_number(c)) {
-                                       strbuff.push_back(c);
-                                       c = co_await src;
-                                    }
-                                    try {
-                                       if (c == '.') {
-                                           strbuff.push_back(c);
-                                           c = co_await src;
-                                           if (!is_number(c)) throw json_parse_error::invalid_number;
-                                           while (is_number(c)) {
-                                               strbuff.push_back(c);
-                                               c = co_await src;
-                                           }
-                                       }
-                                       if (is_e(c)) {
-                                           strbuff.push_back(c);
-                                           c = co_await src;
-                                           if (is_sign(c)) {
-                                               strbuff.push_back(c);
-                                               c = co_await src;
-                                           }
-                                           if (!is_number(c)) throw json_parse_error::invalid_number;
-                                           while (is_number(c)) {
-                                               strbuff.push_back(c);
-                                               c = co_await src;
-                                           }
-                                       }
-                                       src.put_back();
-                                    } catch (json_parse_error::error_t e) {
-                                       //EOF on top level is OK, otherwise rethrow
-                                       if (e != json_parse_error::unexpected_eof
-                                               || !levels.empty()
-                                               || !is_number(strbuff.back())) throw;
-                                    }
-                                    strbuff.push_back('\0'); //for easy parse
-                                    items.push_back(co_await coro::make_awaitable([&]{
-                                       return fact.new_number(std::string_view(strbuff.data(), strbuff.size()-1));
-                                   }));
-                                   strbuff.clear();
-#endif
                                 } else{
                                     throw json_parse_error::unexpected_character;
                                 }
                                 continue;
-case '"': {
-int first_codepoint = 0;
-do {
-    src.copy_until([](char c){return bool(c == '"')| bool(c == '\\');}, strbuff);
-    c = co_await src;
-    if (c == '"') break;
-    if (c == '\\') {
-        c = co_await src;
-        switch (c) {
-              default:
-                  strbuff.push_back(c);
-                  break;
-              case 'b':
-                  strbuff.push_back('\b');
-                  break;
-              case 'f':
-                  strbuff.push_back('\f');
-                  break;
-              case 'n':
-                  strbuff.push_back('\n');
-                  break;
-              case 'r':
-                  strbuff.push_back('\r');
-                  break;
-              case 't':
-                  strbuff.push_back('\t');
-                  break;
-              case 'u': {
-                  int codepoint = 0;
-                  for (int i = 0; i < 4; ++i) {
-                      c = co_await src;
-                      codepoint<<=4;
-                      if (c >= '0' && c <= '9') codepoint |= (c - '0');
-                      else if (c >= 'A' && c <= 'F') codepoint |= (c - 'A' +  10);
-                      else if (c >= 'a' && c <= 'f') codepoint |= (c - 'a' +  10);
-                      else throw json_parse_error::invalid_unicode;
-                  }
-                  if (codepoint >= 0xD800 && codepoint <= 0xDFFF) {
-                      if (first_codepoint) {
-                          if (first_codepoint > codepoint) std::swap(first_codepoint, codepoint);
-                          codepoint = 0x10000 + ((first_codepoint - 0xD800) << 10) + (codepoint - 0xDC00);
-                      } else {
-                          first_codepoint = codepoint;
-                          break;
-                      }
-                  }
-                  if (codepoint <= 0x7F) {
-                      strbuff.push_back(static_cast<char>(codepoint));
-                  } else if (codepoint <= 0x7FF) {
-                      strbuff.push_back(static_cast<char>(0xC0 | ((codepoint >> 6) & 0x1F)));
-                      strbuff.push_back(static_cast<char>(0x80 | (codepoint & 0x3F)));
-                  } else if (codepoint <= 0xFFFF) {
-                      strbuff.push_back(static_cast<char>(0xE0 | ((codepoint >> 12) & 0x0F)));
-                      strbuff.push_back(static_cast<char>(0x80 | ((codepoint >> 6) & 0x3F)));
-                      strbuff.push_back(static_cast<char>(0x80 | (codepoint & 0x3F)));
-                  } else if (codepoint <= 0x10FFFF) {
-                      strbuff.push_back(static_cast<char>(0xF0 | ((codepoint >> 18) & 0x07)));
-                      strbuff.push_back(static_cast<char>(0x80 | ((codepoint >> 12) & 0x3F)));
-                      strbuff.push_back(static_cast<char>(0x80 | ((codepoint >> 6) & 0x3F)));
-                      strbuff.push_back(static_cast<char>(0x80 | (codepoint & 0x3F)));
-                  }
-                  first_codepoint = 0;
-              } break;
-        }
-    } else {
-        strbuff.push_back(c);
-    }
-} while (true);
+                            case '"': {
+                                int first_codepoint = 0;
+                                do {
+                                    src.copy_until([](char c){return c == '"' || c == '\\';}, strbuff);
+                                    c = co_await src;
+                                    if (c == '"') break;
+                                    if (c == '\\') {
+                                        c = co_await src;
+                                        switch (c) {
+                                              default: break;
+                                              case 'b':c = '\b';break;
+                                              case 'f':c = '\f';break;
+                                              case 'n':c = '\n';break;
+                                              case 'r':c = '\r';break;
+                                              case 't':c = '\t';break;
+                                              case 'u': {
+                                                  int codepoint = 0;
+                                                  for (int i = 0; i < 4; ++i) {
+                                                      unsigned char c = co_await src;
+                                                      if (c >= 'A') {
+                                                          c = (c | 0x20) - 87;
+                                                          if (c > 0xF) throw json_parse_error::invalid_unicode;
+
+                                                      } else {
+                                                          c -= '0';
+                                                          if (c > 9) throw json_parse_error::invalid_unicode;;
+                                                      }
+
+                                                      codepoint=(codepoint << 4) | c;
+                                                  }
+                                                  if (codepoint >= 0xD800 && codepoint <= 0xDFFF) {
+                                                      if (first_codepoint) {
+                                                          if (first_codepoint > codepoint) std::swap(first_codepoint, codepoint);
+                                                          codepoint = 0x10000 + ((first_codepoint - 0xD800) << 10) + (codepoint - 0xDC00);
+                                                      } else {
+                                                          first_codepoint = codepoint;
+                                                          continue;
+                                                      }
+                                                  }
+                                                  if (codepoint <= 0x7F) {
+                                                      strbuff.push_back(static_cast<char>(codepoint));
+                                                  } else if (codepoint <= 0x7FF) {
+                                                      strbuff.push_back(static_cast<char>(0xC0 | ((codepoint >> 6) & 0x1F)));
+                                                      strbuff.push_back(static_cast<char>(0x80 | (codepoint & 0x3F)));
+                                                  } else if (codepoint <= 0xFFFF) {
+                                                      strbuff.push_back(static_cast<char>(0xE0 | ((codepoint >> 12) & 0x0F)));
+                                                      strbuff.push_back(static_cast<char>(0x80 | ((codepoint >> 6) & 0x3F)));
+                                                      strbuff.push_back(static_cast<char>(0x80 | (codepoint & 0x3F)));
+                                                  } else if (codepoint <= 0x10FFFF) {
+                                                      strbuff.push_back(static_cast<char>(0xF0 | ((codepoint >> 18) & 0x07)));
+                                                      strbuff.push_back(static_cast<char>(0x80 | ((codepoint >> 12) & 0x3F)));
+                                                      strbuff.push_back(static_cast<char>(0x80 | ((codepoint >> 6) & 0x3F)));
+                                                      strbuff.push_back(static_cast<char>(0x80 | (codepoint & 0x3F)));
+                                                  }
+                                                  first_codepoint = 0;
+                                              }continue;
+                                        }
+                                    }
+                                    strbuff.push_back(c);
+                                } while (true);
 
                                 if (key_req) {
                                     key_req = false;
