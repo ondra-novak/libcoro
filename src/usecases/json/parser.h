@@ -154,7 +154,7 @@ struct CharacterSource {
         const char *b = _str.data();
         const char *c = b +_pos;
         const char *e = b +_str.length();
-        while (c != e && !cond(*c)) ++c;
+        while (c != e && cond(*c)) ++c;
         std::size_t fnd = c- b;
         if (fnd == _pos) return;
         auto sz = (fnd-_pos);
@@ -247,14 +247,14 @@ inline coro::generator<std::pair<typename JsonFactory::value_type, std::string_v
                             default:
                                 if (c == '-' || is_number(c)) {
                                     static constexpr auto cond = [](char c) {
-                                        return ((c == ',') || (c == '}') || (c == ']') );
+                                        return (c != ',' && c != '}' && c != ']' );
                                     };
                                     do {
                                         strbuff.push_back(c);
                                         src.copy_until(cond, strbuff);
                                         c = co_await src;
-                                    } while (!cond(c));
-                                    strbuff.push_back(' ');
+                                    } while (cond(c));
+                                    strbuff.push_back('\0');
                                     std::size_t pos =0;
                                     if (strbuff[pos] == '-') ++pos;
                                     if (strbuff[pos] == '0') ++pos;
@@ -304,7 +304,7 @@ inline coro::generator<std::pair<typename JsonFactory::value_type, std::string_v
                             case '"': {
                                 int first_codepoint = 0;
                                 do {
-                                    src.copy_until([](char c){return c == '"' || c == '\\';}, strbuff);
+                                    src.copy_until([](char c){return c != '"' && c != '\\';}, strbuff);
                                     c = co_await src;
                                     if (c == '"') break;
                                     if (c == '\\') {
