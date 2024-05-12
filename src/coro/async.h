@@ -152,18 +152,11 @@ public:
         return *this;
     }
 
-    ///convert coroutine to future, prepare to start
-    /**
-     * This function directly converts to future, but doesn't starts it,
-     * it actually returns future in deferred state. You need to co_await (or
-     * wait on) future to start the coroutine. If you need to start coroutine
-     * immediatelly, use start() function
-     *
-     */
+    ///convert coroutine to future, start immediatelly
     operator future<T>() {
-        return future<T>(deferred, [me = std::move(*this)](auto promise) mutable {
+        return future<T>([me = std::move(*this)](auto promise) mutable {
             me._promise_ptr->attach(promise);
-            return me.detach_on_await_suspend();
+            me.detach();
         });
     }
 
