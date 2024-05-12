@@ -113,22 +113,36 @@ $(function() {
 <div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;<span class="keyword">template</span>&lt;<span class="keyword">typename</span> T, <span class="keyword">typename</span> RetVal&gt;</div>
 <div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160;concept awaitable_r = directly_awaitable_r&lt;T,RetVal&gt; || indirectly_awaitable_r&lt;T,RetVal&gt;;</div>
 <div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160; </div>
-<div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160; </div>
-<div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160; </div>
+<div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;<span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</div>
+<div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;<span class="keyword">struct </span>awaitable_result_impl;</div>
 <div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160; </div>
-<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160; </div>
-<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;}</div>
-<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160; </div>
-<div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160; </div>
+<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;<span class="keyword">template</span>&lt;directly_awaitable T&gt;</div>
+<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;<span class="keyword">struct </span>awaitable_result_impl&lt;T&gt; {</div>
+<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;    <span class="keyword">using</span> type = decltype(std::declval&lt;T&gt;().await_resume());</div>
+<div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;};</div>
 <div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160; </div>
-<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160; </div>
+<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;<span class="keyword">template</span>&lt;indirectly_awaitable T&gt;</div>
+<div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;<span class="keyword">struct </span>awaitable_result_impl&lt;T&gt; {</div>
+<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;    <span class="keyword">using</span> type = <span class="keyword">typename</span> awaitable_result_impl&lt;decltype(std::declval&lt;T&gt;().operator co_await())&gt;::type;</div>
+<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;};</div>
+<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160; </div>
+<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;<span class="keyword">template</span>&lt;awaitable T&gt;</div>
+<div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160;<span class="keyword">using</span> awaitable_result = <span class="keyword">typename</span> awaitable_result_impl&lt;T&gt;::type;</div>
+<div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160; </div>
+<div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160; </div>
+<div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160; </div>
+<div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;}</div>
+<div class="line"><a name="l00110"></a><span class="lineno">  110</span>&#160; </div>
+<div class="line"><a name="l00111"></a><span class="lineno">  111</span>&#160; </div>
+<div class="line"><a name="l00112"></a><span class="lineno">  112</span>&#160; </div>
+<div class="line"><a name="l00113"></a><span class="lineno">  113</span>&#160; </div>
 <div class="ttc" id="anamespacecoro_a1c717336ee944d298c783226081a749b_html_a1c717336ee944d298c783226081a749b"><div class="ttname"><a href="namespacecoro_a1c717336ee944d298c783226081a749b.html#a1c717336ee944d298c783226081a749b">coro::awaitable</a></div><div class="ttdeci">concept awaitable</div><div class="ttdoc">Tests, whether T is coroutine awaitable.</div><div class="ttdef"><b>Definition:</b> <a href="common_8h_source.html#l00074">common.h:74</a></div></div>
 <div class="ttc" id="anamespacecoro_ab6bbf8eeba0385b485961dd047743f7a_html_ab6bbf8eeba0385b485961dd047743f7a"><div class="ttname"><a href="namespacecoro_ab6bbf8eeba0385b485961dd047743f7a.html#ab6bbf8eeba0385b485961dd047743f7a">coro::await_suspend_valid_return_value</a></div><div class="ttdeci">concept await_suspend_valid_return_value</div><div class="ttdoc">Tests, whether T is valid await_suspend return value.</div><div class="ttdef"><b>Definition:</b> <a href="common_8h_source.html#l00058">common.h:58</a></div></div>
 <div class="ttc" id="anamespacecoro_html"><div class="ttname"><a href="namespacecoro.html">coro</a></div><div class="ttdoc">main namespace</div><div class="ttdef"><b>Definition:</b> <a href="aggregator_8h_source.html#l00008">aggregator.h:8</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun May 5 2024 12:01:03 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+Generated on Sun May 12 2024 11:43:54 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
 </small></address>
 </body>
 </html>
