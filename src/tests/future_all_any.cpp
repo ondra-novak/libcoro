@@ -11,7 +11,7 @@ coro::future<void> test_all(coro::future<void> &f1, coro::future<void> &f2, coro
     co_await coro::all_of({f1,f2,f3});
 }
 
-coro::future<unsigned int> test_any(coro::future<unsigned int> &f1, coro::future<unsigned int> &f2, coro::future<unsigned int> &f3) {
+coro::deferred_future<unsigned int> test_any(coro::future<unsigned int> &f1, coro::future<unsigned int> &f2, coro::future<unsigned int> &f3) {
     unsigned int x = co_await coro::any_of({f1,f2,f3});
     co_return x;
 }
