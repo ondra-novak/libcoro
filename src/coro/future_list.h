@@ -132,7 +132,11 @@ public:
         _prom = this->get_promise();
         while (from != to) {
             ++_count;
-            (*from)->then([this]{finish();});
+            if constexpr(is_pointer_like<decltype(*from)>) {
+                (*from)->then([this]{finish();});
+            } else {
+                (*from).then([this]{finish();});
+            }
             ++from;
         }
         finish();
@@ -151,6 +155,8 @@ protected:
 
 template<typename X>
 all_of(std::initializer_list<X>) -> all_of<X>;
+template<container_type T>
+all_of(T) -> all_of<unwrap_pointer_like<typename T::value_type> >;
 
 
 
@@ -323,13 +329,14 @@ protected:
         auto idx = _awaiting.size() - _sep;
         _awaiting.push_back(ptr);
         result_promise_type proms;
-        _iters.erase(std::remove_if(_iters.begin(), _iters.end(), [&](const iterator *it){
+        _iters.erase( std::remove_if(_iters.begin(), _iters.end(), [&](const iterator *it){
             if (it->_index == idx) {
                 proms += it->_tmp._prom;
                 return true;
             }
             return false;
-        }));        if (_cond) _cond->notify_all();;
+        }),_iters.end());
+        if (_cond) _cond->notify_all();;
         if (proms) return ptr->forward_to(proms);
         return {};
     }
@@ -413,7 +420,7 @@ protected:
 template<typename X>
 any_of(std::initializer_list<X>) -> any_of<X>;
 template<container_type T>
-any_of(T) -> any_of<pointer_value<typename T::value_type> >;
+any_of(T) -> any_of<unwrap_pointer_like<typename T::value_type> >;
 
 
 

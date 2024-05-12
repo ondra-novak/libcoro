@@ -261,6 +261,7 @@ public:
         promise<void>::notify d;
         std::lock_guard lk(_mx);
         d = cancel_lk(ident);
+        _blk.push_back(ident);
         return pending_cancel(*this, ident);
     }
 

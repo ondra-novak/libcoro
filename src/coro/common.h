@@ -88,7 +88,21 @@ concept indirectly_awaitable_r = requires(T v) {
 template<typename T, typename RetVal>
 concept awaitable_r = directly_awaitable_r<T,RetVal> || indirectly_awaitable_r<T,RetVal>;
 
+template<typename T>
+struct awaitable_result_impl;
 
+template<directly_awaitable T>
+struct awaitable_result_impl<T> {
+    using type = decltype(std::declval<T>().await_resume());
+};
+
+template<indirectly_awaitable T>
+struct awaitable_result_impl<T> {
+    using type = typename awaitable_result_impl<decltype(std::declval<T>().operator co_await())>::type;
+};
+
+template<awaitable T>
+using awaitable_result = typename awaitable_result_impl<T>::type;
 
 
 
