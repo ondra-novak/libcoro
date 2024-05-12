@@ -173,80 +173,79 @@ $(function() {
 <div class="line"><a name="l00152"></a><span class="lineno">  152</span>&#160;        <span class="keywordflow">return</span> *<span class="keyword">this</span>;</div>
 <div class="line"><a name="l00153"></a><span class="lineno">  153</span>&#160;    }</div>
 <div class="line"><a name="l00154"></a><span class="lineno">  154</span>&#160; </div>
-<div class="line"><a name="l00156"></a><span class="lineno">  156</span>&#160; </div>
-<div class="line"><a name="l00163"></a><span class="lineno"><a class="line" href="classcoro_1_1async_aac92597c5953737b2e911d8f7d5c88f8.html#aac92597c5953737b2e911d8f7d5c88f8">  163</a></span>&#160;    <span class="keyword">operator</span> <a class="code" href="classcoro_1_1future.html">future&lt;T&gt;</a>() {</div>
-<div class="line"><a name="l00164"></a><span class="lineno">  164</span>&#160;        <span class="keywordflow">return</span> <a class="code" href="classcoro_1_1future.html">future&lt;T&gt;</a>(deferred, [me = std::move(*<span class="keyword">this</span>)](<span class="keyword">auto</span> <a class="code" href="classcoro_1_1promise.html">promise</a>) <span class="keyword">mutable</span> {</div>
-<div class="line"><a name="l00165"></a><span class="lineno">  165</span>&#160;            me._promise_ptr-&gt;attach(<a class="code" href="classcoro_1_1promise.html">promise</a>);</div>
-<div class="line"><a name="l00166"></a><span class="lineno">  166</span>&#160;            <span class="keywordflow">return</span> me.detach_on_await_suspend();</div>
-<div class="line"><a name="l00167"></a><span class="lineno">  167</span>&#160;        });</div>
-<div class="line"><a name="l00168"></a><span class="lineno">  168</span>&#160;    }</div>
-<div class="line"><a name="l00169"></a><span class="lineno">  169</span>&#160; </div>
-<div class="line"><a name="l00171"></a><span class="lineno"><a class="line" href="classcoro_1_1async_aed06566386c53cedb6200d3adea46c83.html#aed06566386c53cedb6200d3adea46c83">  171</a></span>&#160;    <span class="keyword">operator</span> <a class="code" href="classcoro_1_1deferred__future.html">deferred_future&lt;T&gt;</a>() {</div>
-<div class="line"><a name="l00172"></a><span class="lineno">  172</span>&#160;        <span class="keywordflow">return</span> <a class="code" href="classcoro_1_1async_a965b1428399a6cf5678505cea88d647f.html#a965b1428399a6cf5678505cea88d647f">defer_start</a>();</div>
-<div class="line"><a name="l00173"></a><span class="lineno">  173</span>&#160;    }</div>
-<div class="line"><a name="l00174"></a><span class="lineno">  174</span>&#160; </div>
-<div class="line"><a name="l00176"></a><span class="lineno"><a class="line" href="classcoro_1_1async_aa7a81ceb95de36cc94e1d80544d48f42.html#aa7a81ceb95de36cc94e1d80544d48f42">  176</a></span>&#160;    <span class="keyword">operator</span> <a class="code" href="classcoro_1_1shared__future.html">shared_future&lt;T&gt;</a>() {</div>
-<div class="line"><a name="l00177"></a><span class="lineno">  177</span>&#160;        <span class="keywordflow">return</span> <a class="code" href="classcoro_1_1async_ae1b4487261355f4218fd10f5eac64d67.html#ae1b4487261355f4218fd10f5eac64d67">shared_start</a>();</div>
+<div class="line"><a name="l00156"></a><span class="lineno"><a class="line" href="classcoro_1_1async_aac92597c5953737b2e911d8f7d5c88f8.html#aac92597c5953737b2e911d8f7d5c88f8">  156</a></span>&#160;    <span class="keyword">operator</span> <a class="code" href="classcoro_1_1future.html">future&lt;T&gt;</a>() {</div>
+<div class="line"><a name="l00157"></a><span class="lineno">  157</span>&#160;        <span class="keywordflow">return</span> <a class="code" href="classcoro_1_1future.html">future&lt;T&gt;</a>([me = std::move(*<span class="keyword">this</span>)](<span class="keyword">auto</span> <a class="code" href="classcoro_1_1promise.html">promise</a>) <span class="keyword">mutable</span> {</div>
+<div class="line"><a name="l00158"></a><span class="lineno">  158</span>&#160;            me._promise_ptr-&gt;attach(<a class="code" href="classcoro_1_1promise.html">promise</a>);</div>
+<div class="line"><a name="l00159"></a><span class="lineno">  159</span>&#160;            me.detach();</div>
+<div class="line"><a name="l00160"></a><span class="lineno">  160</span>&#160;        });</div>
+<div class="line"><a name="l00161"></a><span class="lineno">  161</span>&#160;    }</div>
+<div class="line"><a name="l00162"></a><span class="lineno">  162</span>&#160; </div>
+<div class="line"><a name="l00164"></a><span class="lineno"><a class="line" href="classcoro_1_1async_aed06566386c53cedb6200d3adea46c83.html#aed06566386c53cedb6200d3adea46c83">  164</a></span>&#160;    <span class="keyword">operator</span> <a class="code" href="classcoro_1_1deferred__future.html">deferred_future&lt;T&gt;</a>() {</div>
+<div class="line"><a name="l00165"></a><span class="lineno">  165</span>&#160;        <span class="keywordflow">return</span> <a class="code" href="classcoro_1_1async_a965b1428399a6cf5678505cea88d647f.html#a965b1428399a6cf5678505cea88d647f">defer_start</a>();</div>
+<div class="line"><a name="l00166"></a><span class="lineno">  166</span>&#160;    }</div>
+<div class="line"><a name="l00167"></a><span class="lineno">  167</span>&#160; </div>
+<div class="line"><a name="l00169"></a><span class="lineno"><a class="line" href="classcoro_1_1async_aa7a81ceb95de36cc94e1d80544d48f42.html#aa7a81ceb95de36cc94e1d80544d48f42">  169</a></span>&#160;    <span class="keyword">operator</span> <a class="code" href="classcoro_1_1shared__future.html">shared_future&lt;T&gt;</a>() {</div>
+<div class="line"><a name="l00170"></a><span class="lineno">  170</span>&#160;        <span class="keywordflow">return</span> <a class="code" href="classcoro_1_1async_ae1b4487261355f4218fd10f5eac64d67.html#ae1b4487261355f4218fd10f5eac64d67">shared_start</a>();</div>
+<div class="line"><a name="l00171"></a><span class="lineno">  171</span>&#160;    }</div>
+<div class="line"><a name="l00172"></a><span class="lineno">  172</span>&#160; </div>
+<div class="line"><a name="l00173"></a><span class="lineno">  173</span>&#160; </div>
+<div class="line"><a name="l00175"></a><span class="lineno">  175</span>&#160;    <span class="keyword">template</span>&lt;std::constructible_from&lt;T&gt; U&gt;</div>
+<div class="line"><a name="l00176"></a><span class="lineno"><a class="line" href="classcoro_1_1async_a0b1b09a1dfe8297aeaed5f2defaeeb84.html#a0b1b09a1dfe8297aeaed5f2defaeeb84">  176</a></span>&#160;    <span class="keyword">operator</span> U () {</div>
+<div class="line"><a name="l00177"></a><span class="lineno">  177</span>&#160;        <span class="keywordflow">return</span> U(<a class="code" href="classcoro_1_1async_ae5632c77cf6c16f6d5dacc3f1a63063b.html#ae5632c77cf6c16f6d5dacc3f1a63063b">start</a>().get());</div>
 <div class="line"><a name="l00178"></a><span class="lineno">  178</span>&#160;    }</div>
 <div class="line"><a name="l00179"></a><span class="lineno">  179</span>&#160; </div>
-<div class="line"><a name="l00180"></a><span class="lineno">  180</span>&#160; </div>
-<div class="line"><a name="l00182"></a><span class="lineno">  182</span>&#160;    <span class="keyword">template</span>&lt;std::constructible_from&lt;T&gt; U&gt;</div>
-<div class="line"><a name="l00183"></a><span class="lineno"><a class="line" href="classcoro_1_1async_a0b1b09a1dfe8297aeaed5f2defaeeb84.html#a0b1b09a1dfe8297aeaed5f2defaeeb84">  183</a></span>&#160;    <span class="keyword">operator</span> U () {</div>
-<div class="line"><a name="l00184"></a><span class="lineno">  184</span>&#160;        <span class="keywordflow">return</span> U(<a class="code" href="classcoro_1_1async_ae5632c77cf6c16f6d5dacc3f1a63063b.html#ae5632c77cf6c16f6d5dacc3f1a63063b">start</a>().get());</div>
-<div class="line"><a name="l00185"></a><span class="lineno">  185</span>&#160;    }</div>
+<div class="line"><a name="l00181"></a><span class="lineno"><a class="line" href="classcoro_1_1async_a5e257c745ec009aad26b4ad59804398d.html#a5e257c745ec009aad26b4ad59804398d">  181</a></span>&#160;    <span class="keyword">auto</span> <a class="code" href="classcoro_1_1async_a5e257c745ec009aad26b4ad59804398d.html#a5e257c745ec009aad26b4ad59804398d">run</a>() {</div>
+<div class="line"><a name="l00182"></a><span class="lineno">  182</span>&#160;        <span class="keywordflow">return</span> <a class="code" href="classcoro_1_1async_ae5632c77cf6c16f6d5dacc3f1a63063b.html#ae5632c77cf6c16f6d5dacc3f1a63063b">start</a>().get();</div>
+<div class="line"><a name="l00183"></a><span class="lineno">  183</span>&#160;    }</div>
+<div class="line"><a name="l00184"></a><span class="lineno">  184</span>&#160; </div>
+<div class="line"><a name="l00185"></a><span class="lineno">  185</span>&#160;<span class="keyword">protected</span>:</div>
 <div class="line"><a name="l00186"></a><span class="lineno">  186</span>&#160; </div>
-<div class="line"><a name="l00188"></a><span class="lineno"><a class="line" href="classcoro_1_1async_a5e257c745ec009aad26b4ad59804398d.html#a5e257c745ec009aad26b4ad59804398d">  188</a></span>&#160;    <span class="keyword">auto</span> <a class="code" href="classcoro_1_1async_a5e257c745ec009aad26b4ad59804398d.html#a5e257c745ec009aad26b4ad59804398d">run</a>() {</div>
-<div class="line"><a name="l00189"></a><span class="lineno">  189</span>&#160;        <span class="keywordflow">return</span> <a class="code" href="classcoro_1_1async_ae5632c77cf6c16f6d5dacc3f1a63063b.html#ae5632c77cf6c16f6d5dacc3f1a63063b">start</a>().get();</div>
-<div class="line"><a name="l00190"></a><span class="lineno">  190</span>&#160;    }</div>
-<div class="line"><a name="l00191"></a><span class="lineno">  191</span>&#160; </div>
-<div class="line"><a name="l00192"></a><span class="lineno">  192</span>&#160;<span class="keyword">protected</span>:</div>
+<div class="line"><a name="l00187"></a><span class="lineno">  187</span>&#160;    <span class="keyword">struct </span>Deleter {</div>
+<div class="line"><a name="l00188"></a><span class="lineno">  188</span>&#160;        <span class="keywordtype">void</span> operator()(promise_type *p) {</div>
+<div class="line"><a name="l00189"></a><span class="lineno">  189</span>&#160;            <span class="keyword">auto</span> h = std::coroutine_handle&lt;promise_type&gt;::from_promise(*p);</div>
+<div class="line"><a name="l00190"></a><span class="lineno">  190</span>&#160;            h.destroy();</div>
+<div class="line"><a name="l00191"></a><span class="lineno">  191</span>&#160;        }</div>
+<div class="line"><a name="l00192"></a><span class="lineno">  192</span>&#160;    };</div>
 <div class="line"><a name="l00193"></a><span class="lineno">  193</span>&#160; </div>
-<div class="line"><a name="l00194"></a><span class="lineno">  194</span>&#160;    <span class="keyword">struct </span>Deleter {</div>
-<div class="line"><a name="l00195"></a><span class="lineno">  195</span>&#160;        <span class="keywordtype">void</span> operator()(promise_type *p) {</div>
-<div class="line"><a name="l00196"></a><span class="lineno">  196</span>&#160;            <span class="keyword">auto</span> h = std::coroutine_handle&lt;promise_type&gt;::from_promise(*p);</div>
-<div class="line"><a name="l00197"></a><span class="lineno">  197</span>&#160;            h.destroy();</div>
-<div class="line"><a name="l00198"></a><span class="lineno">  198</span>&#160;        }</div>
-<div class="line"><a name="l00199"></a><span class="lineno">  199</span>&#160;    };</div>
-<div class="line"><a name="l00200"></a><span class="lineno">  200</span>&#160; </div>
-<div class="line"><a name="l00201"></a><span class="lineno">  201</span>&#160;    <a class="code" href="classcoro_1_1async_ad1f88e9dee9e17e070d1e8db91d94f98.html#ad1f88e9dee9e17e070d1e8db91d94f98">async</a>(promise_type *p): _promise_ptr(p) {}</div>
+<div class="line"><a name="l00194"></a><span class="lineno">  194</span>&#160;    <a class="code" href="classcoro_1_1async_ad1f88e9dee9e17e070d1e8db91d94f98.html#ad1f88e9dee9e17e070d1e8db91d94f98">async</a>(promise_type *p): _promise_ptr(p) {}</div>
+<div class="line"><a name="l00195"></a><span class="lineno">  195</span>&#160; </div>
+<div class="line"><a name="l00196"></a><span class="lineno">  196</span>&#160;    std::unique_ptr&lt;promise_type, Deleter&gt; _promise_ptr;</div>
+<div class="line"><a name="l00197"></a><span class="lineno">  197</span>&#160; </div>
+<div class="line"><a name="l00198"></a><span class="lineno">  198</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> X&gt;</div>
+<div class="line"><a name="l00199"></a><span class="lineno">  199</span>&#160;    <span class="keyword">static</span> promise_type *cast_promise(X *other) {</div>
+<div class="line"><a name="l00200"></a><span class="lineno">  200</span>&#160;        <span class="keywordflow">return</span> <span class="keyword">static_cast&lt;</span>promise_type *<span class="keyword">&gt;</span>(<span class="keyword">static_cast&lt;</span>_details::coro_promise&lt;T&gt; *<span class="keyword">&gt;</span>(other));</div>
+<div class="line"><a name="l00201"></a><span class="lineno">  201</span>&#160;    }</div>
 <div class="line"><a name="l00202"></a><span class="lineno">  202</span>&#160; </div>
-<div class="line"><a name="l00203"></a><span class="lineno">  203</span>&#160;    std::unique_ptr&lt;promise_type, Deleter&gt; _promise_ptr;</div>
-<div class="line"><a name="l00204"></a><span class="lineno">  204</span>&#160; </div>
-<div class="line"><a name="l00205"></a><span class="lineno">  205</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> X&gt;</div>
-<div class="line"><a name="l00206"></a><span class="lineno">  206</span>&#160;    <span class="keyword">static</span> promise_type *cast_promise(X *other) {</div>
-<div class="line"><a name="l00207"></a><span class="lineno">  207</span>&#160;        <span class="keywordflow">return</span> <span class="keyword">static_cast&lt;</span>promise_type *<span class="keyword">&gt;</span>(<span class="keyword">static_cast&lt;</span>_details::coro_promise&lt;T&gt; *<span class="keyword">&gt;</span>(other));</div>
-<div class="line"><a name="l00208"></a><span class="lineno">  208</span>&#160;    }</div>
+<div class="line"><a name="l00203"></a><span class="lineno">  203</span>&#160; </div>
+<div class="line"><a name="l00204"></a><span class="lineno">  204</span>&#160;};</div>
+<div class="line"><a name="l00205"></a><span class="lineno">  205</span>&#160; </div>
+<div class="line"><a name="l00206"></a><span class="lineno">  206</span>&#160; </div>
+<div class="line"><a name="l00207"></a><span class="lineno">  207</span>&#160;}</div>
+<div class="line"><a name="l00208"></a><span class="lineno">  208</span>&#160; </div>
 <div class="line"><a name="l00209"></a><span class="lineno">  209</span>&#160; </div>
-<div class="line"><a name="l00210"></a><span class="lineno">  210</span>&#160; </div>
-<div class="line"><a name="l00211"></a><span class="lineno">  211</span>&#160;};</div>
-<div class="line"><a name="l00212"></a><span class="lineno">  212</span>&#160; </div>
+<div class="line"><a name="l00210"></a><span class="lineno">  210</span>&#160;<span class="keyword">template</span>&lt;<span class="keyword">typename</span> T, <span class="keyword">typename</span> ... Args&gt;</div>
+<div class="line"><a name="l00211"></a><span class="lineno">  211</span>&#160;<span class="keyword">struct </span>std::coroutine_traits&lt;<a class="code" href="namespacecoro.html">coro</a>::future&lt;T&gt;, Args...&gt; {</div>
+<div class="line"><a name="l00212"></a><span class="lineno">  212</span>&#160;    <span class="keyword">using</span> promise_type = <span class="keyword">typename</span> <a class="code" href="classcoro_1_1async.html">coro::async&lt;T&gt;::promise_type</a>;</div>
 <div class="line"><a name="l00213"></a><span class="lineno">  213</span>&#160; </div>
-<div class="line"><a name="l00214"></a><span class="lineno">  214</span>&#160;}</div>
+<div class="line"><a name="l00214"></a><span class="lineno">  214</span>&#160;};</div>
 <div class="line"><a name="l00215"></a><span class="lineno">  215</span>&#160; </div>
-<div class="line"><a name="l00216"></a><span class="lineno">  216</span>&#160; </div>
-<div class="line"><a name="l00217"></a><span class="lineno">  217</span>&#160;<span class="keyword">template</span>&lt;<span class="keyword">typename</span> T, <span class="keyword">typename</span> ... Args&gt;</div>
-<div class="line"><a name="l00218"></a><span class="lineno">  218</span>&#160;<span class="keyword">struct </span>std::coroutine_traits&lt;<a class="code" href="namespacecoro.html">coro</a>::future&lt;T&gt;, Args...&gt; {</div>
-<div class="line"><a name="l00219"></a><span class="lineno">  219</span>&#160;    <span class="keyword">using</span> promise_type = <span class="keyword">typename</span> <a class="code" href="classcoro_1_1async.html">coro::async&lt;T&gt;::promise_type</a>;</div>
-<div class="line"><a name="l00220"></a><span class="lineno">  220</span>&#160; </div>
-<div class="line"><a name="l00221"></a><span class="lineno">  221</span>&#160;};</div>
-<div class="line"><a name="l00222"></a><span class="lineno">  222</span>&#160; </div>
-<div class="line"><a name="l00223"></a><span class="lineno">  223</span>&#160;<span class="keyword">template</span>&lt;<span class="keyword">typename</span> T, <span class="keyword">typename</span> ... Args&gt;</div>
-<div class="line"><a name="l00224"></a><span class="lineno">  224</span>&#160;<span class="keyword">struct </span>std::coroutine_traits&lt;<a class="code" href="namespacecoro.html">coro</a>::deferred_future&lt;T&gt;, Args...&gt; {</div>
-<div class="line"><a name="l00225"></a><span class="lineno">  225</span>&#160;    <span class="keyword">using</span> promise_type = <span class="keyword">typename</span> <a class="code" href="classcoro_1_1async.html">coro::async&lt;T&gt;::promise_type</a>;</div>
-<div class="line"><a name="l00226"></a><span class="lineno">  226</span>&#160; </div>
-<div class="line"><a name="l00227"></a><span class="lineno">  227</span>&#160;};</div>
+<div class="line"><a name="l00216"></a><span class="lineno">  216</span>&#160;<span class="keyword">template</span>&lt;<span class="keyword">typename</span> T, <span class="keyword">typename</span> ... Args&gt;</div>
+<div class="line"><a name="l00217"></a><span class="lineno">  217</span>&#160;<span class="keyword">struct </span>std::coroutine_traits&lt;<a class="code" href="namespacecoro.html">coro</a>::deferred_future&lt;T&gt;, Args...&gt; {</div>
+<div class="line"><a name="l00218"></a><span class="lineno">  218</span>&#160;    <span class="keyword">using</span> promise_type = <span class="keyword">typename</span> <a class="code" href="classcoro_1_1async.html">coro::async&lt;T&gt;::promise_type</a>;</div>
+<div class="line"><a name="l00219"></a><span class="lineno">  219</span>&#160; </div>
+<div class="line"><a name="l00220"></a><span class="lineno">  220</span>&#160;};</div>
+<div class="line"><a name="l00221"></a><span class="lineno">  221</span>&#160; </div>
+<div class="line"><a name="l00222"></a><span class="lineno">  222</span>&#160;<span class="keyword">template</span>&lt;<span class="keyword">typename</span> T, <span class="keyword">typename</span> ... Args&gt;</div>
+<div class="line"><a name="l00223"></a><span class="lineno">  223</span>&#160;<span class="keyword">struct </span>std::coroutine_traits&lt;<a class="code" href="namespacecoro.html">coro</a>::shared_future&lt;T&gt;, Args...&gt; {</div>
+<div class="line"><a name="l00224"></a><span class="lineno">  224</span>&#160;    <span class="keyword">using</span> promise_type = <span class="keyword">typename</span> <a class="code" href="classcoro_1_1async.html">coro::async&lt;T&gt;::promise_type</a>;</div>
+<div class="line"><a name="l00225"></a><span class="lineno">  225</span>&#160; </div>
+<div class="line"><a name="l00226"></a><span class="lineno">  226</span>&#160;};</div>
+<div class="line"><a name="l00227"></a><span class="lineno">  227</span>&#160; </div>
 <div class="line"><a name="l00228"></a><span class="lineno">  228</span>&#160; </div>
-<div class="line"><a name="l00229"></a><span class="lineno">  229</span>&#160;<span class="keyword">template</span>&lt;<span class="keyword">typename</span> T, <span class="keyword">typename</span> ... Args&gt;</div>
-<div class="line"><a name="l00230"></a><span class="lineno">  230</span>&#160;<span class="keyword">struct </span>std::coroutine_traits&lt;<a class="code" href="namespacecoro.html">coro</a>::shared_future&lt;T&gt;, Args...&gt; {</div>
-<div class="line"><a name="l00231"></a><span class="lineno">  231</span>&#160;    <span class="keyword">using</span> promise_type = <span class="keyword">typename</span> <a class="code" href="classcoro_1_1async.html">coro::async&lt;T&gt;::promise_type</a>;</div>
-<div class="line"><a name="l00232"></a><span class="lineno">  232</span>&#160; </div>
-<div class="line"><a name="l00233"></a><span class="lineno">  233</span>&#160;};</div>
-<div class="line"><a name="l00234"></a><span class="lineno">  234</span>&#160; </div>
-<div class="line"><a name="l00235"></a><span class="lineno">  235</span>&#160; </div>
-<div class="line"><a name="l00236"></a><span class="lineno">  236</span>&#160; </div>
+<div class="line"><a name="l00229"></a><span class="lineno">  229</span>&#160; </div>
 <div class="ttc" id="aclasscoro_1_1async_a143362b76296624ce59d27ac000ca7c8_html_a143362b76296624ce59d27ac000ca7c8"><div class="ttname"><a href="classcoro_1_1async_a143362b76296624ce59d27ac000ca7c8.html#a143362b76296624ce59d27ac000ca7c8">coro::async::start</a></div><div class="ttdeci">void start(promise&lt; T &gt; prom)</div><div class="ttdoc">Start coroutine and pass return value to promise.</div><div class="ttdef"><b>Definition:</b> <a href="async_8h_source.html#l00129">async.h:129</a></div></div>
 <div class="ttc" id="aclasscoro_1_1async_a4987c7b51ab917eecbaf51110d6f7774_html_a4987c7b51ab917eecbaf51110d6f7774"><div class="ttname"><a href="classcoro_1_1async_a4987c7b51ab917eecbaf51110d6f7774.html#a4987c7b51ab917eecbaf51110d6f7774">coro::async::async</a></div><div class="ttdeci">async(async&lt; T, A &gt; &amp;&amp;other)</div><div class="ttdoc">convert from different allocator (because the allocator is only used during creation)</div><div class="ttdef"><b>Definition:</b> <a href="async_8h_source.html#l00096">async.h:96</a></div></div>
-<div class="ttc" id="aclasscoro_1_1async_a5e257c745ec009aad26b4ad59804398d_html_a5e257c745ec009aad26b4ad59804398d"><div class="ttname"><a href="classcoro_1_1async_a5e257c745ec009aad26b4ad59804398d.html#a5e257c745ec009aad26b4ad59804398d">coro::async::run</a></div><div class="ttdeci">auto run()</div><div class="ttdoc">run synchronously</div><div class="ttdef"><b>Definition:</b> <a href="async_8h_source.html#l00188">async.h:188</a></div></div>
+<div class="ttc" id="aclasscoro_1_1async_a5e257c745ec009aad26b4ad59804398d_html_a5e257c745ec009aad26b4ad59804398d"><div class="ttname"><a href="classcoro_1_1async_a5e257c745ec009aad26b4ad59804398d.html#a5e257c745ec009aad26b4ad59804398d">coro::async::run</a></div><div class="ttdeci">auto run()</div><div class="ttdoc">run synchronously</div><div class="ttdef"><b>Definition:</b> <a href="async_8h_source.html#l00181">async.h:181</a></div></div>
 <div class="ttc" id="aclasscoro_1_1async_a6ca5eb9e313f369b117e79204f59d5c3_html_a6ca5eb9e313f369b117e79204f59d5c3"><div class="ttname"><a href="classcoro_1_1async_a6ca5eb9e313f369b117e79204f59d5c3.html#a6ca5eb9e313f369b117e79204f59d5c3">coro::async::detach</a></div><div class="ttdeci">void detach()</div><div class="ttdoc">Run coroutine detached.</div><div class="ttdef"><b>Definition:</b> <a href="async_8h_source.html#l00104">async.h:104</a></div></div>
 <div class="ttc" id="aclasscoro_1_1async_a901bc2796cb928365aa44ba5dfbf962c_html_a901bc2796cb928365aa44ba5dfbf962c"><div class="ttname"><a href="classcoro_1_1async_a901bc2796cb928365aa44ba5dfbf962c.html#a901bc2796cb928365aa44ba5dfbf962c">coro::async::detach_on_await_suspend</a></div><div class="ttdeci">std::coroutine_handle detach_on_await_suspend()</div><div class="ttdoc">detach coroutine using symmetric transfer</div><div class="ttdef"><b>Definition:</b> <a href="async_8h_source.html#l00115">async.h:115</a></div></div>
 <div class="ttc" id="aclasscoro_1_1async_a965b1428399a6cf5678505cea88d647f_html_a965b1428399a6cf5678505cea88d647f"><div class="ttname"><a href="classcoro_1_1async_a965b1428399a6cf5678505cea88d647f.html#a965b1428399a6cf5678505cea88d647f">coro::async::defer_start</a></div><div class="ttdeci">deferred_future&lt; T &gt; defer_start()</div><div class="ttdoc">Defer start of coroutine.</div><div class="ttdef"><b>Definition:</b> <a href="async_8h_source.html#l00135">async.h:135</a></div></div>
@@ -265,7 +264,7 @@ $(function() {
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun May 12 2024 11:43:54 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+Generated on Sun May 12 2024 14:01:18 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
 </small></address>
 </body>
 </html>
