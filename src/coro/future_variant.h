@@ -1,7 +1,15 @@
 #pragma once
 #include "future.h"
+#include <variant>
 
 namespace coro {
+
+namespace _details {
+    template<typename X>
+    static void future_variant_deleter(void *ptr) {
+        std::destroy_at(reinterpret_cast<X *>(ptr));
+    }
+}
 
 /// makes a variant future - multiple futures shares single space
 /**
@@ -54,17 +62,14 @@ public:
         using fut_type = std::invoke_result_t<Fn>;
         static_assert(sizeof(fut_type) <= buffer_size, "Returned future is not expected");
         fut_type *ptr = new(buffer) fut_type(fn());
-        destroy_fn = [](void *buff){
-            fut_type *xptr = reinterpret_cast<fut_type *>(buff);
-            std::destroy_at(xptr);
-        };
+        destroy_fn = &_details::future_variant_deleter<fut_type>;
         return *ptr;
     }
 
     ///Delete any underlying future and return object into uninitalized state
     void reset() {
         destroy_fn(buffer);
-        destroy_fn = [](void *){};
+        destroy_fn =&_details::future_variant_deleter<std::nullptr_t>;
     }
 
     ///Initialize underlying future and retrieves promise
@@ -78,19 +83,46 @@ public:
         static_assert(sizeof(fut_type) <= buffer_size, "Future type is not expected");
         fut_type *ptr = new(buffer) fut_type;
         p = ptr->get_promise();
-        destroy_fn = [](void *buff){
-            fut_type *xptr = reinterpret_cast<fut_type *>(buff);
-            std::destroy_at(xptr);
-        };
-        return *ptr;
-        
+        destroy_fn = &_details::future_variant_deleter<fut_type>;
+      return *ptr;
     }
+
+    template<typename fut_type, typename ... X>
+    friend fut_type &get(future_variant<X...> &me);
+
+    template<typename fut_type, typename ... X>
+    friend const fut_type &get(const future_variant<X...> &me);
+
+    template<typename fut_type, typename ... X>
+    friend bool holds_alternative(future_variant<X...> &me);
 
 protected:
     static constexpr auto buffer_size = std::max({sizeof(future<Types>)...});
-    void (*destroy_fn)(void *buffer) = [](void *){};
+    void (*destroy_fn)(void *buffer) = &_details::future_variant_deleter<std::nullptr_t>;
     char buffer[buffer_size];
 };
+
+template<typename fut_type, typename ... Types>
+const fut_type &get(const future_variant<Types...> &me) {
+    if (me.destroy_fn != &_details::future_variant_deleter<fut_type>) {
+        throw std::bad_variant_access();
+    }
+    return *reinterpret_cast<const fut_type *>(me.buffer);
+}
+
+template<typename fut_type, typename ... Types>
+ fut_type &get( future_variant<Types...> &me) {
+    if (me.destroy_fn != &_details::future_variant_deleter<fut_type>) {
+        throw std::bad_variant_access();
+    }
+    return *reinterpret_cast<fut_type *>(me.buffer);
+}
+
+template<typename fut_type, typename ... Types>
+bool holds_alternative(future_variant<Types...> &me) {
+    return (me.destroy_fn == &_details::future_variant_deleter<fut_type>);
+}
+
 
 
 }

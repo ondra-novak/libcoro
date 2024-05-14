@@ -21,6 +21,7 @@ void test_destroy() {
     coro::future_variant<TestObject> f;
     coro::promise<TestObject> p;
     auto &fut = f.get_promise(p);
+    CHECK(coro::holds_alternative<coro::future<TestObject> >(f));
     CHECK(fut.is_pending());
     p();
     CHECK(!fut.is_pending());
@@ -38,8 +39,10 @@ void test_swap() {
         p();
         CHECK(!fut.is_pending());
         auto &fut2 = f << [&]{return coro::future<int>(42);};
-        int v = fut2;
+        int v = coro::get<coro::future<int> >(f).get();;
         CHECK_EQUAL(v, 42);
+        int w = fut2.get();
+        CHECK_EQUAL(w, 42);
         auto &fut3 = f << [&]{return coro::future<TestObject>(std::in_place);};
         CHECK(!fut3.is_pending());
     }
