@@ -24,5 +24,6 @@ var searchData=
   ['future_3c_20std_3a_3aadd_5flvalue_5freference_5ft_3c_20typename_20t_3a_3avalue_5ftype_20_3e_20_3e_79',['future&lt; std::add_lvalue_reference_t&lt; typename T::value_type &gt; &gt;',['../classcoro_1_1future.html',1,'coro']]],
   ['future_3c_20std_3a_3atuple_3c_20decltype_28std_3a_3adeclval_3c_20mutexes_20_3e_28_29_2etry_5flock_28_29_29_2e_2e_2e_20_3e_20_3e_80',['future&lt; std::tuple&lt; decltype(std::declval&lt; Mutexes &gt;().try_lock())... &gt; &gt;',['../classcoro_1_1future.html',1,'coro']]],
   ['future_3c_20void_20_3e_81',['future&lt; void &gt;',['../classcoro_1_1future.html',1,'coro']]],
-  ['futuretype_82',['FutureType',['../classcoro_1_1promise_aff5c200afa35fd996a91c8dbd3e80381.html#aff5c200afa35fd996a91c8dbd3e80381',1,'coro::promise']]]
+  ['future_5fvariant_82',['future_variant',['../classcoro_1_1future__variant.html',1,'coro']]],
+  ['futuretype_83',['FutureType',['../classcoro_1_1promise_aff5c200afa35fd996a91c8dbd3e80381.html#aff5c200afa35fd996a91c8dbd3e80381',1,'coro::promise']]]
 ];
