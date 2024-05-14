@@ -10,6 +10,7 @@
 #include "../coro/scheduler.h"
 #include "../coro/condition.h"
 #include "../coro/collector.h"
+#include "../coro/future_variant.h"
 
 
 template class coro::future<int>;
@@ -29,6 +30,7 @@ template class coro::queue<int>;
 template class coro::distributor<int>;
 template class coro::function<int(int) noexcept>;
 template class coro::function<int(int)>;
+template class coro::future_variant<int, double, void, std::string, char *, std::nullptr_t>;
 
 static_assert(coro::function<int(int) noexcept>::is_noexcept);
 static_assert(!coro::function<int(int)>::is_noexcept);
