@@ -18,6 +18,7 @@
 #include "collector.h"
 #include "make_awaitable.h"
 #include "future_list.h"
+#include "future_variant.h"
 
 
 #endif
