@@ -1176,20 +1176,17 @@ public:
         return *this;
     }
 
-    ///convert deferred future to future
-    operator future<T>() {
+    ///By calling deferred future with a promise, the future is started and result is trensfered to the promise
+    /**This allows to convert deferred_future to a future. The state of current
+     * object is change to resolved without a value.
+     */
+    void operator()(promise_t &&prom) {
         if (this->_state == State::deferred) {
-            return [&](auto promise) {
-                this->_deferred(std::move(promise));
-                std::destroy_at(&this->_deferred);
-                this->_state = State::resolved;
-            };
+            this->_deferred(std::move(prom));
+            std::destroy_at(&this->_deferred);
+            this->_state = State::resolved;
         } else if (this->_state == State::resolved) {
-            switch (this->_result) {
-                case Result::value:return std::move(this->_value);
-                case Result::exception: return std::move(this->_exception);
-                default: return {};
-            }
+            this->convert_to(prom, [](T &x)->T{return std::move(x);});
         } else {
             throw still_pending_exception();
         }
