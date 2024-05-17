@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.9.1"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>libcoro: coro::deferred_future::operator future&lt; T &gt;</title>
+<title>libcoro: coro::deferred_future::operator()</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -72,13 +72,13 @@ $(function() {
    <td valign="top">
       <div class="navtab">
         <table>
-          <tr><td class="navtabHL"><a class="navtab" href="classcoro_1_1deferred__future_a01c71a4a8be9c46ed0668586b2aa7bc7.html#a01c71a4a8be9c46ed0668586b2aa7bc7">operator future&lt; T &gt;</a></td></tr>
+          <tr><td class="navtabHL"><a class="navtab" href="classcoro_1_1deferred__future_a738a88fa8899f0a6d20aed2008bcd301.html#a738a88fa8899f0a6d20aed2008bcd301">operator()</a></td></tr>
         </table>
       </div>
    </td>
    <td valign="top" class="mempage">
-<a id="a01c71a4a8be9c46ed0668586b2aa7bc7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a01c71a4a8be9c46ed0668586b2aa7bc7">&#9670;&nbsp;</a></span>operator future&lt; T &gt;()</h2>
+<a id="a738a88fa8899f0a6d20aed2008bcd301"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a738a88fa8899f0a6d20aed2008bcd301">&#9670;&nbsp;</a></span>operator()()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -89,9 +89,10 @@ template&lt;typename T &gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classcoro_1_1deferred__future.html">coro::deferred_future</a>&lt; T &gt;::operator <a class="el" href="classcoro_1_1future.html">future</a>&lt; T &gt; </td>
+          <td class="memname">void <a class="el" href="classcoro_1_1deferred__future.html">coro::deferred_future</a>&lt; T &gt;::operator() </td>
           <td>(</td>
-          <td class="paramname"></td><td>)</td>
+          <td class="paramtype"><a class="el" href="classcoro_1_1promise.html">promise_t</a> &amp;&amp;&#160;</td>
+          <td class="paramname"><em>prom</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -102,9 +103,10 @@ template&lt;typename T &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p>convert deferred future to future </p>
+<p>By calling deferred future with a promise, the future is started and result is trensfered to the promise. </p>
+<p>This allows to convert <a class="el" href="classcoro_1_1deferred__future.html" title="Contains future value of T, where evaluation is deferred until the value is needed.">deferred_future</a> to a future. The state of current object is change to resolved without a value. </p>
 
-<p class="definition">Definition at line <a class="el" href="future_8h_source.html#l01180">1180</a> of file <a class="el" href="future_8h_source.html">future.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="future_8h_source.html#l01183">1183</a> of file <a class="el" href="future_8h_source.html">future.h</a>.</p>
 
 </div>
 </div>
@@ -114,7 +116,7 @@ template&lt;typename T &gt; </div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue May 14 2024 17:21:42 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+Generated on Fri May 17 2024 17:57:37 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
 </small></address>
 </body>
 </html>

@@ -133,7 +133,7 @@ template&lt;typename Arg0 , typename ... Args&gt; </div>
 <dl class="section note"><dt>Note</dt><dd>you can use all constructor types in same way as <a class="el" href="classcoro_1_1future.html" title="Contains future value of T, can be co_awaited in coroutine.">coro::future</a>. If you need to convert <a class="el" href="classcoro_1_1future.html" title="Contains future value of T, can be co_awaited in coroutine.">coro::future</a> to <a class="el" href="classcoro_1_1shared__future.html" title="Future which can be shared (by copying - like shared_ptr)">coro::shared_future</a>, you need to pass a lambda function which returns <a class="el" href="classcoro_1_1future.html" title="Contains future value of T, can be co_awaited in coroutine.">coro::future</a></dd></dl>
 <div class="fragment"><div class="line"><a class="code" href="classcoro_1_1shared__future.html">coro::shared_future&lt;int&gt;</a> f([&amp;]()-&gt;<a class="code" href="classcoro_1_1future.html">coro::future&lt;int&gt;</a>{<span class="keywordflow">return</span> calc_async();});</div>
 <div class="ttc" id="aclasscoro_1_1future_html"><div class="ttname"><a href="classcoro_1_1future.html">coro::future</a></div><div class="ttdoc">Contains future value of T, can be co_awaited in coroutine.</div><div class="ttdef"><b>Definition:</b> <a href="future_8h_source.html#l00404">future.h:404</a></div></div>
-<div class="ttc" id="aclasscoro_1_1shared__future_html"><div class="ttname"><a href="classcoro_1_1shared__future.html">coro::shared_future</a></div><div class="ttdoc">Future which can be shared (by copying - like shared_ptr)</div><div class="ttdef"><b>Definition:</b> <a href="future_8h_source.html#l01285">future.h:1285</a></div></div>
+<div class="ttc" id="aclasscoro_1_1shared__future_html"><div class="ttname"><a href="classcoro_1_1shared__future.html">coro::shared_future</a></div><div class="ttdoc">Future which can be shared (by copying - like shared_ptr)</div><div class="ttdef"><b>Definition:</b> <a href="future_8h_source.html#l01282">future.h:1282</a></div></div>
 </div><!-- fragment --> 
 </div>
 </div>
@@ -143,7 +143,7 @@ template&lt;typename Arg0 , typename ... Args&gt; </div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue May 14 2024 17:21:42 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+Generated on Fri May 17 2024 17:57:37 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
 </small></address>
 </body>
 </html>
