@@ -466,7 +466,7 @@ public:
      */
     template<std::invocable<promise_t> Fn>
     future(Fn &&fn):_state(State::pending) {
-        fn(promise_t(this));
+        std::forward<Fn>(fn)(promise_t(this));
     }
 
     ///Construct future with deferred evaluation
@@ -484,7 +484,7 @@ public:
 
     template<invocable_r_exact<future<T> > Fn>
     future(Fn &&fn) {
-        new(this) future(fn());
+        new(this) future(std::forward<Fn>(fn)());
     }
 
     ///dtor
@@ -794,10 +794,34 @@ public:
      * @param prom target promise
      * @return notify of target promise. If the future is not resulved, return
      * is false
+     *
+     * @note uses copying. If you need move, you need to use std::move(x.forward_to(...))
      */
     template<typename X>
-    typename promise<X>::notify forward_to(promise<X> &prom) noexcept {
-        return convert_to(prom, [](T &x)->X{return x;});
+    typename promise<X>::notify forward_to(promise<X> &prom) & noexcept  {
+        if (this->is_pending()) return {};
+        switch (_result) {
+            case Result::exception: return prom.reject(_exception);
+            case Result::value:
+                if constexpr(std::is_void_v<X>) {
+                    return prom();
+                } else {
+                    if constexpr(std::is_reference_v<T>) {
+                        return prom(*_value);
+                    } else {
+                        return prom(_value);
+                    }
+                }
+            default:
+            case Result::not_set:
+                return prom.cancel();
+
+        }
+
+    }
+    template<typename X>
+    typename promise<X>::notify forward_to(promise<X> &&prom) & noexcept  {
+        return forward_to(prom);
     }
 
     ///Forward value, possibly convert it, to different promise
@@ -807,14 +831,14 @@ public:
      * cancel status
      *
      * @param prom target promise
-     * @param convert function which perform conversion from T to X
      * @return notify of target promise. If the future is not resulved, return
      * is false
+     *
+     * @note uses move
      */
-    template<typename X, std::invocable<std::add_lvalue_reference_t<T> > Fn>
-    typename promise<X>::notify convert_to(promise<X> &prom, Fn &&convert) noexcept {
+    template<typename X>
+    typename promise<X>::notify forward_to(promise<X> &prom) && noexcept  {
         if (this->is_pending()) return {};
-
         switch (_result) {
             case Result::exception: return prom.reject(_exception);
             case Result::value:
@@ -822,9 +846,59 @@ public:
                     return prom();
                 } else {
                     if constexpr(std::is_reference_v<T>) {
-                        return prom(convert(*_value));
+                        return prom(std::move(*_value));
                     } else {
-                        return prom(convert(_value));
+                        return prom(std::move(_value));
+                    }
+                }
+            default:
+            case Result::not_set:
+                return prom.cancel();
+
+        }
+
+    }
+
+    template<typename X>
+    typename promise<X>::notify forward_to(promise<X> &&prom) && noexcept  {
+        return std::move(*this).forward_to(prom);
+    }
+
+
+    ///Forward value, possibly convert it, to different promise
+    /**
+     * The source future must be resolved. The function forwards whole state without
+     * throwing any exception. So the target promise recives possible exception or
+     * cancel status
+     *
+     * @param prom target promise
+     * @param convert function which perform conversion from T to X. For T=void, the
+     * passed value is bool.  If the function returns void, default constructor is used
+     * to construct result
+     *
+     * @return notify of target promise. If the future is not resulved, return
+     * is false
+     */
+    template<typename X, std::invocable<std::add_lvalue_reference_t<cast_return>  > Fn>
+    typename promise<X>::notify convert_to(promise<X> &prom, Fn &&convert) noexcept {
+        if (this->is_pending()) return {};
+
+        switch (_result) {
+            case Result::exception: return prom.reject(_exception);
+            case Result::value:
+                if constexpr(std::is_void_v<std::invoke_result_t<Fn,std::add_lvalue_reference_t<cast_return> > >) {
+                    if constexpr(std::is_reference_v<T>) {
+                        std::forward<Fn>(convert)(_value);
+                        return prom();
+                    } else {
+                        std::forward<Fn>(convert)(_value);
+                        return prom();
+                    }
+                } else {
+                    if constexpr(std::is_reference_v<T>) {
+                        return prom(std::forward<Fn>(convert)(*_value));
+                    } else {
+                        return prom(std::forward<Fn>(convert)(_value));
                     }
                 }
             default:
@@ -833,6 +907,11 @@ public:
 
         }
     }
+    template<typename X, std::invocable<std::add_lvalue_reference_t<cast_return>  > Fn>
+    typename promise<X>::notify convert_to(promise<X> &&prom, Fn &&convert) noexcept {
+        return convert_to(prom, std::forward<Fn>(convert));
+    }
+
 
 
 protected:
@@ -1180,13 +1259,29 @@ public:
     /**This allows to convert deferred_future to a future. The state of current
      * object is change to resolved without a value.
      */
-    void operator()(promise_t &&prom) {
+    void operator()(promise_t &&prom) & {
         if (this->_state == State::deferred) {
             this->_deferred(std::move(prom));
             std::destroy_at(&this->_deferred);
             this->_state = State::resolved;
         } else if (this->_state == State::resolved) {
-            this->convert_to(prom, [](T &x)->T{return std::move(x);});
+            this->forward_to(prom);
+        } else {
+            throw still_pending_exception();
+        }
+    }
+
+    ///By calling deferred future with a promise, the future is started and result is trensfered to the promise
+    /**This allows to convert deferred_future to a future. The state of current
+     * object is change to resolved without a value.
+     */
+    void operator()(promise_t &&prom) && {
+        if (this->_state == State::deferred) {
+            this->_deferred(std::move(prom));
+            std::destroy_at(&this->_deferred);
+            this->_state = State::resolved;
+        } else if (this->_state == State::resolved) {
+            std::move(*this).forward_to(prom);
         } else {
             throw still_pending_exception();
         }

@@ -17,6 +17,7 @@ set(testFiles all_compile.cpp
                any.cpp
                mutex.cpp
                future_move.cpp
+               future_forward.cpp
                scheduler.cpp
                destroy_coro.cpp
                thread_pool.cpp
