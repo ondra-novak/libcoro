@@ -124,6 +124,9 @@ int test3() {
 
         coro::future<TestSubject> fut_move(std::move(fut));
 
+        CHECK(!fut_move.is_pending());
+        CHECK(!fut_move.is_deferred());
+
     }
     CHECK_EQUAL(TestSubject::constructor, 1);
     CHECK_EQUAL(TestSubject::destructor, 3);

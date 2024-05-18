@@ -1260,11 +1260,12 @@ public:
      * object is change to resolved without a value.
      */
     void operator()(promise_t &&prom) & {
-        if (this->_state == State::deferred) {
+        State st = this->_state;
+        if (st == State::deferred) {
             this->_deferred(std::move(prom));
             std::destroy_at(&this->_deferred);
             this->_state = State::resolved;
-        } else if (this->_state == State::resolved) {
+        } else if (st == State::resolved) {
             this->forward_to(prom);
         } else {
             throw still_pending_exception();
@@ -1276,11 +1277,12 @@ public:
      * object is change to resolved without a value.
      */
     void operator()(promise_t &&prom) && {
-        if (this->_state == State::deferred) {
+        State st = this->_state;
+        if (st == State::deferred) {
             this->_deferred(std::move(prom));
             std::destroy_at(&this->_deferred);
             this->_state = State::resolved;
-        } else if (this->_state == State::resolved) {
+        } else if (st == State::resolved) {
             std::move(*this).forward_to(prom);
         } else {
             throw still_pending_exception();
