@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.9.1"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>libcoro: coro::future::is_in_progress</title>
+<title>libcoro: coro::future::forward_to</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -78,7 +78,7 @@ $(function() {
           <tr><td class="navtab"><a class="navtab" href="classcoro_1_1future_a9a35b0e6fb236fbac22de0752e7cf74d.html#a9a35b0e6fb236fbac22de0752e7cf74d">convert_to</a></td></tr>
           <tr><td class="navtab"><a class="navtab" href="classcoro_1_1future_abe82ebc81cdcba991186fc036cab246d.html#abe82ebc81cdcba991186fc036cab246d">detach</a></td></tr>
           <tr><td class="navtab"><a class="navtab" href="classcoro_1_1future_a231ba6fdb26db91cb2a5d817ae0685ed.html#a231ba6fdb26db91cb2a5d817ae0685ed">forward_to</a></td></tr>
-          <tr><td class="navtab"><a class="navtab" href="classcoro_1_1future_ae5a61230acb8ef55f7e7781a56515b33.html#ae5a61230acb8ef55f7e7781a56515b33">forward_to</a></td></tr>
+          <tr><td class="navtabHL"><a class="navtab" href="classcoro_1_1future_ae5a61230acb8ef55f7e7781a56515b33.html#ae5a61230acb8ef55f7e7781a56515b33">forward_to</a></td></tr>
           <tr><td class="navtab"><a class="navtab" href="classcoro_1_1future_a5b9b4ef5f6c8c1f541b017e8f0b68b85.html#a5b9b4ef5f6c8c1f541b017e8f0b68b85">future</a></td></tr>
           <tr><td class="navtab"><a class="navtab" href="classcoro_1_1future_a4def6f48d15d8f4e16730c99e0a47c4b.html#a4def6f48d15d8f4e16730c99e0a47c4b">future</a></td></tr>
           <tr><td class="navtab"><a class="navtab" href="classcoro_1_1future_a0b11998c259463c0b7c098262f123d03.html#a0b11998c259463c0b7c098262f123d03">future</a></td></tr>
@@ -88,7 +88,7 @@ $(function() {
           <tr><td class="navtab"><a class="navtab" href="classcoro_1_1future_a4666461048b2c93b2d4383506d6068e4.html#a4666461048b2c93b2d4383506d6068e4">has_value</a></td></tr>
           <tr><td class="navtab"><a class="navtab" href="classcoro_1_1future_aa4dc790abd17ba74196c19022bdde4a7.html#aa4dc790abd17ba74196c19022bdde4a7">is_awaited</a></td></tr>
           <tr><td class="navtab"><a class="navtab" href="classcoro_1_1future_a331a709e5bf619289d2282836e9df641.html#a331a709e5bf619289d2282836e9df641">is_deferred</a></td></tr>
-          <tr><td class="navtabHL"><a class="navtab" href="classcoro_1_1future_aacd2d15009df87c497383481e5712c99.html#aacd2d15009df87c497383481e5712c99">is_in_progress</a></td></tr>
+          <tr><td class="navtab"><a class="navtab" href="classcoro_1_1future_aacd2d15009df87c497383481e5712c99.html#aacd2d15009df87c497383481e5712c99">is_in_progress</a></td></tr>
           <tr><td class="navtab"><a class="navtab" href="classcoro_1_1future_ad501d94dbb5cb2b5e77da2b90a0d7af2.html#ad501d94dbb5cb2b5e77da2b90a0d7af2">is_pending</a></td></tr>
           <tr><td class="navtab"><a class="navtab" href="classcoro_1_1future_a6828d9d513cfc33621eaaf543281395f.html#a6828d9d513cfc33621eaaf543281395f">operator cast_return</a></td></tr>
           <tr><td class="navtab"><a class="navtab" href="classcoro_1_1future_a94a5feb8ec0282a8d2d823346aaaea42.html#a94a5feb8ec0282a8d2d823346aaaea42">operator cast_return &amp;</a></td></tr>
@@ -108,41 +108,46 @@ $(function() {
       </div>
    </td>
    <td valign="top" class="mempage">
-<a id="aacd2d15009df87c497383481e5712c99"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aacd2d15009df87c497383481e5712c99">&#9670;&nbsp;</a></span>is_in_progress()</h2>
+<a id="ae5a61230acb8ef55f7e7781a56515b33"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae5a61230acb8ef55f7e7781a56515b33">&#9670;&nbsp;</a></span>forward_to() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
 template&lt;typename T &gt; </div>
+<div class="memtemplate">
+template&lt;typename X &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">bool <a class="el" href="classcoro_1_1future.html">coro::future</a>&lt; T &gt;::is_in_progress </td>
+          <td class="memname"><a class="el" href="classcoro_1_1promise.html">promise</a>&lt;X&gt;::notify <a class="el" href="classcoro_1_1future.html">coro::future</a>&lt; T &gt;::forward_to </td>
           <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
+          <td class="paramtype"><a class="el" href="classcoro_1_1promise.html">promise</a>&lt; X &gt; &amp;&#160;</td>
+          <td class="paramname"><em>prom</em></td><td>)</td>
+          <td> &amp;&amp;</td>
         </tr>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
 
-<p>Determine in progress status. </p>
-<dl class="retval"><dt>Return values</dt><dd>
-  <table class="retval">
-    <tr><td class="paramname">true</td><td>future is being evaluated (evaluation is performed asynchronously) </td></tr>
-    <tr><td class="paramname">false</td><td>future is dormant, it is either resolved or deferred </td></tr>
+<p>Forward value, possibly convert it, to different promise. </p>
+<p>The source future must be resolved. The function forwards whole state without throwing any exception. So the target promise recives possible exception or cancel status</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">prom</td><td>target promise </td></tr>
   </table>
   </dd>
 </dl>
+<dl class="section return"><dt>Returns</dt><dd>notify of target promise. If the future is not resulved, return is false</dd></dl>
+<dl class="section note"><dt>Note</dt><dd>uses move </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="future_8h_source.html#l00692">692</a> of file <a class="el" href="future_8h_source.html">future.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="future_8h_source.html#l00840">840</a> of file <a class="el" href="future_8h_source.html">future.h</a>.</p>
 
 </div>
 </div>

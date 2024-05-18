@@ -1,7 +1,7 @@
 var searchData=
 [
   ['filtered_5fupdate_5fqueue_58',['filtered_update_queue',['../classcoro_1_1filtered__update__queue.html',1,'coro']]],
-  ['forward_5fto_59',['forward_to',['../classcoro_1_1future_a96ac87f9e055f2b42c7cc0c1426cbfd2.html#a96ac87f9e055f2b42c7cc0c1426cbfd2',1,'coro::future']]],
+  ['forward_5fto_59',['forward_to',['../classcoro_1_1future_a231ba6fdb26db91cb2a5d817ae0685ed.html#a231ba6fdb26db91cb2a5d817ae0685ed',1,'coro::future::forward_to(promise&lt; X &gt; &amp;prom) &amp;noexcept'],['../classcoro_1_1future_ae5a61230acb8ef55f7e7781a56515b33.html#ae5a61230acb8ef55f7e7781a56515b33',1,'coro::future::forward_to(promise&lt; X &gt; &amp;prom) &amp;&amp;noexcept']]],
   ['frame_60',['frame',['../classcoro_1_1frame.html',1,'coro']]],
   ['frame_3c_20fiber_20_3e_61',['frame&lt; fiber &gt;',['../classcoro_1_1frame.html',1,'coro']]],
   ['frame_3c_20waitableframe_20_3e_62',['frame&lt; WaitableFrame &gt;',['../classcoro_1_1frame.html',1,'coro']]],

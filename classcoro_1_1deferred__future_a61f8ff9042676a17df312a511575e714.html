@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.9.1"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>libcoro: coro::future_variant::operator&lt;&lt;</title>
+<title>libcoro: coro::deferred_future::operator()</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -63,7 +63,7 @@ $(function() {
 
 <div id="nav-path" class="navpath">
   <ul>
-<li class="navelem"><a class="el" href="namespacecoro.html">coro</a></li><li class="navelem"><a class="el" href="classcoro_1_1future__variant.html">future_variant</a></li>  </ul>
+<li class="navelem"><a class="el" href="namespacecoro.html">coro</a></li><li class="navelem"><a class="el" href="classcoro_1_1deferred__future.html">deferred_future</a></li>  </ul>
 </div>
 </div><!-- top -->
 <div class="contents">
@@ -72,32 +72,29 @@ $(function() {
    <td valign="top">
       <div class="navtab">
         <table>
-          <tr><td class="navtab"><a class="navtab" href="classcoro_1_1future__variant_a4971e988c17ab4afe824515717dd0322.html#a4971e988c17ab4afe824515717dd0322">get_promise</a></td></tr>
-          <tr><td class="navtabHL"><a class="navtab" href="classcoro_1_1future__variant_a14c0cf4c986f457908b049dfb7b58d18.html#a14c0cf4c986f457908b049dfb7b58d18">operator&lt;&lt;</a></td></tr>
-          <tr><td class="navtab"><a class="navtab" href="classcoro_1_1future__variant_aae81c4959dd6cbca332bf6ec5db390fc.html#aae81c4959dd6cbca332bf6ec5db390fc">reset</a></td></tr>
+          <tr><td class="navtab"><a class="navtab" href="classcoro_1_1deferred__future_a044512e973d8ba1b69e48c289b84e177.html#a044512e973d8ba1b69e48c289b84e177">operator()</a></td></tr>
+          <tr><td class="navtabHL"><a class="navtab" href="classcoro_1_1deferred__future_a61f8ff9042676a17df312a511575e714.html#a61f8ff9042676a17df312a511575e714">operator()</a></td></tr>
         </table>
       </div>
    </td>
    <td valign="top" class="mempage">
-<a id="a14c0cf4c986f457908b049dfb7b58d18"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a14c0cf4c986f457908b049dfb7b58d18">&#9670;&nbsp;</a></span>operator&lt;&lt;()</h2>
+<a id="a61f8ff9042676a17df312a511575e714"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a61f8ff9042676a17df312a511575e714">&#9670;&nbsp;</a></span>operator()() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename ... Types&gt; </div>
-<div class="memtemplate">
-template&lt;std::invocable&lt;&gt; Fn&gt; </div>
+template&lt;typename T &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">auto&amp; <a class="el" href="classcoro_1_1future__variant.html">coro::future_variant</a>&lt; Types &gt;::operator&lt;&lt; </td>
+          <td class="memname">void <a class="el" href="classcoro_1_1deferred__future.html">coro::deferred_future</a>&lt; T &gt;::operator() </td>
           <td>(</td>
-          <td class="paramtype">Fn &amp;&amp;&#160;</td>
-          <td class="paramname"><em>fn</em></td><td>)</td>
-          <td></td>
+          <td class="paramtype"><a class="el" href="classcoro_1_1promise.html">promise_t</a> &amp;&amp;&#160;</td>
+          <td class="paramname"><em>prom</em></td><td>)</td>
+          <td> &amp;&amp;</td>
         </tr>
       </table>
   </td>
@@ -107,16 +104,10 @@ template&lt;std::invocable&lt;&gt; Fn&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p>Redirect return value to future object. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">fn</td><td>invocable object without arguments, which returns a future or <a class="el" href="classcoro_1_1deferred__future.html" title="Contains future value of T, where evaluation is deferred until the value is needed.">deferred_future</a>, The return value is constructed inside of <a class="el" href="classcoro_1_1future__variant.html" title="makes a variant future - multiple futures shares single space">future_variant</a> instance. Any previous instance is destroyed automatically. </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>reference to newly initialized future object in correct type </dd></dl>
+<p>By calling deferred future with a promise, the future is started and result is trensfered to the promise. </p>
+<p>This allows to convert <a class="el" href="classcoro_1_1deferred__future.html" title="Contains future value of T, where evaluation is deferred until the value is needed.">deferred_future</a> to a future. The state of current object is change to resolved without a value. </p>
 
-<p class="definition">Definition at line <a class="el" href="future__variant_8h_source.html#l00060">60</a> of file <a class="el" href="future__variant_8h_source.html">future_variant.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="future_8h_source.html#l01278">1278</a> of file <a class="el" href="future_8h_source.html">future.h</a>.</p>
 
 </div>
 </div>
