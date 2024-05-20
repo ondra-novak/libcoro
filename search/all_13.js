@@ -1,7 +1,7 @@
 var searchData=
 [
   ['task_5flist_186',['task_list',['../classcoro_1_1task__list.html',1,'coro']]],
-  ['then_187',['then',['../classcoro_1_1future_acebad35adcf2de89b1e95f3639856e11.html#acebad35adcf2de89b1e95f3639856e11',1,'coro::future::then()'],['../classcoro_1_1shared__future_a1ee746638d78ab0d4c249df3b518dbb4.html#a1ee746638d78ab0d4c249df3b518dbb4',1,'coro::shared_future::then()']]],
+  ['then_187',['then',['../classcoro_1_1future_acebad35adcf2de89b1e95f3639856e11.html#acebad35adcf2de89b1e95f3639856e11',1,'coro::future::then()'],['../classcoro_1_1shared__future_a1ee746638d78ab0d4c249df3b518dbb4.html#a1ee746638d78ab0d4c249df3b518dbb4',1,'coro::shared_future::then()'],['../classcoro_1_1subscription_a42293ed0d0a4a0ec434746c0f7dda220.html#a42293ed0d0a4a0ec434746c0f7dda220',1,'coro::subscription::then()']]],
   ['thread_5fpool_188',['thread_pool',['../classcoro_1_1scheduler__t_a2a31ac14196323598e68fbfdc7133199.html#a2a31ac14196323598e68fbfdc7133199',1,'coro::scheduler_t::thread_pool(unsigned int threads)'],['../classcoro_1_1scheduler__t_a406380eb370a8fc2fe27645860f33006.html#a406380eb370a8fc2fe27645860f33006',1,'coro::scheduler_t::thread_pool(std::shared_ptr&lt; coro::thread_pool &gt; pool)'],['../group__awaitable_ga02b71f38fffb35f0bbb5aad59ca2c3b3.html#ga02b71f38fffb35f0bbb5aad59ca2c3b3',1,'coro::thread_pool()']]],
   ['thread_5fpool_5ft_189',['thread_pool_t',['../classcoro_1_1thread__pool__t.html',1,'coro::thread_pool_t&lt; CondVar &gt;'],['../classcoro_1_1thread__pool__t_ab2ece58dd6c5d261f413eec2ff85e8d7.html#ab2ece58dd6c5d261f413eec2ff85e8d7',1,'coro::thread_pool_t::thread_pool_t()']]],
   ['tools_190',['Tools',['../group__tools.html',1,'']]],

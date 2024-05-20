@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.9.1"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>libcoro: coro::sync_context::release</title>
+<title>libcoro: coro::distributor::subscribe</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -63,7 +63,7 @@ $(function() {
 
 <div id="nav-path" class="navpath">
   <ul>
-<li class="navelem"><a class="el" href="namespacecoro.html">coro</a></li><li class="navelem"><a class="el" href="classcoro_1_1sync__context.html">sync_context</a></li>  </ul>
+<li class="navelem"><a class="el" href="namespacecoro.html">coro</a></li><li class="navelem"><a class="el" href="classcoro_1_1distributor.html">distributor</a></li>  </ul>
 </div>
 </div><!-- top -->
 <div class="contents">
@@ -72,27 +72,35 @@ $(function() {
    <td valign="top">
       <div class="navtab">
         <table>
-          <tr><td class="navtab"><a class="navtab" href="classcoro_1_1sync__context_a5eda2628d29e7d93a5d2d6f4b9470445.html#a5eda2628d29e7d93a5d2d6f4b9470445">get_resume_fn</a></td></tr>
-          <tr><td class="navtabHL"><a class="navtab" href="classcoro_1_1sync__context_aa87ad6a4d7fdecc7c4c51fb4b4718202.html#aa87ad6a4d7fdecc7c4c51fb4b4718202">release</a></td></tr>
-          <tr><td class="navtab"><a class="navtab" href="classcoro_1_1sync__context_a81ea85be5cab3eae9123b57a26fbec4f.html#a81ea85be5cab3eae9123b57a26fbec4f">suspend</a></td></tr>
-          <tr><td class="navtab"><a class="navtab" href="classcoro_1_1sync__context_ad6336a2887c60ce14d3695510cca7a67.html#ad6336a2887c60ce14d3695510cca7a67">~sync_context</a></td></tr>
+          <tr><td class="navtab"><a class="navtab" href="classcoro_1_1distributor_a8faf05d2a8aae8f2bc2a14628e3f07a0.html#a8faf05d2a8aae8f2bc2a14628e3f07a0">cancel_all</a></td></tr>
+          <tr><td class="navtab"><a class="navtab" href="classcoro_1_1distributor_a531fc239d298e7e4b34cf87a31ff2025.html#a531fc239d298e7e4b34cf87a31ff2025">distributor</a></td></tr>
+          <tr><td class="navtab"><a class="navtab" href="classcoro_1_1distributor_ae5726ddff39fb4247d887d822230dc90.html#ae5726ddff39fb4247d887d822230dc90">distributor</a></td></tr>
+          <tr><td class="navtab"><a class="navtab" href="classcoro_1_1distributor_a7a22a95f4363b7522e43dbec007ef338.html#a7a22a95f4363b7522e43dbec007ef338">drop</a></td></tr>
+          <tr><td class="navtab"><a class="navtab" href="classcoro_1_1distributor_ac51164397a931cf309a3dbd3e206d180.html#ac51164397a931cf309a3dbd3e206d180">publish</a></td></tr>
+          <tr><td class="navtab"><a class="navtab" href="classcoro_1_1distributor_ad7967d46813c5eabba0ce5004255cacf.html#ad7967d46813c5eabba0ce5004255cacf">queue</a></td></tr>
+          <tr><td class="navtab"><a class="navtab" href="classcoro_1_1distributor_a399379f391d8c1577923d5f5b235ae93.html#a399379f391d8c1577923d5f5b235ae93">reject_all</a></td></tr>
+          <tr><td class="navtab"><a class="navtab" href="classcoro_1_1distributor_a151fe78ce593ec5c4b644b97b1d8d230.html#a151fe78ce593ec5c4b644b97b1d8d230">reject_all</a></td></tr>
+          <tr><td class="navtabHL"><a class="navtab" href="classcoro_1_1distributor_acfd99952fbc80cfabeadc919df4cbb60.html#acfd99952fbc80cfabeadc919df4cbb60">subscribe</a></td></tr>
         </table>
       </div>
    </td>
    <td valign="top" class="mempage">
-<a id="aa87ad6a4d7fdecc7c4c51fb4b4718202"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa87ad6a4d7fdecc7c4c51fb4b4718202">&#9670;&nbsp;</a></span>release()</h2>
+<a id="acfd99952fbc80cfabeadc919df4cbb60"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acfd99952fbc80cfabeadc919df4cbb60">&#9670;&nbsp;</a></span>subscribe()</h2>
 
 <div class="memitem">
 <div class="memproto">
+<div class="memtemplate">
+template&lt;typename T , typename Lock  = nolock&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">void coro::sync_context::release </td>
+          <td class="memname"><a class="el" href="classcoro_1_1subscription.html">subscription</a>&lt;T&gt; <a class="el" href="classcoro_1_1distributor.html">coro::distributor</a>&lt; T, Lock &gt;::subscribe </td>
           <td>(</td>
-          <td class="paramname"></td><td>)</td>
+          <td class="paramtype">ID&#160;</td>
+          <td class="paramname"><em>id</em> = <code>{&#160;}</code></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -103,21 +111,16 @@ $(function() {
 </table>
 </div><div class="memdoc">
 
-<p>Manualy release writer. </p>
+<p>subscribe </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">id</td><td>identifier of subsciber (optional) </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>future which is resolved with distributed event </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="sync__context_8h_source.html#l00061">61</a> of file <a class="el" href="sync__context_8h_source.html">sync_context.h</a>.</p>
-<div id="dynsection-0" onclick="return toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
-  <img id="dynsection-0-trigger" src="closed.png" alt="+"/> Here is the caller graph for this function:</div>
-<div id="dynsection-0-summary" class="dynsummary" style="display:block;">
-</div>
-<div id="dynsection-0-content" class="dyncontent" style="display:none;">
-<div class="center"><img src="classcoro_1_1sync__context_aa87ad6a4d7fdecc7c4c51fb4b4718202_aa87ad6a4d7fdecc7c4c51fb4b4718202_icgraph.png" border="0" usemap="#aclasscoro_1_1sync__context_aa87ad6a4d7fdecc7c4c51fb4b4718202_aa87ad6a4d7fdecc7c4c51fb4b4718202_icgraph" alt=""/></div>
-<map name="aclasscoro_1_1sync__context_aa87ad6a4d7fdecc7c4c51fb4b4718202_aa87ad6a4d7fdecc7c4c51fb4b4718202_icgraph" id="aclasscoro_1_1sync__context_aa87ad6a4d7fdecc7c4c51fb4b4718202_aa87ad6a4d7fdecc7c4c51fb4b4718202_icgraph">
-<area shape="rect" title="Manualy release writer." alt="" coords="197,39,341,80"/>
-<area shape="rect" href="classcoro_1_1sync__context_a81ea85be5cab3eae9123b57a26fbec4f.html#a81ea85be5cab3eae9123b57a26fbec4f" title="Suspends current thread." alt="" coords="5,5,149,47"/>
-<area shape="rect" href="classcoro_1_1sync__context_ad6336a2887c60ce14d3695510cca7a67.html#ad6336a2887c60ce14d3695510cca7a67" title="destructor automatically releases writer" alt="" coords="5,71,149,112"/>
-</map>
-</div>
+<p class="definition">Definition at line <a class="el" href="distributor_8h_source.html#l00094">94</a> of file <a class="el" href="distributor_8h_source.html">distributor.h</a>.</p>
 
 </div>
 </div>
@@ -127,7 +130,7 @@ $(function() {
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon May 20 2024 09:14:09 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+Generated on Mon May 20 2024 12:40:26 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
 </small></address>
 </body>
 </html>
