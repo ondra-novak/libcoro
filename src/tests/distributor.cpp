@@ -5,9 +5,9 @@
 coro::async<void> test_coro(int id, coro::distributor<int> &dist, std::queue<std::pair<int,int > > &r) {
 
     while(1) {
-        coro::future<int> f = dist.subscribe();
+        auto f = dist.subscribe();
         if ( co_await !f) break;
-        int val = f;
+        int val = f.get();
         r.push({id, val});
     }
 }
@@ -16,7 +16,7 @@ coro::async<void> test_coro2(int id, coro::distributor<int> &dist, std::queue<st
 
     try {
         while (true) {
-            coro::future<int> f = dist.subscribe();
+            auto f = dist.subscribe();
             int val = co_await f;
             r.push({id, val});
         }

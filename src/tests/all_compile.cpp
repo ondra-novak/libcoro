@@ -11,6 +11,7 @@
 #include "../coro/condition.h"
 #include "../coro/collector.h"
 #include "../coro/future_variant.h"
+#include "../coro/subscription.h"
 
 
 template class coro::future<int>;

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../coro/future.h"
+#include "../coro/subscription.h"
 #include "../coro/queue.h"
 
 #include <vector>
@@ -91,10 +91,11 @@ public:
      * @param id identifier of subsciber (optional)
      * @return future which is resolved with distributed event
      */
-    future<T> subscribe(ID id = { }) {
-        return [&](auto promise) {
+    subscription<T> subscribe(ID id = { }) {
+        return typename subscription<T>::subscribe_fn([this, id](promise<T> promise) ->prepared_coro {
             subscribe(std::move(promise), id);
-        };
+            return {};
+        });
     }
 
     void subscribe(promise_t &&prom, ID id = { }) {
@@ -206,10 +207,10 @@ public:
     }
 
 protected:
-    future<T> _dist_value;
+    subscription<T> _dist_value;
     distributor<T, Lock> *_connection = nullptr;
     void charge() {
-        _dist_value << [&]{return _connection->subscribe(this);};
+        _dist_value = _connection->subscribe(this);
         _dist_value >> [&]{value_ready();};
     }
 
