@@ -1,0 +1,5 @@
+<map id="coro::sync_context::release" name="coro::sync_context::release">
+<area shape="rect" id="node1" title="Manualy release writer." alt="" coords="197,39,341,80"/>
+<area shape="rect" id="node2" href="$classcoro_1_1sync__context_a81ea85be5cab3eae9123b57a26fbec4f.html#a81ea85be5cab3eae9123b57a26fbec4f" title="Suspends current thread." alt="" coords="5,5,149,47"/>
+<area shape="rect" id="node3" href="$classcoro_1_1sync__context_ad6336a2887c60ce14d3695510cca7a67.html#ad6336a2887c60ce14d3695510cca7a67" title="destructor automatically releases writer" alt="" coords="5,71,149,112"/>
+</map>
