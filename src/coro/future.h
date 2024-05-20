@@ -2,6 +2,7 @@
 #include "common.h"
 #include "function.h"
 #include "exceptions.h"
+#include "sync_context.h"
 
 #include "prepared_coro.h"
 #include "allocator.h"
@@ -657,9 +658,38 @@ public:
     wait_awaiter wait() noexcept {return this;}
 
 
+    ///Synchronous wait with help of sync_context
+    /**
+     * @param ctx sync_context
+     *
+     * The sync_context causes that caller of the promise is blocked until the
+     * sync context is unblocked. Unblock is performed manually or on next wait();
+     * This gives the awaiting thread a chance to process a data before the caller
+     * continues in execution (synchronous switch between threads)
+     */
+    void wait(sync_context &ctx) noexcept {
+        then(ctx.get_resume_fn());
+        ctx.suspend();
+    }
+
     ///Retrieves value, performs synchronous wait
     decltype(auto) get() {
         wait();
+        return await_resume();
+    }
+
+    ///Retrieves value, performs synchronous wait with help of sync_context
+    /**
+     * @param ctx sync_context instance
+     * @return value or exception
+     *
+     * The sync_context causes that caller of the promise is blocked until the
+     * sync context is unblocked. Unblock is performed manually or on next wait();
+     * This gives the awaiting thread a chance to process a data before the caller
+     * continues in execution (synchronous switch between threads)
+     */
+    decltype(auto) get(sync_context &ctx) {
+        wait(ctx);
         return await_resume();
     }
 
@@ -1557,9 +1587,21 @@ public:
     wait_awaiter wait() {return this;}
 
 
+    void wait(sync_context &ctx) {
+        then(ctx.get_resume_fn());
+        ctx.suspend();
+    }
+
+
     ///Retrieves value, performs synchronous wait
     decltype(auto) get() {
         wait();
+        return _shared_future->get();
+    }
+
+    ///Retrieves value, performs synchronous wait
+    decltype(auto) get(sync_context &ctx) {
+        wait(ctx);
         return _shared_future->get();
     }
 
