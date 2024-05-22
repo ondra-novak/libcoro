@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.9.1"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>libcoro: coro::subscription::lock</title>
+<title>libcoro: coro::subscription::init_lock</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -73,11 +73,13 @@ $(function() {
       <div class="navtab">
         <table>
           <tr><td class="navtab"><a class="navtab" href="classcoro_1_1subscription_a993bc0abc4d0cf85a9adea926cec8e10.html#a993bc0abc4d0cf85a9adea926cec8e10">await_ready</a></td></tr>
-          <tr><td class="navtab"><a class="navtab" href="classcoro_1_1subscription_a45cda8c7427271bcfe356d9db7524120.html#a45cda8c7427271bcfe356d9db7524120">await_resume</a></td></tr>
+          <tr><td class="navtab"><a class="navtab" href="classcoro_1_1subscription_a4cea122b7b4ea9715bf71a7c57e956fb.html#a4cea122b7b4ea9715bf71a7c57e956fb">await_resume</a></td></tr>
           <tr><td class="navtab"><a class="navtab" href="classcoro_1_1subscription_adc2388981a9e2ae5313ad4f0396cf754.html#adc2388981a9e2ae5313ad4f0396cf754">await_suspend</a></td></tr>
           <tr><td class="navtab"><a class="navtab" href="classcoro_1_1subscription_a87225c5be418033724be0c38b0949a8e.html#a87225c5be418033724be0c38b0949a8e">get</a></td></tr>
           <tr><td class="navtab"><a class="navtab" href="classcoro_1_1subscription_a8b69e5ebcddeb2698db9a796a6a85082.html#a8b69e5ebcddeb2698db9a796a6a85082">has_value</a></td></tr>
-          <tr><td class="navtabHL"><a class="navtab" href="classcoro_1_1subscription_ad23be9c3ecbb60b88faae9dde7a7de4e.html#ad23be9c3ecbb60b88faae9dde7a7de4e">lock</a></td></tr>
+          <tr><td class="navtab"><a class="navtab" href="classcoro_1_1subscription_acc011485983841a10ac6300cacf356ad.html#acc011485983841a10ac6300cacf356ad">init_lock</a></td></tr>
+          <tr><td class="navtabHL"><a class="navtab" href="classcoro_1_1subscription_a3e4167a842bd7e5fb78f35c846c9ba19.html#a3e4167a842bd7e5fb78f35c846c9ba19">init_lock</a></td></tr>
+          <tr><td class="navtab"><a class="navtab" href="classcoro_1_1subscription_a55aa14d53f9c1a13b335c536a9bc66d0.html#a55aa14d53f9c1a13b335c536a9bc66d0">lock</a></td></tr>
           <tr><td class="navtab"><a class="navtab" href="classcoro_1_1subscription_ab9dbba8054e18709658779374b105e50.html#ab9dbba8054e18709658779374b105e50">operator!</a></td></tr>
           <tr><td class="navtab"><a class="navtab" href="classcoro_1_1subscription_af4880a22f4797a03187860850964d985.html#af4880a22f4797a03187860850964d985">operator=</a></td></tr>
           <tr><td class="navtab"><a class="navtab" href="classcoro_1_1subscription_a8557effd13515f05310e002baaf9a57e.html#a8557effd13515f05310e002baaf9a57e">operator&gt;&gt;</a></td></tr>
@@ -91,8 +93,8 @@ $(function() {
       </div>
    </td>
    <td valign="top" class="mempage">
-<a id="ad23be9c3ecbb60b88faae9dde7a7de4e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad23be9c3ecbb60b88faae9dde7a7de4e">&#9670;&nbsp;</a></span>lock()</h2>
+<a id="a3e4167a842bd7e5fb78f35c846c9ba19"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3e4167a842bd7e5fb78f35c846c9ba19">&#9670;&nbsp;</a></span>init_lock() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -103,29 +105,31 @@ template&lt;typename T , typename SubscribeFn  = function&lt;prepared_coro(promi
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">void <a class="el" href="classcoro_1_1subscription.html">coro::subscription</a>&lt; T, SubscribeFn &gt;::lock </td>
+          <td class="memname">static constexpr lock_ptr <a class="el" href="classcoro_1_1subscription.html">coro::subscription</a>&lt; T, SubscribeFn &gt;::init_lock </td>
           <td>(</td>
-          <td class="paramtype">LockedPtr &amp;&#160;</td>
-          <td class="paramname"><em>ptr</em></td><td>)</td>
+          <td class="paramtype">std::atomic&lt; bool &gt; &amp;&#160;</td>
+          <td class="paramname"><em>unlock</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">constexpr</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
 
-<p>subscribe and lock value during processing </p>
+<p>initialize lock_ptr, set atomic variable, which receives signal once the thread starts waiting on a subscription </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">ptr</td><td>pointer instance (initially initialized to nullptr). The function updates the pointer. It starts to point to the value. When pointer is held, the publisher is blocked. You can process the value, and need to use the pointer to subscribre for next value, which also unblock the publisher. If you drop the pointer, the publisher is also unblocked </td></tr>
+    <tr><td class="paramname">unlock</td><td>reference to atomic variable, which is set to true when <a class="el" href="classcoro_1_1subscription_a55aa14d53f9c1a13b335c536a9bc66d0.html#a55aa14d53f9c1a13b335c536a9bc66d0" title="subscribe and lock value during processing">lock()</a> is called with returned object</td></tr>
   </table>
   </dd>
 </dl>
+<dl class="section return"><dt>Returns</dt><dd>instance of lock_ptr which can be used in <a class="el" href="classcoro_1_1subscription_a55aa14d53f9c1a13b335c536a9bc66d0.html#a55aa14d53f9c1a13b335c536a9bc66d0" title="subscribe and lock value during processing">lock()</a> function</dd></dl>
+<dl class="section note"><dt>Note</dt><dd>accessing the contentent of such instance is UB. You only allowed to call <a class="el" href="classcoro_1_1subscription_a55aa14d53f9c1a13b335c536a9bc66d0.html#a55aa14d53f9c1a13b335c536a9bc66d0" title="subscribe and lock value during processing">lock()</a> to retrieve content </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="subscription_8h_source.html#l00139">139</a> of file <a class="el" href="subscription_8h_source.html">subscription.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="subscription_8h_source.html#l00144">144</a> of file <a class="el" href="subscription_8h_source.html">subscription.h</a>.</p>
 
 </div>
 </div>
@@ -135,7 +139,7 @@ template&lt;typename T , typename SubscribeFn  = function&lt;prepared_coro(promi
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon May 20 2024 12:40:26 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+Generated on Wed May 22 2024 10:51:46 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
 </small></address>
 </body>
 </html>

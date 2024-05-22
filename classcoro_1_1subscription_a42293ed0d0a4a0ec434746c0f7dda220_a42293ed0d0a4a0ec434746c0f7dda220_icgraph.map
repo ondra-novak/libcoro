@@ -1,6 +1,6 @@
 <map id="coro::subscription::then" name="coro::subscription::then">
 <area shape="rect" id="node1" title="define callback, which is called when value is ready" alt="" coords="191,71,328,112"/>
 <area shape="rect" id="node2" href="$classcoro_1_1subscription_adc2388981a9e2ae5313ad4f0396cf754.html#adc2388981a9e2ae5313ad4f0396cf754" title="co_await support Subscribe and wait for a value" alt="" coords="5,5,143,47"/>
-<area shape="rect" id="node3" href="$classcoro_1_1subscription_ad23be9c3ecbb60b88faae9dde7a7de4e.html#ad23be9c3ecbb60b88faae9dde7a7de4e" title="subscribe and lock value during processing" alt="" coords="5,71,143,112"/>
+<area shape="rect" id="node3" href="$classcoro_1_1subscription_a55aa14d53f9c1a13b335c536a9bc66d0.html#a55aa14d53f9c1a13b335c536a9bc66d0" title="subscribe and lock value during processing" alt="" coords="5,71,143,112"/>
 <area shape="rect" id="node4" href="$classcoro_1_1subscription_a8557effd13515f05310e002baaf9a57e.html#a8557effd13515f05310e002baaf9a57e" title="define callback, which is called when value is ready" alt="" coords="5,136,143,177"/>
 </map>

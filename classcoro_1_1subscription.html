@@ -116,9 +116,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:adc2388981a9e2ae5313ad4f0396cf754"><td class="memItemLeft" align="right" valign="top">std::coroutine_handle&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1subscription_adc2388981a9e2ae5313ad4f0396cf754.html#adc2388981a9e2ae5313ad4f0396cf754">await_suspend</a> (std::coroutine_handle&lt;&gt; h)</td></tr>
 <tr class="memdesc:adc2388981a9e2ae5313ad4f0396cf754"><td class="mdescLeft">&#160;</td><td class="mdescRight">co_await support Subscribe and wait for a value  <a href="classcoro_1_1subscription_adc2388981a9e2ae5313ad4f0396cf754.html#adc2388981a9e2ae5313ad4f0396cf754">More...</a><br /></td></tr>
 <tr class="separator:adc2388981a9e2ae5313ad4f0396cf754"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a45cda8c7427271bcfe356d9db7524120"><td class="memItemLeft" align="right" valign="top">decltype(auto)&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1subscription_a45cda8c7427271bcfe356d9db7524120.html#a45cda8c7427271bcfe356d9db7524120">await_resume</a> ()</td></tr>
-<tr class="memdesc:a45cda8c7427271bcfe356d9db7524120"><td class="mdescLeft">&#160;</td><td class="mdescRight">returns current value  <a href="classcoro_1_1subscription_a45cda8c7427271bcfe356d9db7524120.html#a45cda8c7427271bcfe356d9db7524120">More...</a><br /></td></tr>
-<tr class="separator:a45cda8c7427271bcfe356d9db7524120"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4cea122b7b4ea9715bf71a7c57e956fb"><td class="memItemLeft" align="right" valign="top">ret_value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1subscription_a4cea122b7b4ea9715bf71a7c57e956fb.html#a4cea122b7b4ea9715bf71a7c57e956fb">await_resume</a> ()</td></tr>
+<tr class="memdesc:a4cea122b7b4ea9715bf71a7c57e956fb"><td class="mdescLeft">&#160;</td><td class="mdescRight">returns current value  <a href="classcoro_1_1subscription_a4cea122b7b4ea9715bf71a7c57e956fb.html#a4cea122b7b4ea9715bf71a7c57e956fb">More...</a><br /></td></tr>
+<tr class="separator:a4cea122b7b4ea9715bf71a7c57e956fb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab9dbba8054e18709658779374b105e50"><td class="memItemLeft" align="right" valign="top">canceled_awaiter&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1subscription_ab9dbba8054e18709658779374b105e50.html#ab9dbba8054e18709658779374b105e50">operator!</a> ()</td></tr>
 <tr class="memdesc:ab9dbba8054e18709658779374b105e50"><td class="mdescLeft">&#160;</td><td class="mdescRight">wait and determine whether operation is canceled  <a href="classcoro_1_1subscription_ab9dbba8054e18709658779374b105e50.html#ab9dbba8054e18709658779374b105e50">More...</a><br /></td></tr>
 <tr class="separator:ab9dbba8054e18709658779374b105e50"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -133,15 +133,21 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a8557effd13515f05310e002baaf9a57e"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classcoro_1_1subscription_a8557effd13515f05310e002baaf9a57e.html#a8557effd13515f05310e002baaf9a57e">operator&gt;&gt;</a> (Fn &amp;&amp;fn)</td></tr>
 <tr class="memdesc:a8557effd13515f05310e002baaf9a57e"><td class="mdescLeft">&#160;</td><td class="mdescRight">define callback, which is called when value is ready  <a href="classcoro_1_1subscription_a8557effd13515f05310e002baaf9a57e.html#a8557effd13515f05310e002baaf9a57e">More...</a><br /></td></tr>
 <tr class="separator:a8557effd13515f05310e002baaf9a57e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad23be9c3ecbb60b88faae9dde7a7de4e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1subscription_ad23be9c3ecbb60b88faae9dde7a7de4e.html#ad23be9c3ecbb60b88faae9dde7a7de4e">lock</a> (LockedPtr &amp;ptr)</td></tr>
-<tr class="memdesc:ad23be9c3ecbb60b88faae9dde7a7de4e"><td class="mdescLeft">&#160;</td><td class="mdescRight">subscribe and lock value during processing  <a href="classcoro_1_1subscription_ad23be9c3ecbb60b88faae9dde7a7de4e.html#ad23be9c3ecbb60b88faae9dde7a7de4e">More...</a><br /></td></tr>
-<tr class="separator:ad23be9c3ecbb60b88faae9dde7a7de4e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a55aa14d53f9c1a13b335c536a9bc66d0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1subscription_a55aa14d53f9c1a13b335c536a9bc66d0.html#a55aa14d53f9c1a13b335c536a9bc66d0">lock</a> (lock_ptr &amp;ptr)</td></tr>
+<tr class="memdesc:a55aa14d53f9c1a13b335c536a9bc66d0"><td class="mdescLeft">&#160;</td><td class="mdescRight">subscribe and lock value during processing  <a href="classcoro_1_1subscription_a55aa14d53f9c1a13b335c536a9bc66d0.html#a55aa14d53f9c1a13b335c536a9bc66d0">More...</a><br /></td></tr>
+<tr class="separator:a55aa14d53f9c1a13b335c536a9bc66d0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
 <tr class="memitem:a993bc0abc4d0cf85a9adea926cec8e10"><td class="memItemLeft" align="right" valign="top">static constexpr bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1subscription_a993bc0abc4d0cf85a9adea926cec8e10.html#a993bc0abc4d0cf85a9adea926cec8e10">await_ready</a> () noexcept</td></tr>
 <tr class="memdesc:a993bc0abc4d0cf85a9adea926cec8e10"><td class="mdescLeft">&#160;</td><td class="mdescRight">co_await support  <a href="classcoro_1_1subscription_a993bc0abc4d0cf85a9adea926cec8e10.html#a993bc0abc4d0cf85a9adea926cec8e10">More...</a><br /></td></tr>
 <tr class="separator:a993bc0abc4d0cf85a9adea926cec8e10"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acc011485983841a10ac6300cacf356ad"><td class="memItemLeft" align="right" valign="top">static constexpr lock_ptr&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1subscription_acc011485983841a10ac6300cacf356ad.html#acc011485983841a10ac6300cacf356ad">init_lock</a> ()</td></tr>
+<tr class="memdesc:acc011485983841a10ac6300cacf356ad"><td class="mdescLeft">&#160;</td><td class="mdescRight">initialize lock_ptr object, which can be used to call <a class="el" href="classcoro_1_1subscription_a55aa14d53f9c1a13b335c536a9bc66d0.html#a55aa14d53f9c1a13b335c536a9bc66d0" title="subscribe and lock value during processing">lock()</a> to wait on subscription and process result  <a href="classcoro_1_1subscription_acc011485983841a10ac6300cacf356ad.html#acc011485983841a10ac6300cacf356ad">More...</a><br /></td></tr>
+<tr class="separator:acc011485983841a10ac6300cacf356ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3e4167a842bd7e5fb78f35c846c9ba19"><td class="memItemLeft" align="right" valign="top">static constexpr lock_ptr&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1subscription_a3e4167a842bd7e5fb78f35c846c9ba19.html#a3e4167a842bd7e5fb78f35c846c9ba19">init_lock</a> (std::atomic&lt; bool &gt; &amp;unlock)</td></tr>
+<tr class="memdesc:a3e4167a842bd7e5fb78f35c846c9ba19"><td class="mdescLeft">&#160;</td><td class="mdescRight">initialize lock_ptr, set atomic variable, which receives signal once the thread starts waiting on a subscription  <a href="classcoro_1_1subscription_a3e4167a842bd7e5fb78f35c846c9ba19.html#a3e4167a842bd7e5fb78f35c846c9ba19">More...</a><br /></td></tr>
+<tr class="separator:a3e4167a842bd7e5fb78f35c846c9ba19"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
@@ -172,7 +178,7 @@ class coro::subscription&lt; T, SubscribeFn &gt;</h3>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon May 20 2024 12:40:26 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+Generated on Wed May 22 2024 10:51:46 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
 </small></address>
 </body>
 </html>
