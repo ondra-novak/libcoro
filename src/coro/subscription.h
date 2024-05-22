@@ -34,6 +34,7 @@ public:
     using subscribe_fn = SubscribeFn;
 
     using canceled_awaiter = _details::has_value_awaiter<subscription,false>;
+    using ret_value = typename future<T>::ret_value;
 
     ///default constructor
     subscription() = default;
@@ -76,7 +77,7 @@ public:
     }
     ///returns current value
     /** use only in coroutine */
-    decltype(auto) await_resume() {
+    ret_value await_resume() {
         return _fut.await_resume();
     }
 
@@ -116,7 +117,7 @@ public:
         then(std::forward<Fn>(fn));
     }
 
-    struct Unlocker {
+    struct lock_guard {
         std::atomic<bool> *unlock = nullptr;
         void operator()(auto) {
             unlock->store(true);
@@ -124,9 +125,26 @@ public:
         }
     };
 
-    using RetVal = std::decay_t<decltype(std::declval<future<T> >().await_resume())>;
 
-    using LockedPtr = std::unique_ptr<RetVal, Unlocker>;
+    using lock_ptr = std::unique_ptr<std::remove_reference_t<ret_value>, lock_guard>;
+
+    ///initialize lock_ptr object, which can be used to call lock() to wait on subscription and process result
+    static constexpr lock_ptr init_lock() {return {};}
+
+    ///initialize lock_ptr, set atomic variable, which receives signal once the thread starts waiting on a subscription
+    /**
+     * @param unlock reference to atomic variable, which is set to true when lock() is called
+     * with returned object
+     *
+     * @return instance of lock_ptr which can be used in lock() function
+     *
+     * @note accessing the contentent of such instance is UB. You only allowed to call
+     * lock() to retrieve content
+     */
+    static constexpr lock_ptr init_lock(std::atomic<bool> &unlock) {return lock_ptr{
+        //hack: first argument is an pointer, which is ignored, but must not be nullptr
+            reinterpret_cast<std::remove_reference_t<ret_value> *>(&unlock), {&unlock}
+    };};
 
     ///subscribe and lock value during processing
     /**
@@ -136,7 +154,7 @@ public:
      * the pointer to subscribre for next value, which also unblock the publisher.
      * If you drop the pointer, the publisher is also unblocked
      */
-    void lock(LockedPtr &ptr) {
+    void lock(lock_ptr &ptr) {
         std::atomic<bool> ready = {false};
         std::atomic<bool> *unlock = nullptr;
         then([&]{
@@ -149,9 +167,12 @@ public:
         ptr.reset();
         ready.wait(false);
         if (has_value()) {
-            ptr = std::unique_ptr<RetVal, Unlocker>(&_fut.await_resume(), {unlock});
+            ret_value ref = _fut.get();
+            ptr = lock_ptr(&ref, {unlock});
         } else {
-            ptr = std::unique_ptr<RetVal, Unlocker>(nullptr, {unlock});
+            unlock->store(true);
+            unlock->notify_all();
+            ptr = lock_ptr(nullptr, {});
         }
     }
 

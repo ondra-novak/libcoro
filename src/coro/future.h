@@ -432,8 +432,23 @@ public:
 
     using value_type = T;
     using promise_t = promise<T>;
-    using value_store_type = std::conditional_t<std::is_reference_v<T>,std::add_pointer_t<std::decay_t<T> >,std::conditional_t<std::is_void_v<T>, bool, T> >;
-    using cast_return = std::conditional_t<std::is_reference_v<T>, T, value_store_type>;
+    using value_store_type = std::conditional_t<std::is_reference_v<T>,
+                                                        std::add_pointer_t<std::remove_reference_t<T> >,
+                                                        std::conditional_t<std::is_void_v<T>, bool, T> >;
+    ///type which is used for cast operator ()
+    /**
+     * This is always T && (if T is reference, then T & && -> T &)
+     * The type is bool in case that T is void, because in this case, bool is actually used
+     * as storage without defined value
+     */
+    using cast_ret_value = std::conditional_t<std::is_void_v<T>, bool, std::add_rvalue_reference_t<T> >;
+    ///type which is used as return value of get() and await_resume()
+    /**
+     * Both functions returns rvalue reference for T, lvalue reference for T & and void for void
+     * If you need to retrieve lvalue reference when T is specified, then you need to store rvalue
+     * reference and convert it to lvalue, or use const T
+     */
+    using ret_value = std::conditional_t<std::is_void_v<T>, void, std::add_rvalue_reference_t<T> >;
     using awaiter_type = function<prepared_coro()>;
     using deferred_eval_fn_type = function<prepared_coro(promise_t)>;
     using wait_awaiter = _details::wait_awaiter<future>;
@@ -547,6 +562,7 @@ public:
             }
         }
         clearStorage();
+        _chain = nullptr;
         return promise_t{this};
     }
 
@@ -658,19 +674,13 @@ public:
 
 
     ///Retrieves value, performs synchronous wait
-    decltype(auto) get() {
+    ret_value get() {
         wait();
         return await_resume();
     }
 
     ///Retrieves value, performs synchronous wait
-    operator cast_return() && {
-        wait();
-        return cast_return(std::forward<cast_return>(getInternal()));
-    }
-
-    ///Retrieves value, performs synchronous wait
-    operator cast_return &() & {
+    operator cast_ret_value() {
         wait();
         return getInternal();
     }
@@ -738,13 +748,11 @@ public:
     }
 
     ////@b co_await support, called by resumed coroutine to retrieve a value
-    decltype(auto) await_resume() {
+    ret_value await_resume() {
         if constexpr(std::is_void_v<T>) {
             getInternal();
-        } else if constexpr(std::is_reference_v<T>){
-            return getInternal();
         } else {
-            return std::move(getInternal());
+            return getInternal();
         }
     }
 
@@ -879,14 +887,14 @@ public:
      * @return notify of target promise. If the future is not resulved, return
      * is false
      */
-    template<typename X, std::invocable<std::add_lvalue_reference_t<cast_return>  > Fn>
+    template<typename X, std::invocable<cast_ret_value> Fn>
     typename promise<X>::notify convert_to(promise<X> &prom, Fn &&convert) noexcept {
         if (this->is_pending()) return {};
 
         switch (_result) {
             case Result::exception: return prom.reject(_exception);
             case Result::value:
-                if constexpr(std::is_void_v<std::invoke_result_t<Fn,std::add_lvalue_reference_t<cast_return> > >) {
+                if constexpr(std::is_void_v<std::invoke_result_t<Fn,cast_ret_value> >) {
                     if constexpr(std::is_reference_v<T>) {
                         std::forward<Fn>(convert)(_value);
                         return prom();
@@ -896,9 +904,9 @@ public:
                     }
                 } else {
                     if constexpr(std::is_reference_v<T>) {
-                        return prom(std::forward<Fn>(convert)(*_value));
+                        return prom(std::forward<Fn>(convert)(std::forward<cast_ret_value>(*_value)));
                     } else {
-                        return prom(std::forward<Fn>(convert)(_value));
+                        return prom(std::forward<Fn>(convert)(std::forward<cast_ret_value>(_value)));
                     }
                 }
             default:
@@ -907,7 +915,7 @@ public:
 
         }
     }
-    template<typename X, std::invocable<std::add_lvalue_reference_t<cast_return>  > Fn>
+    template<typename X, std::invocable<cast_ret_value> Fn>
     typename promise<X>::notify convert_to(promise<X> &&prom, Fn &&convert) noexcept {
         return convert_to(prom, std::forward<Fn>(convert));
     }
@@ -995,13 +1003,13 @@ protected:
         }
     }
 
-    cast_return &getInternal() {
+    cast_ret_value getInternal() {
         switch (_result) {
             case Result::value:
                 if constexpr(std::is_reference_v<T>) {
-                    return *_value;
+                    return std::forward<cast_ret_value>(*_value);
                 } else {
-                    return _value;
+                    return std::forward<cast_ret_value>(_value);
                 }
 
             case Result::exception: std::rethrow_exception(_exception); break;
@@ -1399,7 +1407,8 @@ public:
 
     using value_type = typename future<T>::value_type;
     using value_store_type = typename future<T>::value_store_type;
-    using cast_return = typename future<T>::cast_return;
+    using cast_ret_value = typename future<T>::cast_ret_value;
+    using ret_value = typename future<T>::ret_value;
     using awaiter_cb = function<prepared_coro()>;
     using wait_awaiter = _details::wait_awaiter<shared_future>;
     using canceled_awaiter = _details::has_value_awaiter<shared_future,false>;
@@ -1558,14 +1567,14 @@ public:
 
 
     ///Retrieves value, performs synchronous wait
-    decltype(auto) get() {
+    ret_value get() {
         wait();
         return _shared_future->get();
     }
 
 
     ///Retrieves value, performs synchronous wait
-    operator cast_return &(){
+    operator cast_ret_value (){
         wait();
         return *_shared_future;
     }
@@ -1618,7 +1627,7 @@ public:
     }
 
     ////@b co_await support, called by resumed coroutine to retrieve a value
-    T await_resume() {
+    ret_value await_resume() {
         return _shared_future->await_resume();
     }
 

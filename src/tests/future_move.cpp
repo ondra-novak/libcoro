@@ -59,7 +59,7 @@ int main() {
         TestSubject z = foo();
 
         auto f = foo();
-        [[maybe_unused]] TestSubject &x = f;
+        [[maybe_unused]] TestSubject &&x = f;
 
         bar();
 
@@ -71,7 +71,7 @@ int main() {
         CHECK_EQUAL(d2,"hello");
 
         auto fum = baz();
-        Unmovable &um = fum;
+        Unmovable &&um = fum;
         CHECK(um.valid());
 
     }

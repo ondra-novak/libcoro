@@ -138,7 +138,7 @@ int test3() {
 int test4() {
     coro::future<double> f1(12.3456789);
     coro::future<int> f2;
-    f1.convert_to(f2.get_promise(), [](double &v){return static_cast<int>(v*100);});
+    f1.convert_to(f2.get_promise(), [](double &&v){return static_cast<int>(v*100);});
     CHECK_EQUAL(f2.await_resume(), 1234);
     int void_test_val = 0;
     coro::future<void> f3;
