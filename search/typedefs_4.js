@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['reference_429',['reference',['../classcoro_1_1generator_a70140f7de2495d7c1fd86e307547ca8d.html#a70140f7de2495d7c1fd86e307547ca8d',1,'coro::generator']]],
-  ['resume_5fcb_430',['resume_cb',['../classcoro_1_1scheduler__t_a5a9c6ed6718c87bc0c54560f318d0df4.html#a5a9c6ed6718c87bc0c54560f318d0df4',1,'coro::scheduler_t']]],
-  ['ret_5fvalue_431',['ret_value',['../classcoro_1_1future_a3fc780e487b23fbbb845bd7dd515ad05.html#a3fc780e487b23fbbb845bd7dd515ad05',1,'coro::future']]]
+  ['reference_427',['reference',['../classcoro_1_1generator_a70140f7de2495d7c1fd86e307547ca8d.html#a70140f7de2495d7c1fd86e307547ca8d',1,'coro::generator']]],
+  ['resume_5fcb_428',['resume_cb',['../classcoro_1_1scheduler__t_a5a9c6ed6718c87bc0c54560f318d0df4.html#a5a9c6ed6718c87bc0c54560f318d0df4',1,'coro::scheduler_t']]],
+  ['ret_5fvalue_429',['ret_value',['../classcoro_1_1future_a3fc780e487b23fbbb845bd7dd515ad05.html#a3fc780e487b23fbbb845bd7dd515ad05',1,'coro::future']]]
 ];

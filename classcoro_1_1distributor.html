@@ -109,9 +109,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a151fe78ce593ec5c4b644b97b1d8d230"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1distributor_a151fe78ce593ec5c4b644b97b1d8d230.html#a151fe78ce593ec5c4b644b97b1d8d230">reject_all</a> ()</td></tr>
 <tr class="memdesc:a151fe78ce593ec5c4b644b97b1d8d230"><td class="mdescLeft">&#160;</td><td class="mdescRight">reject all with current exception  <a href="classcoro_1_1distributor_a151fe78ce593ec5c4b644b97b1d8d230.html#a151fe78ce593ec5c4b644b97b1d8d230">More...</a><br /></td></tr>
 <tr class="separator:a151fe78ce593ec5c4b644b97b1d8d230"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acfd99952fbc80cfabeadc919df4cbb60"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classcoro_1_1subscription.html">subscription</a>&lt; T &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1distributor_acfd99952fbc80cfabeadc919df4cbb60.html#acfd99952fbc80cfabeadc919df4cbb60">subscribe</a> (ID id={ })</td></tr>
-<tr class="memdesc:acfd99952fbc80cfabeadc919df4cbb60"><td class="mdescLeft">&#160;</td><td class="mdescRight">subscribe  <a href="classcoro_1_1distributor_acfd99952fbc80cfabeadc919df4cbb60.html#acfd99952fbc80cfabeadc919df4cbb60">More...</a><br /></td></tr>
-<tr class="separator:acfd99952fbc80cfabeadc919df4cbb60"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a23e894bd7e86ac3e22d946d9ffc02dbf"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classcoro_1_1subscription.html">subscription</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1distributor_a23e894bd7e86ac3e22d946d9ffc02dbf.html#a23e894bd7e86ac3e22d946d9ffc02dbf">subscribe</a> (ID id={ })</td></tr>
+<tr class="memdesc:a23e894bd7e86ac3e22d946d9ffc02dbf"><td class="mdescLeft">&#160;</td><td class="mdescRight">subscribe  <a href="classcoro_1_1distributor_a23e894bd7e86ac3e22d946d9ffc02dbf.html#a23e894bd7e86ac3e22d946d9ffc02dbf">More...</a><br /></td></tr>
+<tr class="separator:a23e894bd7e86ac3e22d946d9ffc02dbf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7a22a95f4363b7522e43dbec007ef338"><td class="memItemLeft" align="right" valign="top">pending_notify&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1distributor_a7a22a95f4363b7522e43dbec007ef338.html#a7a22a95f4363b7522e43dbec007ef338">drop</a> (ID id)</td></tr>
 <tr class="memdesc:a7a22a95f4363b7522e43dbec007ef338"><td class="mdescLeft">&#160;</td><td class="mdescRight">drop single subscriber  <a href="classcoro_1_1distributor_a7a22a95f4363b7522e43dbec007ef338.html#a7a22a95f4363b7522e43dbec007ef338">More...</a><br /></td></tr>
 <tr class="separator:a7a22a95f4363b7522e43dbec007ef338"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -121,8 +121,8 @@ Public Member Functions</h2></td></tr>
 class coro::distributor&lt; T, Lock &gt;</h3>
 
 <p>Distributes single event to multiple coroutines (subscribbers) </p>
-<p>To use this object, a consument must subscribe itself at this object by calling <a class="el" href="classcoro_1_1distributor_acfd99952fbc80cfabeadc919df4cbb60.html#acfd99952fbc80cfabeadc919df4cbb60" title="subscribe">subscribe()</a> method. Return value is lazy_future. It must be awaited to finish subscribtion. To distribute event, you need to publish the event. The method resumes all registered coroutines.</p>
-<p>Every subscription is one-shot. If the coroutine need to continue in subscription, it must re-call <a class="el" href="classcoro_1_1distributor_acfd99952fbc80cfabeadc919df4cbb60.html#acfd99952fbc80cfabeadc919df4cbb60" title="subscribe">subscribe()</a> right after resumption (in the same thread, without calling another <b>co_await</b>). If the subscriber need to process result asynchronously, it need to use <a class="el" href="classcoro_1_1distributor_ad7967d46813c5eabba0ce5004255cacf.html#ad7967d46813c5eabba0ce5004255cacf" title="Implements queue above distributor.">distributor::queue</a> to push received results to an queue, which can be also co_awaited</p>
+<p>To use this object, a consument must subscribe itself at this object by calling <a class="el" href="classcoro_1_1distributor_a23e894bd7e86ac3e22d946d9ffc02dbf.html#a23e894bd7e86ac3e22d946d9ffc02dbf" title="subscribe">subscribe()</a> method. Return value is lazy_future. It must be awaited to finish subscribtion. To distribute event, you need to publish the event. The method resumes all registered coroutines.</p>
+<p>Every subscription is one-shot. If the coroutine need to continue in subscription, it must re-call <a class="el" href="classcoro_1_1distributor_a23e894bd7e86ac3e22d946d9ffc02dbf.html#a23e894bd7e86ac3e22d946d9ffc02dbf" title="subscribe">subscribe()</a> right after resumption (in the same thread, without calling another <b>co_await</b>). If the subscriber need to process result asynchronously, it need to use <a class="el" href="classcoro_1_1distributor_ad7967d46813c5eabba0ce5004255cacf.html#ad7967d46813c5eabba0ce5004255cacf" title="Implements queue above distributor.">distributor::queue</a> to push received results to an queue, which can be also co_awaited</p>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname">T</td><td>type which is payload of distribution. Can be reference </td></tr>
@@ -131,14 +131,14 @@ class coro::distributor&lt; T, Lock &gt;</h3>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="distributor_8h_source.html#l00041">41</a> of file <a class="el" href="distributor_8h_source.html">distributor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="distributor_8h_source.html#l00046">46</a> of file <a class="el" href="distributor_8h_source.html">distributor.h</a>.</p>
 </div><hr/>The documentation for this class was generated from the following file:<ul>
 <li>src/coro/<a class="el" href="distributor_8h_source.html">distributor.h</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed May 22 2024 10:51:46 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+Generated on Sun May 26 2024 19:58:07 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
 </small></address>
 </body>
 </html>

@@ -1,5 +1,6 @@
 <map id="coro::promise::reject" name="coro::promise::reject">
-<area shape="rect" id="node1" title="reject the future with exception" alt="" coords="229,31,385,57"/>
+<area shape="rect" id="node1" title="reject the future with exception" alt="" coords="229,64,385,91"/>
 <area shape="rect" id="node2" href="$classcoro_1_1queue_a1875f8e5f4d570fd99544eaa6702a5e9.html#a1875f8e5f4d570fd99544eaa6702a5e9" title="Pop item into a promise." alt="" coords="28,5,159,32"/>
-<area shape="rect" id="node3" href="$classcoro_1_1thread__pool__t_ac461ca2198ec65b21e273d8d69426b58.html#ac461ca2198ec65b21e273d8d69426b58" title="Run a function in the thread_pool." alt="" coords="5,56,181,83"/>
+<area shape="rect" id="node3" href="$classcoro_1_1distributor_a399379f391d8c1577923d5f5b235ae93.html#a399379f391d8c1577923d5f5b235ae93" title="reject all with exception" alt="" coords="27,57,160,98"/>
+<area shape="rect" id="node4" href="$classcoro_1_1thread__pool__t_ac461ca2198ec65b21e273d8d69426b58.html#ac461ca2198ec65b21e273d8d69426b58" title="Run a function in the thread_pool." alt="" coords="5,123,181,149"/>
 </map>

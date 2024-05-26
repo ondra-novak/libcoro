@@ -89,242 +89,256 @@ $(function() {
 <div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;    <span class="keywordtype">void</span> unlock() {}</div>
 <div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;};</div>
 <div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160; </div>
-<div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160; </div>
-<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;<span class="keyword">template</span>&lt;<span class="keyword">typename</span> T, <span class="keyword">typename</span> Lock = nolock&gt;</div>
-<div class="line"><a name="l00041"></a><span class="lineno"><a class="line" href="classcoro_1_1distributor.html">   41</a></span>&#160;<span class="keyword">class </span><a class="code" href="classcoro_1_1distributor.html">distributor</a> {</div>
-<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;<span class="keyword">public</span>:</div>
-<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160; </div>
-<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;    <span class="keyword">using</span> value_type = T;</div>
-<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;    <span class="keyword">using</span> <a class="code" href="classcoro_1_1promise.html">promise_t</a> = <a class="code" href="classcoro_1_1promise.html">promise&lt;T&gt;</a>;</div>
-<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;    <span class="keyword">using</span> pending_notify = <span class="keyword">typename</span> <a class="code" href="classcoro_1_1promise_1_1notify.html">promise&lt;T&gt;::notify</a>;</div>
-<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;    <span class="keyword">using</span> ID = <span class="keyword">const</span> <span class="keywordtype">void</span> *;</div>
+<div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;<span class="keyword">template</span>&lt;<span class="keyword">typename</span> From, <span class="keyword">typename</span> To&gt;</div>
+<div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;concept is_static_cast_convertible = requires(From from){</div>
+<div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160;    {<span class="keyword">static_cast&lt;</span>To<span class="keyword">&gt;</span>(from)};</div>
+<div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;};</div>
+<div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160; </div>
+<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160; </div>
+<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;<span class="keyword">template</span>&lt;<span class="keyword">typename</span> T, <span class="keyword">typename</span> Lock = nolock&gt;</div>
+<div class="line"><a name="l00046"></a><span class="lineno"><a class="line" href="classcoro_1_1distributor.html">   46</a></span>&#160;<span class="keyword">class </span><a class="code" href="classcoro_1_1distributor.html">distributor</a> {</div>
+<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;<span class="keyword">public</span>:</div>
 <div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160; </div>
-<div class="line"><a name="l00050"></a><span class="lineno"><a class="line" href="classcoro_1_1distributor_a531fc239d298e7e4b34cf87a31ff2025.html#a531fc239d298e7e4b34cf87a31ff2025">   50</a></span>&#160;    <a class="code" href="classcoro_1_1distributor_a531fc239d298e7e4b34cf87a31ff2025.html#a531fc239d298e7e4b34cf87a31ff2025">distributor</a>() = <span class="keywordflow">default</span>;</div>
-<div class="line"><a name="l00052"></a><span class="lineno"><a class="line" href="classcoro_1_1distributor_ae5726ddff39fb4247d887d822230dc90.html#ae5726ddff39fb4247d887d822230dc90">   52</a></span>&#160;    <a class="code" href="classcoro_1_1distributor_ae5726ddff39fb4247d887d822230dc90.html#ae5726ddff39fb4247d887d822230dc90">distributor</a>(Lock &amp;&amp;lk) :</div>
-<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;            _mx(std::forward&lt;Lock&gt;(lk)) {</div>
-<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;    }</div>
+<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;    <span class="keyword">using</span> value_type = T;</div>
+<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;    <span class="keyword">using</span> reference_type = std::add_lvalue_reference_t&lt;T&gt;;</div>
+<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;    <span class="keyword">using</span> <a class="code" href="classcoro_1_1subscription.html">subscription</a> = <a class="code" href="classcoro_1_1subscription.html">coro::subscription&lt;reference_type&gt;</a>;</div>
+<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;    <span class="keyword">using</span> <a class="code" href="classcoro_1_1promise.html">promise_t</a> = <a class="code" href="classcoro_1_1promise.html">promise&lt;reference_type&gt;</a>;</div>
+<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;    <span class="keyword">using</span> pending_notify = <span class="keyword">typename</span> <a class="code" href="classcoro_1_1promise_1_1notify.html">promise&lt;reference_type&gt;::notify</a>;</div>
+<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;    <span class="keyword">using</span> ID = <span class="keyword">const</span> <span class="keywordtype">void</span> *;</div>
 <div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160; </div>
-<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160; </div>
-<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> ... Args&gt;</div>
-<div class="line"><a name="l00064"></a><span class="lineno"><a class="line" href="classcoro_1_1distributor_ac51164397a931cf309a3dbd3e206d180.html#ac51164397a931cf309a3dbd3e206d180">   64</a></span>&#160;    <span class="keywordtype">void</span> <a class="code" href="classcoro_1_1distributor_ac51164397a931cf309a3dbd3e206d180.html#ac51164397a931cf309a3dbd3e206d180">publish</a>(Args &amp;&amp;... args) {</div>
-<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;        collect()(std::forward&lt;Args&gt;(args)...);</div>
-<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;    }</div>
-<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160; </div>
-<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160; </div>
-<div class="line"><a name="l00073"></a><span class="lineno"><a class="line" href="classcoro_1_1distributor_a8faf05d2a8aae8f2bc2a14628e3f07a0.html#a8faf05d2a8aae8f2bc2a14628e3f07a0">   73</a></span>&#160;    <span class="keywordtype">void</span> <a class="code" href="classcoro_1_1distributor_a8faf05d2a8aae8f2bc2a14628e3f07a0.html#a8faf05d2a8aae8f2bc2a14628e3f07a0">cancel_all</a>() {</div>
-<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;        collect().cancel();</div>
-<div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160;    }</div>
-<div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160; </div>
-<div class="line"><a name="l00078"></a><span class="lineno"><a class="line" href="classcoro_1_1distributor_a399379f391d8c1577923d5f5b235ae93.html#a399379f391d8c1577923d5f5b235ae93">   78</a></span>&#160;    <span class="keywordtype">void</span> <a class="code" href="classcoro_1_1distributor_a399379f391d8c1577923d5f5b235ae93.html#a399379f391d8c1577923d5f5b235ae93">reject_all</a>(std::exception_ptr e) {</div>
-<div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;        collect().reject(std::move(e));</div>
-<div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160;    }</div>
-<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160; </div>
-<div class="line"><a name="l00083"></a><span class="lineno"><a class="line" href="classcoro_1_1distributor_a151fe78ce593ec5c4b644b97b1d8d230.html#a151fe78ce593ec5c4b644b97b1d8d230">   83</a></span>&#160;    <span class="keywordtype">void</span> <a class="code" href="classcoro_1_1distributor_a151fe78ce593ec5c4b644b97b1d8d230.html#a151fe78ce593ec5c4b644b97b1d8d230">reject_all</a>() {</div>
-<div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160;        <span class="keyword">auto</span> e = std::current_exception();</div>
-<div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160;        <span class="keywordflow">if</span> (e) <a class="code" href="classcoro_1_1distributor_a151fe78ce593ec5c4b644b97b1d8d230.html#a151fe78ce593ec5c4b644b97b1d8d230">reject_all</a>(std::move(e));</div>
-<div class="line"><a name="l00086"></a><span class="lineno">   86</span>&#160;        <span class="keywordflow">else</span> <a class="code" href="classcoro_1_1distributor_a8faf05d2a8aae8f2bc2a14628e3f07a0.html#a8faf05d2a8aae8f2bc2a14628e3f07a0">cancel_all</a>();</div>
-<div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160;    }</div>
-<div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160; </div>
-<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160; </div>
-<div class="line"><a name="l00094"></a><span class="lineno"><a class="line" href="classcoro_1_1distributor_acfd99952fbc80cfabeadc919df4cbb60.html#acfd99952fbc80cfabeadc919df4cbb60">   94</a></span>&#160;    <a class="code" href="classcoro_1_1subscription.html">subscription&lt;T&gt;</a> <a class="code" href="classcoro_1_1distributor_acfd99952fbc80cfabeadc919df4cbb60.html#acfd99952fbc80cfabeadc919df4cbb60">subscribe</a>(ID <span class="keywordtype">id</span> = { }) {</div>
-<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;        <span class="keywordflow">return</span> <span class="keyword">typename</span> <a class="code" href="classcoro_1_1function.html">subscription&lt;T&gt;::subscribe_fn</a>([<span class="keyword">this</span>, <span class="keywordtype">id</span>](<a class="code" href="classcoro_1_1promise.html">promise&lt;T&gt;</a> <a class="code" href="classcoro_1_1promise.html">promise</a>) -&gt;<a class="code" href="classcoro_1_1prepared__coro.html">prepared_coro</a> {</div>
-<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;            <a class="code" href="classcoro_1_1distributor_acfd99952fbc80cfabeadc919df4cbb60.html#acfd99952fbc80cfabeadc919df4cbb60">subscribe</a>(std::move(<a class="code" href="classcoro_1_1promise.html">promise</a>), <span class="keywordtype">id</span>);</div>
-<div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;            <span class="keywordflow">return</span> {};</div>
-<div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;        });</div>
-<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;    }</div>
-<div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160; </div>
-<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;    <span class="keywordtype">void</span> <a class="code" href="classcoro_1_1distributor_acfd99952fbc80cfabeadc919df4cbb60.html#acfd99952fbc80cfabeadc919df4cbb60">subscribe</a>(promise_t &amp;&amp;prom, ID <span class="keywordtype">id</span> = { }) {</div>
-<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;        std::lock_guard _(_mx);</div>
-<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;        _subscribers.push_back(std::pair&lt;promise_t, ID&gt;(std::move(prom), <span class="keywordtype">id</span>));</div>
-<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;    }</div>
-<div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160; </div>
-<div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160; </div>
-<div class="line"><a name="l00112"></a><span class="lineno"><a class="line" href="classcoro_1_1distributor_a7a22a95f4363b7522e43dbec007ef338.html#a7a22a95f4363b7522e43dbec007ef338">  112</a></span>&#160;    pending_notify <a class="code" href="classcoro_1_1distributor_a7a22a95f4363b7522e43dbec007ef338.html#a7a22a95f4363b7522e43dbec007ef338">drop</a>(ID <span class="keywordtype">id</span>) {</div>
-<div class="line"><a name="l00113"></a><span class="lineno">  113</span>&#160;        pending_notify ntf;</div>
-<div class="line"><a name="l00114"></a><span class="lineno">  114</span>&#160;        {</div>
-<div class="line"><a name="l00115"></a><span class="lineno">  115</span>&#160;            std::lock_guard _(_mx);</div>
-<div class="line"><a name="l00116"></a><span class="lineno">  116</span>&#160;            <span class="keyword">auto</span> iter = std::find_if(_subscribers.begin(), _subscribers.end(),</div>
-<div class="line"><a name="l00117"></a><span class="lineno">  117</span>&#160;                    [&amp;](<span class="keyword">const</span> <span class="keyword">auto</span> &amp;iter) {</div>
-<div class="line"><a name="l00118"></a><span class="lineno">  118</span>&#160;                        return iter.second == id;</div>
-<div class="line"><a name="l00119"></a><span class="lineno">  119</span>&#160;                    });</div>
-<div class="line"><a name="l00120"></a><span class="lineno">  120</span>&#160;            <span class="keywordflow">if</span> (iter == _subscribers.end())</div>
-<div class="line"><a name="l00121"></a><span class="lineno">  121</span>&#160;                <span class="keywordflow">return</span> {};</div>
-<div class="line"><a name="l00122"></a><span class="lineno">  122</span>&#160;            ntf = iter-&gt;first.cancel();</div>
-<div class="line"><a name="l00123"></a><span class="lineno">  123</span>&#160;            <span class="keywordflow">if</span> (&amp;(iter-&gt;first) != &amp;_subscribers.back().first) {</div>
-<div class="line"><a name="l00124"></a><span class="lineno">  124</span>&#160;                std::swap(*iter, _subscribers.back());</div>
-<div class="line"><a name="l00125"></a><span class="lineno">  125</span>&#160;                _subscribers.pop_back();</div>
-<div class="line"><a name="l00126"></a><span class="lineno">  126</span>&#160;            }</div>
-<div class="line"><a name="l00127"></a><span class="lineno">  127</span>&#160;        }</div>
-<div class="line"><a name="l00128"></a><span class="lineno">  128</span>&#160;        <span class="keywordflow">return</span> ntf;</div>
-<div class="line"><a name="l00129"></a><span class="lineno">  129</span>&#160;    }</div>
-<div class="line"><a name="l00130"></a><span class="lineno">  130</span>&#160; </div>
-<div class="line"><a name="l00132"></a><span class="lineno">  132</span>&#160; </div>
-<div class="line"><a name="l00144"></a><span class="lineno">  144</span>&#160;    template&lt;typename QueueImpl = typename queue&lt;T&gt;::behavior&gt;</div>
-<div class="line"><a name="l00145"></a><span class="lineno"><a class="line" href="classcoro_1_1distributor_ad7967d46813c5eabba0ce5004255cacf.html#ad7967d46813c5eabba0ce5004255cacf">  145</a></span>&#160;    <span class="keyword">using</span> <a class="code" href="classcoro_1_1distributor_ad7967d46813c5eabba0ce5004255cacf.html#ad7967d46813c5eabba0ce5004255cacf">queue</a> = distributor_queue&lt;T, Lock, QueueImpl&gt;;</div>
-<div class="line"><a name="l00146"></a><span class="lineno">  146</span>&#160; </div>
-<div class="line"><a name="l00147"></a><span class="lineno">  147</span>&#160;<span class="keyword">protected</span>:</div>
-<div class="line"><a name="l00148"></a><span class="lineno">  148</span>&#160;    [[no_unique_address]] Lock _mx;</div>
-<div class="line"><a name="l00149"></a><span class="lineno">  149</span>&#160;    std::vector&lt;std::pair&lt;promise_t, ID&gt; &gt; _subscribers;</div>
-<div class="line"><a name="l00150"></a><span class="lineno">  150</span>&#160; </div>
-<div class="line"><a name="l00151"></a><span class="lineno">  151</span>&#160;    <a class="code" href="classcoro_1_1promise.html">promise&lt;T&gt;</a> collect() {</div>
-<div class="line"><a name="l00152"></a><span class="lineno">  152</span>&#160;        std::lock_guard _(_mx);</div>
-<div class="line"><a name="l00153"></a><span class="lineno">  153</span>&#160;        <a class="code" href="classcoro_1_1promise.html">promise&lt;T&gt;</a> p;</div>
-<div class="line"><a name="l00154"></a><span class="lineno">  154</span>&#160;        <span class="keywordflow">while</span> (!_subscribers.empty()) {</div>
-<div class="line"><a name="l00155"></a><span class="lineno">  155</span>&#160;            p += _subscribers.back().first;</div>
-<div class="line"><a name="l00156"></a><span class="lineno">  156</span>&#160;            _subscribers.pop_back();</div>
-<div class="line"><a name="l00157"></a><span class="lineno">  157</span>&#160;        }</div>
-<div class="line"><a name="l00158"></a><span class="lineno">  158</span>&#160;        <span class="keywordflow">return</span> p;</div>
-<div class="line"><a name="l00159"></a><span class="lineno">  159</span>&#160;    }</div>
-<div class="line"><a name="l00160"></a><span class="lineno">  160</span>&#160;};</div>
-<div class="line"><a name="l00161"></a><span class="lineno">  161</span>&#160; </div>
-<div class="line"><a name="l00162"></a><span class="lineno">  162</span>&#160;<span class="keyword">template</span>&lt;<span class="keyword">typename</span> T, <span class="keyword">typename</span> Lock, <span class="keyword">typename</span> QueueImpl&gt;</div>
-<div class="line"><a name="l00163"></a><span class="lineno">  163</span>&#160;<span class="keyword">class </span>distributor_queue: <span class="keyword">public</span> queue&lt;T, QueueImpl&gt; {</div>
-<div class="line"><a name="l00164"></a><span class="lineno">  164</span>&#160;<span class="keyword">public</span>:</div>
-<div class="line"><a name="l00165"></a><span class="lineno">  165</span>&#160; </div>
-<div class="line"><a name="l00166"></a><span class="lineno">  166</span>&#160;    distributor_queue() = <span class="keywordflow">default</span>;</div>
-<div class="line"><a name="l00167"></a><span class="lineno">  167</span>&#160;    distributor_queue(QueueImpl qimpl) :</div>
-<div class="line"><a name="l00168"></a><span class="lineno">  168</span>&#160;            queue&lt;T, QueueImpl&gt;(std::move(qimpl)) {</div>
-<div class="line"><a name="l00169"></a><span class="lineno">  169</span>&#160;    }</div>
-<div class="line"><a name="l00170"></a><span class="lineno">  170</span>&#160;    distributor_queue(distributor&lt;T, Lock&gt; &amp;dist) {</div>
-<div class="line"><a name="l00171"></a><span class="lineno">  171</span>&#160;        subscribe(dist);</div>
+<div class="line"><a name="l00057"></a><span class="lineno"><a class="line" href="classcoro_1_1distributor_a531fc239d298e7e4b34cf87a31ff2025.html#a531fc239d298e7e4b34cf87a31ff2025">   57</a></span>&#160;    <a class="code" href="classcoro_1_1distributor_a531fc239d298e7e4b34cf87a31ff2025.html#a531fc239d298e7e4b34cf87a31ff2025">distributor</a>() = <span class="keywordflow">default</span>;</div>
+<div class="line"><a name="l00059"></a><span class="lineno"><a class="line" href="classcoro_1_1distributor_ae5726ddff39fb4247d887d822230dc90.html#ae5726ddff39fb4247d887d822230dc90">   59</a></span>&#160;    <a class="code" href="classcoro_1_1distributor_ae5726ddff39fb4247d887d822230dc90.html#ae5726ddff39fb4247d887d822230dc90">distributor</a>(Lock &amp;&amp;lk) :</div>
+<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;            _mx(std::forward&lt;Lock&gt;(lk)) {</div>
+<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;    }</div>
+<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160; </div>
+<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160; </div>
+<div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> ... Args&gt;</div>
+<div class="line"><a name="l00071"></a><span class="lineno"><a class="line" href="classcoro_1_1distributor_ac51164397a931cf309a3dbd3e206d180.html#ac51164397a931cf309a3dbd3e206d180">   71</a></span>&#160;    <span class="keywordtype">void</span> <a class="code" href="classcoro_1_1distributor_ac51164397a931cf309a3dbd3e206d180.html#ac51164397a931cf309a3dbd3e206d180">publish</a>(Args &amp;&amp;... args) {</div>
+<div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160;        <a class="code" href="classcoro_1_1promise.html">promise_t</a> plist = collect();</div>
+<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;        <span class="keywordflow">if</span> constexpr(<span class="keyword">sizeof</span>...(Args) == 1 &amp;&amp; (is_static_cast_convertible&lt;Args &amp;&amp;, reference_type&gt; &amp;&amp; ...)) {</div>
+<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;            plist(args...);</div>
+<div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160;        } <span class="keywordflow">else</span> {</div>
+<div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160;            value_type tmp(std::forward&lt;Args&gt;(args)...);</div>
+<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;            plist(tmp);</div>
+<div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160;        }</div>
+<div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;    }</div>
+<div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160; </div>
+<div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160; </div>
+<div class="line"><a name="l00086"></a><span class="lineno"><a class="line" href="classcoro_1_1distributor_a8faf05d2a8aae8f2bc2a14628e3f07a0.html#a8faf05d2a8aae8f2bc2a14628e3f07a0">   86</a></span>&#160;    <span class="keywordtype">void</span> <a class="code" href="classcoro_1_1distributor_a8faf05d2a8aae8f2bc2a14628e3f07a0.html#a8faf05d2a8aae8f2bc2a14628e3f07a0">cancel_all</a>() {</div>
+<div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160;        collect().<a class="code" href="classcoro_1_1promise_a961e99f1d756f56f54d2a5ea9481403d.html#a961e99f1d756f56f54d2a5ea9481403d">cancel</a>();</div>
+<div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;    }</div>
+<div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160; </div>
+<div class="line"><a name="l00091"></a><span class="lineno"><a class="line" href="classcoro_1_1distributor_a399379f391d8c1577923d5f5b235ae93.html#a399379f391d8c1577923d5f5b235ae93">   91</a></span>&#160;    <span class="keywordtype">void</span> <a class="code" href="classcoro_1_1distributor_a399379f391d8c1577923d5f5b235ae93.html#a399379f391d8c1577923d5f5b235ae93">reject_all</a>(std::exception_ptr e) {</div>
+<div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;        collect().<a class="code" href="classcoro_1_1promise_a54a9bdbbcdfc5473d35c641d2ee31fdf.html#a54a9bdbbcdfc5473d35c641d2ee31fdf">reject</a>(std::move(e));</div>
+<div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160;    }</div>
+<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160; </div>
+<div class="line"><a name="l00096"></a><span class="lineno"><a class="line" href="classcoro_1_1distributor_a151fe78ce593ec5c4b644b97b1d8d230.html#a151fe78ce593ec5c4b644b97b1d8d230">   96</a></span>&#160;    <span class="keywordtype">void</span> <a class="code" href="classcoro_1_1distributor_a151fe78ce593ec5c4b644b97b1d8d230.html#a151fe78ce593ec5c4b644b97b1d8d230">reject_all</a>() {</div>
+<div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;        <span class="keyword">auto</span> e = std::current_exception();</div>
+<div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;        <span class="keywordflow">if</span> (e) <a class="code" href="classcoro_1_1distributor_a151fe78ce593ec5c4b644b97b1d8d230.html#a151fe78ce593ec5c4b644b97b1d8d230">reject_all</a>(std::move(e));</div>
+<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;        <span class="keywordflow">else</span> <a class="code" href="classcoro_1_1distributor_a8faf05d2a8aae8f2bc2a14628e3f07a0.html#a8faf05d2a8aae8f2bc2a14628e3f07a0">cancel_all</a>();</div>
+<div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;    }</div>
+<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160; </div>
+<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160; </div>
+<div class="line"><a name="l00107"></a><span class="lineno"><a class="line" href="classcoro_1_1distributor_a23e894bd7e86ac3e22d946d9ffc02dbf.html#a23e894bd7e86ac3e22d946d9ffc02dbf">  107</a></span>&#160;    <a class="code" href="classcoro_1_1subscription.html">subscription</a> <a class="code" href="classcoro_1_1distributor_a23e894bd7e86ac3e22d946d9ffc02dbf.html#a23e894bd7e86ac3e22d946d9ffc02dbf">subscribe</a>(ID <span class="keywordtype">id</span> = { }) {</div>
+<div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160;        <span class="keywordflow">return</span> <span class="keyword">typename</span> subscription::subscribe_fn([<span class="keyword">this</span>, <span class="keywordtype">id</span>](promise_t <a class="code" href="classcoro_1_1promise.html">promise</a>) -&gt;<a class="code" href="classcoro_1_1prepared__coro.html">prepared_coro</a> {</div>
+<div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;            <a class="code" href="classcoro_1_1distributor_a23e894bd7e86ac3e22d946d9ffc02dbf.html#a23e894bd7e86ac3e22d946d9ffc02dbf">subscribe</a>(std::move(<a class="code" href="classcoro_1_1promise.html">promise</a>), <span class="keywordtype">id</span>);</div>
+<div class="line"><a name="l00110"></a><span class="lineno">  110</span>&#160;            <span class="keywordflow">return</span> {};</div>
+<div class="line"><a name="l00111"></a><span class="lineno">  111</span>&#160;        });</div>
+<div class="line"><a name="l00112"></a><span class="lineno">  112</span>&#160;    }</div>
+<div class="line"><a name="l00113"></a><span class="lineno">  113</span>&#160; </div>
+<div class="line"><a name="l00114"></a><span class="lineno">  114</span>&#160;    <span class="keywordtype">void</span> <a class="code" href="classcoro_1_1distributor_a23e894bd7e86ac3e22d946d9ffc02dbf.html#a23e894bd7e86ac3e22d946d9ffc02dbf">subscribe</a>(promise_t &amp;&amp;prom, ID <span class="keywordtype">id</span> = { }) {</div>
+<div class="line"><a name="l00115"></a><span class="lineno">  115</span>&#160;        std::lock_guard _(_mx);</div>
+<div class="line"><a name="l00116"></a><span class="lineno">  116</span>&#160;        _subscribers.push_back(std::pair&lt;promise_t, ID&gt;(std::move(prom), <span class="keywordtype">id</span>));</div>
+<div class="line"><a name="l00117"></a><span class="lineno">  117</span>&#160;    }</div>
+<div class="line"><a name="l00118"></a><span class="lineno">  118</span>&#160; </div>
+<div class="line"><a name="l00120"></a><span class="lineno">  120</span>&#160; </div>
+<div class="line"><a name="l00125"></a><span class="lineno"><a class="line" href="classcoro_1_1distributor_a7a22a95f4363b7522e43dbec007ef338.html#a7a22a95f4363b7522e43dbec007ef338">  125</a></span>&#160;    pending_notify <a class="code" href="classcoro_1_1distributor_a7a22a95f4363b7522e43dbec007ef338.html#a7a22a95f4363b7522e43dbec007ef338">drop</a>(ID <span class="keywordtype">id</span>) {</div>
+<div class="line"><a name="l00126"></a><span class="lineno">  126</span>&#160;        pending_notify ntf;</div>
+<div class="line"><a name="l00127"></a><span class="lineno">  127</span>&#160;        {</div>
+<div class="line"><a name="l00128"></a><span class="lineno">  128</span>&#160;            std::lock_guard _(_mx);</div>
+<div class="line"><a name="l00129"></a><span class="lineno">  129</span>&#160;            <span class="keyword">auto</span> iter = std::find_if(_subscribers.begin(), _subscribers.end(),</div>
+<div class="line"><a name="l00130"></a><span class="lineno">  130</span>&#160;                    [&amp;](<span class="keyword">const</span> <span class="keyword">auto</span> &amp;iter) {</div>
+<div class="line"><a name="l00131"></a><span class="lineno">  131</span>&#160;                        return iter.second == id;</div>
+<div class="line"><a name="l00132"></a><span class="lineno">  132</span>&#160;                    });</div>
+<div class="line"><a name="l00133"></a><span class="lineno">  133</span>&#160;            <span class="keywordflow">if</span> (iter == _subscribers.end())</div>
+<div class="line"><a name="l00134"></a><span class="lineno">  134</span>&#160;                <span class="keywordflow">return</span> {};</div>
+<div class="line"><a name="l00135"></a><span class="lineno">  135</span>&#160;            ntf = iter-&gt;first.cancel();</div>
+<div class="line"><a name="l00136"></a><span class="lineno">  136</span>&#160;            <span class="keywordflow">if</span> (&amp;(iter-&gt;first) != &amp;_subscribers.back().first) {</div>
+<div class="line"><a name="l00137"></a><span class="lineno">  137</span>&#160;                std::swap(*iter, _subscribers.back());</div>
+<div class="line"><a name="l00138"></a><span class="lineno">  138</span>&#160;                _subscribers.pop_back();</div>
+<div class="line"><a name="l00139"></a><span class="lineno">  139</span>&#160;            }</div>
+<div class="line"><a name="l00140"></a><span class="lineno">  140</span>&#160;        }</div>
+<div class="line"><a name="l00141"></a><span class="lineno">  141</span>&#160;        <span class="keywordflow">return</span> ntf;</div>
+<div class="line"><a name="l00142"></a><span class="lineno">  142</span>&#160;    }</div>
+<div class="line"><a name="l00143"></a><span class="lineno">  143</span>&#160; </div>
+<div class="line"><a name="l00145"></a><span class="lineno">  145</span>&#160; </div>
+<div class="line"><a name="l00157"></a><span class="lineno">  157</span>&#160;    template&lt;typename QueueImpl = typename queue&lt;T&gt;::behavior&gt;</div>
+<div class="line"><a name="l00158"></a><span class="lineno"><a class="line" href="classcoro_1_1distributor_ad7967d46813c5eabba0ce5004255cacf.html#ad7967d46813c5eabba0ce5004255cacf">  158</a></span>&#160;    <span class="keyword">using</span> <a class="code" href="classcoro_1_1distributor_ad7967d46813c5eabba0ce5004255cacf.html#ad7967d46813c5eabba0ce5004255cacf">queue</a> = distributor_queue&lt;T, Lock, QueueImpl&gt;;</div>
+<div class="line"><a name="l00159"></a><span class="lineno">  159</span>&#160; </div>
+<div class="line"><a name="l00160"></a><span class="lineno">  160</span>&#160;<span class="keyword">protected</span>:</div>
+<div class="line"><a name="l00161"></a><span class="lineno">  161</span>&#160;    [[no_unique_address]] Lock _mx;</div>
+<div class="line"><a name="l00162"></a><span class="lineno">  162</span>&#160;    std::vector&lt;std::pair&lt;promise_t, ID&gt; &gt; _subscribers;</div>
+<div class="line"><a name="l00163"></a><span class="lineno">  163</span>&#160; </div>
+<div class="line"><a name="l00164"></a><span class="lineno">  164</span>&#160;    <a class="code" href="classcoro_1_1promise.html">promise_t</a> collect() {</div>
+<div class="line"><a name="l00165"></a><span class="lineno">  165</span>&#160;        std::lock_guard _(_mx);</div>
+<div class="line"><a name="l00166"></a><span class="lineno">  166</span>&#160;        <a class="code" href="classcoro_1_1promise.html">promise_t</a> p;</div>
+<div class="line"><a name="l00167"></a><span class="lineno">  167</span>&#160;        <span class="keywordflow">while</span> (!_subscribers.empty()) {</div>
+<div class="line"><a name="l00168"></a><span class="lineno">  168</span>&#160;            p += _subscribers.back().first;</div>
+<div class="line"><a name="l00169"></a><span class="lineno">  169</span>&#160;            _subscribers.pop_back();</div>
+<div class="line"><a name="l00170"></a><span class="lineno">  170</span>&#160;        }</div>
+<div class="line"><a name="l00171"></a><span class="lineno">  171</span>&#160;        <span class="keywordflow">return</span> p;</div>
 <div class="line"><a name="l00172"></a><span class="lineno">  172</span>&#160;    }</div>
-<div class="line"><a name="l00173"></a><span class="lineno">  173</span>&#160;    distributor_queue(<span class="keyword">const</span> distributor_queue&amp;) = <span class="keyword">delete</span>;</div>
-<div class="line"><a name="l00174"></a><span class="lineno">  174</span>&#160;    distributor_queue&amp; operator=(<span class="keyword">const</span> distributor_queue&amp;) = <span class="keyword">delete</span>;</div>
-<div class="line"><a name="l00175"></a><span class="lineno">  175</span>&#160; </div>
-<div class="line"><a name="l00177"></a><span class="lineno">  177</span>&#160; </div>
-<div class="line"><a name="l00186"></a><span class="lineno">  186</span>&#160;    <span class="keywordtype">void</span> subscribe(distributor&lt;T, Lock&gt; &amp;dist) {</div>
-<div class="line"><a name="l00187"></a><span class="lineno">  187</span>&#160;        _connection = &amp;dist;</div>
-<div class="line"><a name="l00188"></a><span class="lineno">  188</span>&#160;        charge();</div>
-<div class="line"><a name="l00189"></a><span class="lineno">  189</span>&#160;    }</div>
+<div class="line"><a name="l00173"></a><span class="lineno">  173</span>&#160;};</div>
+<div class="line"><a name="l00174"></a><span class="lineno">  174</span>&#160; </div>
+<div class="line"><a name="l00175"></a><span class="lineno">  175</span>&#160;<span class="keyword">template</span>&lt;<span class="keyword">typename</span> T, <span class="keyword">typename</span> Lock, <span class="keyword">typename</span> QueueImpl&gt;</div>
+<div class="line"><a name="l00176"></a><span class="lineno">  176</span>&#160;<span class="keyword">class </span>distributor_queue: <span class="keyword">public</span> queue&lt;T, QueueImpl&gt; {</div>
+<div class="line"><a name="l00177"></a><span class="lineno">  177</span>&#160;<span class="keyword">public</span>:</div>
+<div class="line"><a name="l00178"></a><span class="lineno">  178</span>&#160; </div>
+<div class="line"><a name="l00179"></a><span class="lineno">  179</span>&#160;    distributor_queue() = <span class="keywordflow">default</span>;</div>
+<div class="line"><a name="l00180"></a><span class="lineno">  180</span>&#160;    distributor_queue(QueueImpl qimpl) :</div>
+<div class="line"><a name="l00181"></a><span class="lineno">  181</span>&#160;            queue&lt;T, QueueImpl&gt;(std::move(qimpl)) {</div>
+<div class="line"><a name="l00182"></a><span class="lineno">  182</span>&#160;    }</div>
+<div class="line"><a name="l00183"></a><span class="lineno">  183</span>&#160;    distributor_queue(distributor&lt;T, Lock&gt; &amp;dist) {</div>
+<div class="line"><a name="l00184"></a><span class="lineno">  184</span>&#160;        subscribe(dist);</div>
+<div class="line"><a name="l00185"></a><span class="lineno">  185</span>&#160;    }</div>
+<div class="line"><a name="l00186"></a><span class="lineno">  186</span>&#160;    distributor_queue(<span class="keyword">const</span> distributor_queue&amp;) = <span class="keyword">delete</span>;</div>
+<div class="line"><a name="l00187"></a><span class="lineno">  187</span>&#160;    distributor_queue&amp; operator=(<span class="keyword">const</span> distributor_queue&amp;) = <span class="keyword">delete</span>;</div>
+<div class="line"><a name="l00188"></a><span class="lineno">  188</span>&#160; </div>
 <div class="line"><a name="l00190"></a><span class="lineno">  190</span>&#160; </div>
-<div class="line"><a name="l00192"></a><span class="lineno">  192</span>&#160; </div>
-<div class="line"><a name="l00197"></a><span class="lineno">  197</span>&#160;    <span class="keywordtype">void</span> unsubscribe() {</div>
-<div class="line"><a name="l00198"></a><span class="lineno">  198</span>&#160;        <span class="keywordflow">if</span> (_connection) {</div>
-<div class="line"><a name="l00199"></a><span class="lineno">  199</span>&#160;            _connection-&gt;drop(<span class="keyword">this</span>);</div>
-<div class="line"><a name="l00200"></a><span class="lineno">  200</span>&#160;            _connection = <span class="keyword">nullptr</span>;</div>
-<div class="line"><a name="l00201"></a><span class="lineno">  201</span>&#160;        }</div>
-<div class="line"><a name="l00202"></a><span class="lineno">  202</span>&#160; </div>
-<div class="line"><a name="l00203"></a><span class="lineno">  203</span>&#160;    }</div>
-<div class="line"><a name="l00204"></a><span class="lineno">  204</span>&#160; </div>
-<div class="line"><a name="l00205"></a><span class="lineno">  205</span>&#160;    ~distributor_queue() {</div>
-<div class="line"><a name="l00206"></a><span class="lineno">  206</span>&#160;        unsubscribe();</div>
-<div class="line"><a name="l00207"></a><span class="lineno">  207</span>&#160;    }</div>
-<div class="line"><a name="l00208"></a><span class="lineno">  208</span>&#160; </div>
-<div class="line"><a name="l00209"></a><span class="lineno">  209</span>&#160;<span class="keyword">protected</span>:</div>
-<div class="line"><a name="l00210"></a><span class="lineno">  210</span>&#160;    subscription&lt;T&gt; _dist_value;</div>
-<div class="line"><a name="l00211"></a><span class="lineno">  211</span>&#160;    distributor&lt;T, Lock&gt; *_connection = <span class="keyword">nullptr</span>;</div>
-<div class="line"><a name="l00212"></a><span class="lineno">  212</span>&#160;    <span class="keywordtype">void</span> charge() {</div>
-<div class="line"><a name="l00213"></a><span class="lineno">  213</span>&#160;        _dist_value = _connection-&gt;subscribe(<span class="keyword">this</span>);</div>
-<div class="line"><a name="l00214"></a><span class="lineno">  214</span>&#160;        _dist_value &gt;&gt; [&amp;]{value_ready();};</div>
-<div class="line"><a name="l00215"></a><span class="lineno">  215</span>&#160;    }</div>
-<div class="line"><a name="l00216"></a><span class="lineno">  216</span>&#160; </div>
-<div class="line"><a name="l00217"></a><span class="lineno">  217</span>&#160;    <span class="keywordtype">void</span> value_ready() {</div>
-<div class="line"><a name="l00218"></a><span class="lineno">  218</span>&#160;        <span class="keywordflow">try</span> {</div>
-<div class="line"><a name="l00219"></a><span class="lineno">  219</span>&#160;            <span class="keywordflow">if</span> (_dist_value.has_value()) {</div>
-<div class="line"><a name="l00220"></a><span class="lineno">  220</span>&#160;                this-&gt;<a class="code" href="classcoro_1_1queue_aaaa998133432260dedd5adaded8511a2.html#aaaa998133432260dedd5adaded8511a2">push</a>(std::move(_dist_value).get());</div>
-<div class="line"><a name="l00221"></a><span class="lineno">  221</span>&#160;                charge();</div>
-<div class="line"><a name="l00222"></a><span class="lineno">  222</span>&#160;            } <span class="keywordflow">else</span> {</div>
-<div class="line"><a name="l00223"></a><span class="lineno">  223</span>&#160;                this-&gt;<a class="code" href="classcoro_1_1queue_a5402d3032685d967f869d4a42a6215ed.html#a5402d3032685d967f869d4a42a6215ed">close</a>();</div>
-<div class="line"><a name="l00224"></a><span class="lineno">  224</span>&#160;            }</div>
-<div class="line"><a name="l00225"></a><span class="lineno">  225</span>&#160;        } <span class="keywordflow">catch</span> (...) {</div>
-<div class="line"><a name="l00226"></a><span class="lineno">  226</span>&#160;            this-&gt;<a class="code" href="classcoro_1_1queue_a5402d3032685d967f869d4a42a6215ed.html#a5402d3032685d967f869d4a42a6215ed">close</a>(std::current_exception());</div>
-<div class="line"><a name="l00227"></a><span class="lineno">  227</span>&#160;        }</div>
+<div class="line"><a name="l00199"></a><span class="lineno">  199</span>&#160;    <span class="keywordtype">void</span> subscribe(distributor&lt;T, Lock&gt; &amp;dist) {</div>
+<div class="line"><a name="l00200"></a><span class="lineno">  200</span>&#160;        _connection = &amp;dist;</div>
+<div class="line"><a name="l00201"></a><span class="lineno">  201</span>&#160;        charge();</div>
+<div class="line"><a name="l00202"></a><span class="lineno">  202</span>&#160;    }</div>
+<div class="line"><a name="l00203"></a><span class="lineno">  203</span>&#160; </div>
+<div class="line"><a name="l00205"></a><span class="lineno">  205</span>&#160; </div>
+<div class="line"><a name="l00210"></a><span class="lineno">  210</span>&#160;    <span class="keywordtype">void</span> unsubscribe() {</div>
+<div class="line"><a name="l00211"></a><span class="lineno">  211</span>&#160;        <span class="keywordflow">if</span> (_connection) {</div>
+<div class="line"><a name="l00212"></a><span class="lineno">  212</span>&#160;            _connection-&gt;drop(<span class="keyword">this</span>);</div>
+<div class="line"><a name="l00213"></a><span class="lineno">  213</span>&#160;            _connection = <span class="keyword">nullptr</span>;</div>
+<div class="line"><a name="l00214"></a><span class="lineno">  214</span>&#160;        }</div>
+<div class="line"><a name="l00215"></a><span class="lineno">  215</span>&#160; </div>
+<div class="line"><a name="l00216"></a><span class="lineno">  216</span>&#160;    }</div>
+<div class="line"><a name="l00217"></a><span class="lineno">  217</span>&#160; </div>
+<div class="line"><a name="l00218"></a><span class="lineno">  218</span>&#160;    ~distributor_queue() {</div>
+<div class="line"><a name="l00219"></a><span class="lineno">  219</span>&#160;        unsubscribe();</div>
+<div class="line"><a name="l00220"></a><span class="lineno">  220</span>&#160;    }</div>
+<div class="line"><a name="l00221"></a><span class="lineno">  221</span>&#160; </div>
+<div class="line"><a name="l00222"></a><span class="lineno">  222</span>&#160;<span class="keyword">protected</span>:</div>
+<div class="line"><a name="l00223"></a><span class="lineno">  223</span>&#160;    <span class="keyword">typename</span> distributor&lt;T, Lock&gt;::subscription _dist_value;</div>
+<div class="line"><a name="l00224"></a><span class="lineno">  224</span>&#160;    distributor&lt;T, Lock&gt; *_connection = <span class="keyword">nullptr</span>;</div>
+<div class="line"><a name="l00225"></a><span class="lineno">  225</span>&#160;    <span class="keywordtype">void</span> charge() {</div>
+<div class="line"><a name="l00226"></a><span class="lineno">  226</span>&#160;        _dist_value = _connection-&gt;subscribe(<span class="keyword">this</span>);</div>
+<div class="line"><a name="l00227"></a><span class="lineno">  227</span>&#160;        _dist_value &gt;&gt; [&amp;]{value_ready();};</div>
 <div class="line"><a name="l00228"></a><span class="lineno">  228</span>&#160;    }</div>
-<div class="line"><a name="l00229"></a><span class="lineno">  229</span>&#160;};</div>
-<div class="line"><a name="l00230"></a><span class="lineno">  230</span>&#160; </div>
-<div class="line"><a name="l00232"></a><span class="lineno">  232</span>&#160; </div>
-<div class="line"><a name="l00252"></a><span class="lineno">  252</span>&#160;<span class="keyword">template</span>&lt;<span class="keyword">typename</span> T, std::invocable&lt;T&gt; FilterFn, std::invoke_result_t&lt;FilterFn, T&gt; important_message = 0&gt;</div>
-<div class="line"><a name="l00253"></a><span class="lineno"><a class="line" href="classcoro_1_1filtered__update__queue.html">  253</a></span>&#160;<span class="keyword">class </span><a class="code" href="classcoro_1_1filtered__update__queue.html">filtered_update_queue</a> {</div>
-<div class="line"><a name="l00254"></a><span class="lineno">  254</span>&#160;<span class="keyword">public</span>:</div>
-<div class="line"><a name="l00255"></a><span class="lineno">  255</span>&#160;    <span class="keyword">using</span> FilterResult = std::invoke_result_t&lt;FilterFn, T&gt;;</div>
-<div class="line"><a name="l00256"></a><span class="lineno">  256</span>&#160; </div>
-<div class="line"><a name="l00257"></a><span class="lineno">  257</span>&#160;    <span class="keyword">template</span>&lt;std::convertible_to&lt;FilterFn&gt; Fn&gt;</div>
-<div class="line"><a name="l00258"></a><span class="lineno">  258</span>&#160;    <a class="code" href="classcoro_1_1filtered__update__queue.html">filtered_update_queue</a>(Fn &amp;&amp;fn):_filter(std::forward&lt;Fn&gt;(fn)) {}</div>
-<div class="line"><a name="l00259"></a><span class="lineno">  259</span>&#160; </div>
-<div class="line"><a name="l00260"></a><span class="lineno">  260</span>&#160;    <a class="code" href="classcoro_1_1filtered__update__queue.html">filtered_update_queue</a>() = <span class="keywordflow">default</span>;</div>
-<div class="line"><a name="l00261"></a><span class="lineno">  261</span>&#160; </div>
-<div class="line"><a name="l00262"></a><span class="lineno">  262</span>&#160;    <span class="keywordtype">bool</span> empty()<span class="keyword"> const </span>{<span class="keywordflow">return</span> _main_queue.empty() &amp;&amp; _updates.empty();}</div>
-<div class="line"><a name="l00263"></a><span class="lineno">  263</span>&#160; </div>
-<div class="line"><a name="l00265"></a><span class="lineno">  265</span>&#160; </div>
-<div class="line"><a name="l00270"></a><span class="lineno"><a class="line" href="classcoro_1_1filtered__update__queue_a6cffc0b6de26ef04be4b150d897d2603.html#a6cffc0b6de26ef04be4b150d897d2603">  270</a></span>&#160;    T &amp;<a class="code" href="classcoro_1_1filtered__update__queue_a6cffc0b6de26ef04be4b150d897d2603.html#a6cffc0b6de26ef04be4b150d897d2603">front</a>() {</div>
-<div class="line"><a name="l00271"></a><span class="lineno">  271</span>&#160;        <span class="keywordflow">if</span> (_main_queue.empty()) <span class="keywordflow">return</span> _updates.begin()-&gt;second;</div>
-<div class="line"><a name="l00272"></a><span class="lineno">  272</span>&#160;        <span class="keywordflow">return</span> _main_queue.front();</div>
-<div class="line"><a name="l00273"></a><span class="lineno">  273</span>&#160;    }</div>
-<div class="line"><a name="l00275"></a><span class="lineno">  275</span>&#160; </div>
-<div class="line"><a name="l00280"></a><span class="lineno"><a class="line" href="classcoro_1_1filtered__update__queue_adbe6785767e780c909ff41afc19d4f87.html#adbe6785767e780c909ff41afc19d4f87">  280</a></span>&#160;    <span class="keyword">const</span> T &amp;<a class="code" href="classcoro_1_1filtered__update__queue_adbe6785767e780c909ff41afc19d4f87.html#adbe6785767e780c909ff41afc19d4f87">front</a>()<span class="keyword"> const </span>{</div>
-<div class="line"><a name="l00281"></a><span class="lineno">  281</span>&#160;        <span class="keywordflow">if</span> (_main_queue.empty()) <span class="keywordflow">return</span> _updates.begin()-&gt;second;</div>
-<div class="line"><a name="l00282"></a><span class="lineno">  282</span>&#160;        <span class="keywordflow">return</span> _main_queue.front();</div>
-<div class="line"><a name="l00283"></a><span class="lineno">  283</span>&#160;    }</div>
-<div class="line"><a name="l00284"></a><span class="lineno">  284</span>&#160; </div>
-<div class="line"><a name="l00286"></a><span class="lineno">  286</span>&#160; </div>
-<div class="line"><a name="l00289"></a><span class="lineno"><a class="line" href="classcoro_1_1filtered__update__queue_ab34d049d88f2e7bbf40ec7189f57bf72.html#ab34d049d88f2e7bbf40ec7189f57bf72">  289</a></span>&#160;    <span class="keywordtype">void</span> <a class="code" href="classcoro_1_1filtered__update__queue_ab34d049d88f2e7bbf40ec7189f57bf72.html#ab34d049d88f2e7bbf40ec7189f57bf72">pop</a>() {</div>
-<div class="line"><a name="l00290"></a><span class="lineno">  290</span>&#160;        <span class="keywordflow">if</span> (_main_queue.empty()) _updates.erase(_updates.begin());</div>
-<div class="line"><a name="l00291"></a><span class="lineno">  291</span>&#160;        <span class="keywordflow">else</span> _main_queue.pop_front();</div>
-<div class="line"><a name="l00292"></a><span class="lineno">  292</span>&#160;    }</div>
-<div class="line"><a name="l00293"></a><span class="lineno">  293</span>&#160; </div>
-<div class="line"><a name="l00294"></a><span class="lineno">  294</span>&#160;    <span class="keywordtype">void</span> push(<span class="keyword">const</span> T &amp;x) {</div>
-<div class="line"><a name="l00295"></a><span class="lineno">  295</span>&#160;        emplace(x);</div>
+<div class="line"><a name="l00229"></a><span class="lineno">  229</span>&#160; </div>
+<div class="line"><a name="l00230"></a><span class="lineno">  230</span>&#160;    <span class="keywordtype">void</span> value_ready() {</div>
+<div class="line"><a name="l00231"></a><span class="lineno">  231</span>&#160;        <span class="keywordflow">try</span> {</div>
+<div class="line"><a name="l00232"></a><span class="lineno">  232</span>&#160;            <span class="keywordflow">if</span> (_dist_value.has_value()) {</div>
+<div class="line"><a name="l00233"></a><span class="lineno">  233</span>&#160;                this-&gt;<a class="code" href="classcoro_1_1queue_aaaa998133432260dedd5adaded8511a2.html#aaaa998133432260dedd5adaded8511a2">push</a>(T(_dist_value.get()));</div>
+<div class="line"><a name="l00234"></a><span class="lineno">  234</span>&#160;                charge();</div>
+<div class="line"><a name="l00235"></a><span class="lineno">  235</span>&#160;            } <span class="keywordflow">else</span> {</div>
+<div class="line"><a name="l00236"></a><span class="lineno">  236</span>&#160;                this-&gt;<a class="code" href="classcoro_1_1queue_a5402d3032685d967f869d4a42a6215ed.html#a5402d3032685d967f869d4a42a6215ed">close</a>();</div>
+<div class="line"><a name="l00237"></a><span class="lineno">  237</span>&#160;            }</div>
+<div class="line"><a name="l00238"></a><span class="lineno">  238</span>&#160;        } <span class="keywordflow">catch</span> (...) {</div>
+<div class="line"><a name="l00239"></a><span class="lineno">  239</span>&#160;            this-&gt;<a class="code" href="classcoro_1_1queue_a5402d3032685d967f869d4a42a6215ed.html#a5402d3032685d967f869d4a42a6215ed">close</a>(std::current_exception());</div>
+<div class="line"><a name="l00240"></a><span class="lineno">  240</span>&#160;        }</div>
+<div class="line"><a name="l00241"></a><span class="lineno">  241</span>&#160;    }</div>
+<div class="line"><a name="l00242"></a><span class="lineno">  242</span>&#160;};</div>
+<div class="line"><a name="l00243"></a><span class="lineno">  243</span>&#160; </div>
+<div class="line"><a name="l00245"></a><span class="lineno">  245</span>&#160; </div>
+<div class="line"><a name="l00265"></a><span class="lineno">  265</span>&#160;<span class="keyword">template</span>&lt;<span class="keyword">typename</span> T, std::invocable&lt;T&gt; FilterFn, std::invoke_result_t&lt;FilterFn, T&gt; important_message = 0&gt;</div>
+<div class="line"><a name="l00266"></a><span class="lineno"><a class="line" href="classcoro_1_1filtered__update__queue.html">  266</a></span>&#160;<span class="keyword">class </span><a class="code" href="classcoro_1_1filtered__update__queue.html">filtered_update_queue</a> {</div>
+<div class="line"><a name="l00267"></a><span class="lineno">  267</span>&#160;<span class="keyword">public</span>:</div>
+<div class="line"><a name="l00268"></a><span class="lineno">  268</span>&#160;    <span class="keyword">using</span> FilterResult = std::invoke_result_t&lt;FilterFn, T&gt;;</div>
+<div class="line"><a name="l00269"></a><span class="lineno">  269</span>&#160; </div>
+<div class="line"><a name="l00270"></a><span class="lineno">  270</span>&#160;    <span class="keyword">template</span>&lt;std::convertible_to&lt;FilterFn&gt; Fn&gt;</div>
+<div class="line"><a name="l00271"></a><span class="lineno">  271</span>&#160;    <a class="code" href="classcoro_1_1filtered__update__queue.html">filtered_update_queue</a>(Fn &amp;&amp;fn):_filter(std::forward&lt;Fn&gt;(fn)) {}</div>
+<div class="line"><a name="l00272"></a><span class="lineno">  272</span>&#160; </div>
+<div class="line"><a name="l00273"></a><span class="lineno">  273</span>&#160;    <a class="code" href="classcoro_1_1filtered__update__queue.html">filtered_update_queue</a>() = <span class="keywordflow">default</span>;</div>
+<div class="line"><a name="l00274"></a><span class="lineno">  274</span>&#160; </div>
+<div class="line"><a name="l00275"></a><span class="lineno">  275</span>&#160;    <span class="keywordtype">bool</span> empty()<span class="keyword"> const </span>{<span class="keywordflow">return</span> _main_queue.empty() &amp;&amp; _updates.empty();}</div>
+<div class="line"><a name="l00276"></a><span class="lineno">  276</span>&#160; </div>
+<div class="line"><a name="l00278"></a><span class="lineno">  278</span>&#160; </div>
+<div class="line"><a name="l00283"></a><span class="lineno"><a class="line" href="classcoro_1_1filtered__update__queue_a6cffc0b6de26ef04be4b150d897d2603.html#a6cffc0b6de26ef04be4b150d897d2603">  283</a></span>&#160;    T &amp;<a class="code" href="classcoro_1_1filtered__update__queue_a6cffc0b6de26ef04be4b150d897d2603.html#a6cffc0b6de26ef04be4b150d897d2603">front</a>() {</div>
+<div class="line"><a name="l00284"></a><span class="lineno">  284</span>&#160;        <span class="keywordflow">if</span> (_main_queue.empty()) <span class="keywordflow">return</span> _updates.begin()-&gt;second;</div>
+<div class="line"><a name="l00285"></a><span class="lineno">  285</span>&#160;        <span class="keywordflow">return</span> _main_queue.front();</div>
+<div class="line"><a name="l00286"></a><span class="lineno">  286</span>&#160;    }</div>
+<div class="line"><a name="l00288"></a><span class="lineno">  288</span>&#160; </div>
+<div class="line"><a name="l00293"></a><span class="lineno"><a class="line" href="classcoro_1_1filtered__update__queue_adbe6785767e780c909ff41afc19d4f87.html#adbe6785767e780c909ff41afc19d4f87">  293</a></span>&#160;    <span class="keyword">const</span> T &amp;<a class="code" href="classcoro_1_1filtered__update__queue_adbe6785767e780c909ff41afc19d4f87.html#adbe6785767e780c909ff41afc19d4f87">front</a>()<span class="keyword"> const </span>{</div>
+<div class="line"><a name="l00294"></a><span class="lineno">  294</span>&#160;        <span class="keywordflow">if</span> (_main_queue.empty()) <span class="keywordflow">return</span> _updates.begin()-&gt;second;</div>
+<div class="line"><a name="l00295"></a><span class="lineno">  295</span>&#160;        <span class="keywordflow">return</span> _main_queue.front();</div>
 <div class="line"><a name="l00296"></a><span class="lineno">  296</span>&#160;    }</div>
 <div class="line"><a name="l00297"></a><span class="lineno">  297</span>&#160; </div>
-<div class="line"><a name="l00298"></a><span class="lineno">  298</span>&#160;    <span class="keywordtype">void</span> push(T &amp;&amp;x) {</div>
-<div class="line"><a name="l00299"></a><span class="lineno">  299</span>&#160;        emplace(std::move(x));</div>
-<div class="line"><a name="l00300"></a><span class="lineno">  300</span>&#160;    }</div>
-<div class="line"><a name="l00301"></a><span class="lineno">  301</span>&#160; </div>
-<div class="line"><a name="l00302"></a><span class="lineno">  302</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> ... Args&gt;</div>
-<div class="line"><a name="l00303"></a><span class="lineno">  303</span>&#160;    <span class="keywordtype">void</span> emplace(Args &amp;&amp; ... args) {</div>
-<div class="line"><a name="l00304"></a><span class="lineno">  304</span>&#160;        <span class="comment">//assume that message is important (we can&#39;t determine ID from args)</span></div>
-<div class="line"><a name="l00305"></a><span class="lineno">  305</span>&#160;        <span class="comment">//construct it in queue</span></div>
-<div class="line"><a name="l00306"></a><span class="lineno">  306</span>&#160;        _main_queue.emplace_back(std::forward&lt;Args&gt;(args)...);</div>
-<div class="line"><a name="l00307"></a><span class="lineno">  307</span>&#160;        <span class="comment">//retrieve it constructed</span></div>
-<div class="line"><a name="l00308"></a><span class="lineno">  308</span>&#160;        T &amp;itm = _main_queue.back();</div>
-<div class="line"><a name="l00309"></a><span class="lineno">  309</span>&#160;        <span class="comment">//retrieve is ID</span></div>
-<div class="line"><a name="l00310"></a><span class="lineno">  310</span>&#160;        FilterResult <span class="keywordtype">id</span> = _filter(itm);</div>
-<div class="line"><a name="l00311"></a><span class="lineno">  311</span>&#160; </div>
-<div class="line"><a name="l00312"></a><span class="lineno">  312</span>&#160;        <span class="comment">//if it is important message, we are good</span></div>
-<div class="line"><a name="l00313"></a><span class="lineno">  313</span>&#160;        <span class="keywordflow">if</span> (<span class="keywordtype">id</span> == important_message) <span class="keywordflow">return</span>;</div>
+<div class="line"><a name="l00299"></a><span class="lineno">  299</span>&#160; </div>
+<div class="line"><a name="l00302"></a><span class="lineno"><a class="line" href="classcoro_1_1filtered__update__queue_ab34d049d88f2e7bbf40ec7189f57bf72.html#ab34d049d88f2e7bbf40ec7189f57bf72">  302</a></span>&#160;    <span class="keywordtype">void</span> <a class="code" href="classcoro_1_1filtered__update__queue_ab34d049d88f2e7bbf40ec7189f57bf72.html#ab34d049d88f2e7bbf40ec7189f57bf72">pop</a>() {</div>
+<div class="line"><a name="l00303"></a><span class="lineno">  303</span>&#160;        <span class="keywordflow">if</span> (_main_queue.empty()) _updates.erase(_updates.begin());</div>
+<div class="line"><a name="l00304"></a><span class="lineno">  304</span>&#160;        <span class="keywordflow">else</span> _main_queue.pop_front();</div>
+<div class="line"><a name="l00305"></a><span class="lineno">  305</span>&#160;    }</div>
+<div class="line"><a name="l00306"></a><span class="lineno">  306</span>&#160; </div>
+<div class="line"><a name="l00307"></a><span class="lineno">  307</span>&#160;    <span class="keywordtype">void</span> push(<span class="keyword">const</span> T &amp;x) {</div>
+<div class="line"><a name="l00308"></a><span class="lineno">  308</span>&#160;        emplace(x);</div>
+<div class="line"><a name="l00309"></a><span class="lineno">  309</span>&#160;    }</div>
+<div class="line"><a name="l00310"></a><span class="lineno">  310</span>&#160; </div>
+<div class="line"><a name="l00311"></a><span class="lineno">  311</span>&#160;    <span class="keywordtype">void</span> push(T &amp;&amp;x) {</div>
+<div class="line"><a name="l00312"></a><span class="lineno">  312</span>&#160;        emplace(std::move(x));</div>
+<div class="line"><a name="l00313"></a><span class="lineno">  313</span>&#160;    }</div>
 <div class="line"><a name="l00314"></a><span class="lineno">  314</span>&#160; </div>
-<div class="line"><a name="l00315"></a><span class="lineno">  315</span>&#160;        <span class="comment">//find whether there is message with same ID</span></div>
-<div class="line"><a name="l00316"></a><span class="lineno">  316</span>&#160;        <span class="keyword">auto</span> iter = _updates.find(<span class="keywordtype">id</span>);</div>
-<div class="line"><a name="l00317"></a><span class="lineno">  317</span>&#160;        <span class="comment">//if not</span></div>
-<div class="line"><a name="l00318"></a><span class="lineno">  318</span>&#160;        <span class="keywordflow">if</span> (iter == _updates.end()) {</div>
-<div class="line"><a name="l00319"></a><span class="lineno">  319</span>&#160;            <span class="comment">//create it</span></div>
-<div class="line"><a name="l00320"></a><span class="lineno">  320</span>&#160;            _updates.emplace(<span class="keywordtype">id</span>, std::move(itm));</div>
-<div class="line"><a name="l00321"></a><span class="lineno">  321</span>&#160;        } <span class="keywordflow">else</span> {</div>
-<div class="line"><a name="l00322"></a><span class="lineno">  322</span>&#160;            <span class="comment">//otherwise replace it</span></div>
-<div class="line"><a name="l00323"></a><span class="lineno">  323</span>&#160;            iter-&gt;second = std::move(itm);</div>
-<div class="line"><a name="l00324"></a><span class="lineno">  324</span>&#160;        }</div>
-<div class="line"><a name="l00325"></a><span class="lineno">  325</span>&#160;        <span class="comment">//remove it from the queue )</span></div>
-<div class="line"><a name="l00326"></a><span class="lineno">  326</span>&#160;        _main_queue.pop_back();</div>
-<div class="line"><a name="l00327"></a><span class="lineno">  327</span>&#160;    }</div>
-<div class="line"><a name="l00328"></a><span class="lineno">  328</span>&#160; </div>
-<div class="line"><a name="l00329"></a><span class="lineno">  329</span>&#160;<span class="keyword">protected</span>:</div>
-<div class="line"><a name="l00330"></a><span class="lineno">  330</span>&#160;    <span class="keyword">using</span> MainQueue = std::deque&lt;T&gt;;</div>
-<div class="line"><a name="l00331"></a><span class="lineno">  331</span>&#160;    <span class="keyword">using</span> Updates = std::map&lt;FilterResult, T&gt;;</div>
-<div class="line"><a name="l00332"></a><span class="lineno">  332</span>&#160; </div>
-<div class="line"><a name="l00333"></a><span class="lineno">  333</span>&#160;    FilterFn _filter;</div>
-<div class="line"><a name="l00334"></a><span class="lineno">  334</span>&#160;    MainQueue _main_queue;</div>
-<div class="line"><a name="l00335"></a><span class="lineno">  335</span>&#160;    Updates _updates;</div>
-<div class="line"><a name="l00336"></a><span class="lineno">  336</span>&#160; </div>
-<div class="line"><a name="l00337"></a><span class="lineno">  337</span>&#160;};</div>
-<div class="line"><a name="l00338"></a><span class="lineno">  338</span>&#160; </div>
-<div class="line"><a name="l00339"></a><span class="lineno">  339</span>&#160;}</div>
-<div class="ttc" id="aclasscoro_1_1distributor_a151fe78ce593ec5c4b644b97b1d8d230_html_a151fe78ce593ec5c4b644b97b1d8d230"><div class="ttname"><a href="classcoro_1_1distributor_a151fe78ce593ec5c4b644b97b1d8d230.html#a151fe78ce593ec5c4b644b97b1d8d230">coro::distributor::reject_all</a></div><div class="ttdeci">void reject_all()</div><div class="ttdoc">reject all with current exception</div><div class="ttdef"><b>Definition:</b> <a href="distributor_8h_source.html#l00083">distributor.h:83</a></div></div>
-<div class="ttc" id="aclasscoro_1_1distributor_a399379f391d8c1577923d5f5b235ae93_html_a399379f391d8c1577923d5f5b235ae93"><div class="ttname"><a href="classcoro_1_1distributor_a399379f391d8c1577923d5f5b235ae93.html#a399379f391d8c1577923d5f5b235ae93">coro::distributor::reject_all</a></div><div class="ttdeci">void reject_all(std::exception_ptr e)</div><div class="ttdoc">reject all with exception</div><div class="ttdef"><b>Definition:</b> <a href="distributor_8h_source.html#l00078">distributor.h:78</a></div></div>
+<div class="line"><a name="l00315"></a><span class="lineno">  315</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> ... Args&gt;</div>
+<div class="line"><a name="l00316"></a><span class="lineno">  316</span>&#160;    <span class="keywordtype">void</span> emplace(Args &amp;&amp; ... args) {</div>
+<div class="line"><a name="l00317"></a><span class="lineno">  317</span>&#160;        <span class="comment">//assume that message is important (we can&#39;t determine ID from args)</span></div>
+<div class="line"><a name="l00318"></a><span class="lineno">  318</span>&#160;        <span class="comment">//construct it in queue</span></div>
+<div class="line"><a name="l00319"></a><span class="lineno">  319</span>&#160;        _main_queue.emplace_back(std::forward&lt;Args&gt;(args)...);</div>
+<div class="line"><a name="l00320"></a><span class="lineno">  320</span>&#160;        <span class="comment">//retrieve it constructed</span></div>
+<div class="line"><a name="l00321"></a><span class="lineno">  321</span>&#160;        T &amp;itm = _main_queue.back();</div>
+<div class="line"><a name="l00322"></a><span class="lineno">  322</span>&#160;        <span class="comment">//retrieve is ID</span></div>
+<div class="line"><a name="l00323"></a><span class="lineno">  323</span>&#160;        FilterResult <span class="keywordtype">id</span> = _filter(itm);</div>
+<div class="line"><a name="l00324"></a><span class="lineno">  324</span>&#160; </div>
+<div class="line"><a name="l00325"></a><span class="lineno">  325</span>&#160;        <span class="comment">//if it is important message, we are good</span></div>
+<div class="line"><a name="l00326"></a><span class="lineno">  326</span>&#160;        <span class="keywordflow">if</span> (<span class="keywordtype">id</span> == important_message) <span class="keywordflow">return</span>;</div>
+<div class="line"><a name="l00327"></a><span class="lineno">  327</span>&#160; </div>
+<div class="line"><a name="l00328"></a><span class="lineno">  328</span>&#160;        <span class="comment">//find whether there is message with same ID</span></div>
+<div class="line"><a name="l00329"></a><span class="lineno">  329</span>&#160;        <span class="keyword">auto</span> iter = _updates.find(<span class="keywordtype">id</span>);</div>
+<div class="line"><a name="l00330"></a><span class="lineno">  330</span>&#160;        <span class="comment">//if not</span></div>
+<div class="line"><a name="l00331"></a><span class="lineno">  331</span>&#160;        <span class="keywordflow">if</span> (iter == _updates.end()) {</div>
+<div class="line"><a name="l00332"></a><span class="lineno">  332</span>&#160;            <span class="comment">//create it</span></div>
+<div class="line"><a name="l00333"></a><span class="lineno">  333</span>&#160;            _updates.emplace(<span class="keywordtype">id</span>, std::move(itm));</div>
+<div class="line"><a name="l00334"></a><span class="lineno">  334</span>&#160;        } <span class="keywordflow">else</span> {</div>
+<div class="line"><a name="l00335"></a><span class="lineno">  335</span>&#160;            <span class="comment">//otherwise replace it</span></div>
+<div class="line"><a name="l00336"></a><span class="lineno">  336</span>&#160;            iter-&gt;second = std::move(itm);</div>
+<div class="line"><a name="l00337"></a><span class="lineno">  337</span>&#160;        }</div>
+<div class="line"><a name="l00338"></a><span class="lineno">  338</span>&#160;        <span class="comment">//remove it from the queue )</span></div>
+<div class="line"><a name="l00339"></a><span class="lineno">  339</span>&#160;        _main_queue.pop_back();</div>
+<div class="line"><a name="l00340"></a><span class="lineno">  340</span>&#160;    }</div>
+<div class="line"><a name="l00341"></a><span class="lineno">  341</span>&#160; </div>
+<div class="line"><a name="l00342"></a><span class="lineno">  342</span>&#160;<span class="keyword">protected</span>:</div>
+<div class="line"><a name="l00343"></a><span class="lineno">  343</span>&#160;    <span class="keyword">using</span> MainQueue = std::deque&lt;T&gt;;</div>
+<div class="line"><a name="l00344"></a><span class="lineno">  344</span>&#160;    <span class="keyword">using</span> Updates = std::map&lt;FilterResult, T&gt;;</div>
+<div class="line"><a name="l00345"></a><span class="lineno">  345</span>&#160; </div>
+<div class="line"><a name="l00346"></a><span class="lineno">  346</span>&#160;    FilterFn _filter;</div>
+<div class="line"><a name="l00347"></a><span class="lineno">  347</span>&#160;    MainQueue _main_queue;</div>
+<div class="line"><a name="l00348"></a><span class="lineno">  348</span>&#160;    Updates _updates;</div>
+<div class="line"><a name="l00349"></a><span class="lineno">  349</span>&#160; </div>
+<div class="line"><a name="l00350"></a><span class="lineno">  350</span>&#160;};</div>
+<div class="line"><a name="l00351"></a><span class="lineno">  351</span>&#160; </div>
+<div class="line"><a name="l00352"></a><span class="lineno">  352</span>&#160;}</div>
+<div class="ttc" id="aclasscoro_1_1distributor_a151fe78ce593ec5c4b644b97b1d8d230_html_a151fe78ce593ec5c4b644b97b1d8d230"><div class="ttname"><a href="classcoro_1_1distributor_a151fe78ce593ec5c4b644b97b1d8d230.html#a151fe78ce593ec5c4b644b97b1d8d230">coro::distributor::reject_all</a></div><div class="ttdeci">void reject_all()</div><div class="ttdoc">reject all with current exception</div><div class="ttdef"><b>Definition:</b> <a href="distributor_8h_source.html#l00096">distributor.h:96</a></div></div>
+<div class="ttc" id="aclasscoro_1_1distributor_a23e894bd7e86ac3e22d946d9ffc02dbf_html_a23e894bd7e86ac3e22d946d9ffc02dbf"><div class="ttname"><a href="classcoro_1_1distributor_a23e894bd7e86ac3e22d946d9ffc02dbf.html#a23e894bd7e86ac3e22d946d9ffc02dbf">coro::distributor::subscribe</a></div><div class="ttdeci">subscription subscribe(ID id={ })</div><div class="ttdoc">subscribe</div><div class="ttdef"><b>Definition:</b> <a href="distributor_8h_source.html#l00107">distributor.h:107</a></div></div>
+<div class="ttc" id="aclasscoro_1_1distributor_a399379f391d8c1577923d5f5b235ae93_html_a399379f391d8c1577923d5f5b235ae93"><div class="ttname"><a href="classcoro_1_1distributor_a399379f391d8c1577923d5f5b235ae93.html#a399379f391d8c1577923d5f5b235ae93">coro::distributor::reject_all</a></div><div class="ttdeci">void reject_all(std::exception_ptr e)</div><div class="ttdoc">reject all with exception</div><div class="ttdef"><b>Definition:</b> <a href="distributor_8h_source.html#l00091">distributor.h:91</a></div></div>
 <div class="ttc" id="aclasscoro_1_1distributor_a531fc239d298e7e4b34cf87a31ff2025_html_a531fc239d298e7e4b34cf87a31ff2025"><div class="ttname"><a href="classcoro_1_1distributor_a531fc239d298e7e4b34cf87a31ff2025.html#a531fc239d298e7e4b34cf87a31ff2025">coro::distributor::distributor</a></div><div class="ttdeci">distributor()=default</div><div class="ttdoc">default constructor</div></div>
-<div class="ttc" id="aclasscoro_1_1distributor_a7a22a95f4363b7522e43dbec007ef338_html_a7a22a95f4363b7522e43dbec007ef338"><div class="ttname"><a href="classcoro_1_1distributor_a7a22a95f4363b7522e43dbec007ef338.html#a7a22a95f4363b7522e43dbec007ef338">coro::distributor::drop</a></div><div class="ttdeci">pending_notify drop(ID id)</div><div class="ttdoc">drop single subscriber</div><div class="ttdef"><b>Definition:</b> <a href="distributor_8h_source.html#l00112">distributor.h:112</a></div></div>
-<div class="ttc" id="aclasscoro_1_1distributor_a8faf05d2a8aae8f2bc2a14628e3f07a0_html_a8faf05d2a8aae8f2bc2a14628e3f07a0"><div class="ttname"><a href="classcoro_1_1distributor_a8faf05d2a8aae8f2bc2a14628e3f07a0.html#a8faf05d2a8aae8f2bc2a14628e3f07a0">coro::distributor::cancel_all</a></div><div class="ttdeci">void cancel_all()</div><div class="ttdoc">drops all subscribers</div><div class="ttdef"><b>Definition:</b> <a href="distributor_8h_source.html#l00073">distributor.h:73</a></div></div>
-<div class="ttc" id="aclasscoro_1_1distributor_ac51164397a931cf309a3dbd3e206d180_html_ac51164397a931cf309a3dbd3e206d180"><div class="ttname"><a href="classcoro_1_1distributor_ac51164397a931cf309a3dbd3e206d180.html#ac51164397a931cf309a3dbd3e206d180">coro::distributor::publish</a></div><div class="ttdeci">void publish(Args &amp;&amp;... args)</div><div class="ttdoc">publish the value</div><div class="ttdef"><b>Definition:</b> <a href="distributor_8h_source.html#l00064">distributor.h:64</a></div></div>
-<div class="ttc" id="aclasscoro_1_1distributor_acfd99952fbc80cfabeadc919df4cbb60_html_acfd99952fbc80cfabeadc919df4cbb60"><div class="ttname"><a href="classcoro_1_1distributor_acfd99952fbc80cfabeadc919df4cbb60.html#acfd99952fbc80cfabeadc919df4cbb60">coro::distributor::subscribe</a></div><div class="ttdeci">subscription&lt; T &gt; subscribe(ID id={ })</div><div class="ttdoc">subscribe</div><div class="ttdef"><b>Definition:</b> <a href="distributor_8h_source.html#l00094">distributor.h:94</a></div></div>
-<div class="ttc" id="aclasscoro_1_1distributor_ad7967d46813c5eabba0ce5004255cacf_html_ad7967d46813c5eabba0ce5004255cacf"><div class="ttname"><a href="classcoro_1_1distributor_ad7967d46813c5eabba0ce5004255cacf.html#ad7967d46813c5eabba0ce5004255cacf">coro::distributor::queue</a></div><div class="ttdeci">distributor_queue&lt; T, Lock, QueueImpl &gt; queue</div><div class="ttdoc">Implements queue above distributor.</div><div class="ttdef"><b>Definition:</b> <a href="distributor_8h_source.html#l00145">distributor.h:145</a></div></div>
-<div class="ttc" id="aclasscoro_1_1distributor_ae5726ddff39fb4247d887d822230dc90_html_ae5726ddff39fb4247d887d822230dc90"><div class="ttname"><a href="classcoro_1_1distributor_ae5726ddff39fb4247d887d822230dc90.html#ae5726ddff39fb4247d887d822230dc90">coro::distributor::distributor</a></div><div class="ttdeci">distributor(Lock &amp;&amp;lk)</div><div class="ttdoc">initialize lock instance</div><div class="ttdef"><b>Definition:</b> <a href="distributor_8h_source.html#l00052">distributor.h:52</a></div></div>
-<div class="ttc" id="aclasscoro_1_1distributor_html"><div class="ttname"><a href="classcoro_1_1distributor.html">coro::distributor</a></div><div class="ttdoc">Distributes single event to multiple coroutines (subscribbers)</div><div class="ttdef"><b>Definition:</b> <a href="distributor_8h_source.html#l00041">distributor.h:41</a></div></div>
-<div class="ttc" id="aclasscoro_1_1filtered__update__queue_a6cffc0b6de26ef04be4b150d897d2603_html_a6cffc0b6de26ef04be4b150d897d2603"><div class="ttname"><a href="classcoro_1_1filtered__update__queue_a6cffc0b6de26ef04be4b150d897d2603.html#a6cffc0b6de26ef04be4b150d897d2603">coro::filtered_update_queue::front</a></div><div class="ttdeci">T &amp; front()</div><div class="ttdoc">Retrieves first item in queue.</div><div class="ttdef"><b>Definition:</b> <a href="distributor_8h_source.html#l00270">distributor.h:270</a></div></div>
-<div class="ttc" id="aclasscoro_1_1filtered__update__queue_ab34d049d88f2e7bbf40ec7189f57bf72_html_ab34d049d88f2e7bbf40ec7189f57bf72"><div class="ttname"><a href="classcoro_1_1filtered__update__queue_ab34d049d88f2e7bbf40ec7189f57bf72.html#ab34d049d88f2e7bbf40ec7189f57bf72">coro::filtered_update_queue::pop</a></div><div class="ttdeci">void pop()</div><div class="ttdoc">Removes first item from the queue.</div><div class="ttdef"><b>Definition:</b> <a href="distributor_8h_source.html#l00289">distributor.h:289</a></div></div>
-<div class="ttc" id="aclasscoro_1_1filtered__update__queue_adbe6785767e780c909ff41afc19d4f87_html_adbe6785767e780c909ff41afc19d4f87"><div class="ttname"><a href="classcoro_1_1filtered__update__queue_adbe6785767e780c909ff41afc19d4f87.html#adbe6785767e780c909ff41afc19d4f87">coro::filtered_update_queue::front</a></div><div class="ttdeci">const T &amp; front() const</div><div class="ttdoc">Retrieves first item in queue.</div><div class="ttdef"><b>Definition:</b> <a href="distributor_8h_source.html#l00280">distributor.h:280</a></div></div>
-<div class="ttc" id="aclasscoro_1_1filtered__update__queue_html"><div class="ttname"><a href="classcoro_1_1filtered__update__queue.html">coro::filtered_update_queue</a></div><div class="ttdoc">A special purpose queue which is intended to filter events sent to slow subscribers.</div><div class="ttdef"><b>Definition:</b> <a href="distributor_8h_source.html#l00253">distributor.h:253</a></div></div>
-<div class="ttc" id="aclasscoro_1_1function_html"><div class="ttname"><a href="classcoro_1_1function.html">coro::function&lt; prepared_coro(promise&lt; T &gt;)&gt;</a></div></div>
+<div class="ttc" id="aclasscoro_1_1distributor_a7a22a95f4363b7522e43dbec007ef338_html_a7a22a95f4363b7522e43dbec007ef338"><div class="ttname"><a href="classcoro_1_1distributor_a7a22a95f4363b7522e43dbec007ef338.html#a7a22a95f4363b7522e43dbec007ef338">coro::distributor::drop</a></div><div class="ttdeci">pending_notify drop(ID id)</div><div class="ttdoc">drop single subscriber</div><div class="ttdef"><b>Definition:</b> <a href="distributor_8h_source.html#l00125">distributor.h:125</a></div></div>
+<div class="ttc" id="aclasscoro_1_1distributor_a8faf05d2a8aae8f2bc2a14628e3f07a0_html_a8faf05d2a8aae8f2bc2a14628e3f07a0"><div class="ttname"><a href="classcoro_1_1distributor_a8faf05d2a8aae8f2bc2a14628e3f07a0.html#a8faf05d2a8aae8f2bc2a14628e3f07a0">coro::distributor::cancel_all</a></div><div class="ttdeci">void cancel_all()</div><div class="ttdoc">drops all subscribers</div><div class="ttdef"><b>Definition:</b> <a href="distributor_8h_source.html#l00086">distributor.h:86</a></div></div>
+<div class="ttc" id="aclasscoro_1_1distributor_ac51164397a931cf309a3dbd3e206d180_html_ac51164397a931cf309a3dbd3e206d180"><div class="ttname"><a href="classcoro_1_1distributor_ac51164397a931cf309a3dbd3e206d180.html#ac51164397a931cf309a3dbd3e206d180">coro::distributor::publish</a></div><div class="ttdeci">void publish(Args &amp;&amp;... args)</div><div class="ttdoc">publish the value</div><div class="ttdef"><b>Definition:</b> <a href="distributor_8h_source.html#l00071">distributor.h:71</a></div></div>
+<div class="ttc" id="aclasscoro_1_1distributor_ad7967d46813c5eabba0ce5004255cacf_html_ad7967d46813c5eabba0ce5004255cacf"><div class="ttname"><a href="classcoro_1_1distributor_ad7967d46813c5eabba0ce5004255cacf.html#ad7967d46813c5eabba0ce5004255cacf">coro::distributor::queue</a></div><div class="ttdeci">distributor_queue&lt; T, Lock, QueueImpl &gt; queue</div><div class="ttdoc">Implements queue above distributor.</div><div class="ttdef"><b>Definition:</b> <a href="distributor_8h_source.html#l00158">distributor.h:158</a></div></div>
+<div class="ttc" id="aclasscoro_1_1distributor_ae5726ddff39fb4247d887d822230dc90_html_ae5726ddff39fb4247d887d822230dc90"><div class="ttname"><a href="classcoro_1_1distributor_ae5726ddff39fb4247d887d822230dc90.html#ae5726ddff39fb4247d887d822230dc90">coro::distributor::distributor</a></div><div class="ttdeci">distributor(Lock &amp;&amp;lk)</div><div class="ttdoc">initialize lock instance</div><div class="ttdef"><b>Definition:</b> <a href="distributor_8h_source.html#l00059">distributor.h:59</a></div></div>
+<div class="ttc" id="aclasscoro_1_1distributor_html"><div class="ttname"><a href="classcoro_1_1distributor.html">coro::distributor</a></div><div class="ttdoc">Distributes single event to multiple coroutines (subscribbers)</div><div class="ttdef"><b>Definition:</b> <a href="distributor_8h_source.html#l00046">distributor.h:46</a></div></div>
+<div class="ttc" id="aclasscoro_1_1filtered__update__queue_a6cffc0b6de26ef04be4b150d897d2603_html_a6cffc0b6de26ef04be4b150d897d2603"><div class="ttname"><a href="classcoro_1_1filtered__update__queue_a6cffc0b6de26ef04be4b150d897d2603.html#a6cffc0b6de26ef04be4b150d897d2603">coro::filtered_update_queue::front</a></div><div class="ttdeci">T &amp; front()</div><div class="ttdoc">Retrieves first item in queue.</div><div class="ttdef"><b>Definition:</b> <a href="distributor_8h_source.html#l00283">distributor.h:283</a></div></div>
+<div class="ttc" id="aclasscoro_1_1filtered__update__queue_ab34d049d88f2e7bbf40ec7189f57bf72_html_ab34d049d88f2e7bbf40ec7189f57bf72"><div class="ttname"><a href="classcoro_1_1filtered__update__queue_ab34d049d88f2e7bbf40ec7189f57bf72.html#ab34d049d88f2e7bbf40ec7189f57bf72">coro::filtered_update_queue::pop</a></div><div class="ttdeci">void pop()</div><div class="ttdoc">Removes first item from the queue.</div><div class="ttdef"><b>Definition:</b> <a href="distributor_8h_source.html#l00302">distributor.h:302</a></div></div>
+<div class="ttc" id="aclasscoro_1_1filtered__update__queue_adbe6785767e780c909ff41afc19d4f87_html_adbe6785767e780c909ff41afc19d4f87"><div class="ttname"><a href="classcoro_1_1filtered__update__queue_adbe6785767e780c909ff41afc19d4f87.html#adbe6785767e780c909ff41afc19d4f87">coro::filtered_update_queue::front</a></div><div class="ttdeci">const T &amp; front() const</div><div class="ttdoc">Retrieves first item in queue.</div><div class="ttdef"><b>Definition:</b> <a href="distributor_8h_source.html#l00293">distributor.h:293</a></div></div>
+<div class="ttc" id="aclasscoro_1_1filtered__update__queue_html"><div class="ttname"><a href="classcoro_1_1filtered__update__queue.html">coro::filtered_update_queue</a></div><div class="ttdoc">A special purpose queue which is intended to filter events sent to slow subscribers.</div><div class="ttdef"><b>Definition:</b> <a href="distributor_8h_source.html#l00266">distributor.h:266</a></div></div>
 <div class="ttc" id="aclasscoro_1_1prepared__coro_html"><div class="ttname"><a href="classcoro_1_1prepared__coro.html">coro::prepared_coro</a></div><div class="ttdoc">contains prepared coroutine (prepared to run)</div><div class="ttdef"><b>Definition:</b> <a href="prepared__coro_8h_source.html#l00014">prepared_coro.h:14</a></div></div>
 <div class="ttc" id="aclasscoro_1_1promise_1_1notify_html"><div class="ttname"><a href="classcoro_1_1promise_1_1notify.html">coro::promise::notify</a></div><div class="ttdoc">contain notification to be delivered to the asociated future</div><div class="ttdef"><b>Definition:</b> <a href="future_8h_source.html#l00091">future.h:91</a></div></div>
+<div class="ttc" id="aclasscoro_1_1promise_a54a9bdbbcdfc5473d35c641d2ee31fdf_html_a54a9bdbbcdfc5473d35c641d2ee31fdf"><div class="ttname"><a href="classcoro_1_1promise_a54a9bdbbcdfc5473d35c641d2ee31fdf.html#a54a9bdbbcdfc5473d35c641d2ee31fdf">coro::promise::reject</a></div><div class="ttdeci">notify reject(std::exception_ptr e)</div><div class="ttdoc">reject the future with exception</div><div class="ttdef"><b>Definition:</b> <a href="future_8h_source.html#l00245">future.h:245</a></div></div>
+<div class="ttc" id="aclasscoro_1_1promise_a961e99f1d756f56f54d2a5ea9481403d_html_a961e99f1d756f56f54d2a5ea9481403d"><div class="ttname"><a href="classcoro_1_1promise_a961e99f1d756f56f54d2a5ea9481403d.html#a961e99f1d756f56f54d2a5ea9481403d">coro::promise::cancel</a></div><div class="ttdeci">notify cancel()</div><div class="ttdoc">cancel the future (resolve without value)</div><div class="ttdef"><b>Definition:</b> <a href="future_8h_source.html#l00222">future.h:222</a></div></div>
 <div class="ttc" id="aclasscoro_1_1promise_html"><div class="ttname"><a href="classcoro_1_1promise.html">coro::promise</a></div><div class="ttdoc">Carries reference to future&lt;T&gt;, callable, sets value of an associated future&lt;T&gt;</div><div class="ttdef"><b>Definition:</b> <a href="future_8h_source.html#l00073">future.h:73</a></div></div>
 <div class="ttc" id="aclasscoro_1_1queue_a5402d3032685d967f869d4a42a6215ed_html_a5402d3032685d967f869d4a42a6215ed"><div class="ttname"><a href="classcoro_1_1queue_a5402d3032685d967f869d4a42a6215ed.html#a5402d3032685d967f869d4a42a6215ed">coro::queue&lt; T, QueueImpl &gt;::close</a></div><div class="ttdeci">void close(std::exception_ptr e=nullptr)</div><div class="ttdoc">close the queue</div><div class="ttdef"><b>Definition:</b> <a href="queue_8h_source.html#l00168">queue.h:168</a></div></div>
 <div class="ttc" id="aclasscoro_1_1queue_aaaa998133432260dedd5adaded8511a2_html_aaaa998133432260dedd5adaded8511a2"><div class="ttname"><a href="classcoro_1_1queue_aaaa998133432260dedd5adaded8511a2.html#aaaa998133432260dedd5adaded8511a2">coro::queue&lt; T, QueueImpl &gt;::push</a></div><div class="ttdeci">auto push(const T &amp;x)</div><div class="ttdoc">Push item to the queue.</div><div class="ttdef"><b>Definition:</b> <a href="queue_8h_source.html#l00081">queue.h:81</a></div></div>
@@ -333,7 +347,7 @@ $(function() {
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed May 22 2024 10:51:46 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+Generated on Sun May 26 2024 19:58:07 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
 </small></address>
 </body>
 </html>
