@@ -16,6 +16,11 @@ struct nolock {
     void unlock() {}
 };
 
+template<typename From, typename To>
+concept is_static_cast_convertible = requires(From from){
+    {static_cast<To>(from)};
+};
+
 ///Distributes single event to multiple coroutines (subscribbers)
 /**
  * To use this object, a consument must subscribe itself at this object by calling
@@ -42,8 +47,10 @@ class distributor {
 public:
 
     using value_type = T;
-    using promise_t = promise<T>;
-    using pending_notify = typename promise<T>::notify;
+    using reference_type = std::add_lvalue_reference_t<T>;
+    using subscription = coro::subscription<reference_type>;
+    using promise_t = promise<reference_type>;
+    using pending_notify = typename promise<reference_type>::notify;
     using ID = const void *;
 
     ///default constructor
@@ -62,7 +69,13 @@ public:
      */
     template<typename ... Args>
     void publish(Args &&... args) {
-        collect()(std::forward<Args>(args)...);
+        promise_t plist = collect();
+        if constexpr(sizeof...(Args) == 1 && (is_static_cast_convertible<Args &&, reference_type> && ...)) {
+            plist(args...);
+        } else {
+            value_type tmp(std::forward<Args>(args)...);
+            plist(tmp);
+        }
     }
 
     ///drops all subscribers
@@ -91,8 +104,8 @@ public:
      * @param id identifier of subsciber (optional)
      * @return future which is resolved with distributed event
      */
-    subscription<T> subscribe(ID id = { }) {
-        return typename subscription<T>::subscribe_fn([this, id](promise<T> promise) ->prepared_coro {
+    subscription subscribe(ID id = { }) {
+        return typename subscription::subscribe_fn([this, id](promise_t promise) ->prepared_coro {
             subscribe(std::move(promise), id);
             return {};
         });
@@ -148,9 +161,9 @@ protected:
     [[no_unique_address]] Lock _mx;
     std::vector<std::pair<promise_t, ID> > _subscribers;
 
-    promise<T> collect() {
+    promise_t collect() {
         std::lock_guard _(_mx);
-        promise<T> p;
+        promise_t p;
         while (!_subscribers.empty()) {
             p += _subscribers.back().first;
             _subscribers.pop_back();
@@ -207,7 +220,7 @@ public:
     }
 
 protected:
-    subscription<T> _dist_value;
+    typename distributor<T, Lock>::subscription _dist_value;
     distributor<T, Lock> *_connection = nullptr;
     void charge() {
         _dist_value = _connection->subscribe(this);
@@ -217,7 +230,7 @@ protected:
     void value_ready() {
         try {
             if (_dist_value.has_value()) {
-                this->push(std::move(_dist_value).get());
+                this->push(T(_dist_value.get()));
                 charge();
             } else {
                 this->close();

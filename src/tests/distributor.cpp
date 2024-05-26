@@ -59,9 +59,10 @@ int main() {
     std::thread thr([&]{test_thread(4, d, results, unlk);});
     unlk.wait(false);
 
-
-    d.publish(10);
-    d.publish(20);
+    int v = 10;
+    const int w= 20;
+    d.publish(v);
+    d.publish(w);
     d.publish(30);
 
     for (int i = 1; i <= 3; i++) {
