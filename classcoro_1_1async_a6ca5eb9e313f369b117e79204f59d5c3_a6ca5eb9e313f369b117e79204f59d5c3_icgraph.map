@@ -1,4 +1,0 @@
-<map id="coro::async::detach" name="coro::async::detach">
-<area shape="rect" id="node1" title="Run coroutine detached." alt="" coords="188,5,336,32"/>
-<area shape="rect" id="node2" href="$classcoro_1_1async_a143362b76296624ce59d27ac000ca7c8.html#a143362b76296624ce59d27ac000ca7c8" title="Start coroutine and pass return value to promise." alt="" coords="5,5,140,32"/>
-</map>
