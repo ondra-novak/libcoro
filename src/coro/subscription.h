@@ -43,7 +43,7 @@ public:
     ///construct and pass subscribe function
     subscription(const SubscribeFn &fn): _fn(fn) {}
     ///movable
-    subscription(subscription &&other):_fn(std::move(_fn)) {}
+    subscription(subscription &&other):_fn(std::move(other._fn)) {}
     ///movable
     subscription &operator=(subscription &&other) {
         if (this != &other) {
