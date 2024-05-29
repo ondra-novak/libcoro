@@ -72,21 +72,31 @@ generator<T, Alloc> aggregator(Alloc &, std::vector<generator<T> > gens) {
         }
     };
 
+    std::exception_ptr e = {};
     //any running generator?
     while (cnt) {
 
         //wait on queue
         std::size_t idx = co_await q.pop();
-        //retrieve index, if it has value
-        if (futures[idx].has_value()) {
-            //yield value of future
-            co_yield std::move(futures[idx]).get();
-            //activate the generator
-            activate(idx);
-        } else {
-            //if generator has no value, decrease count of running generators
-            --cnt;
+
+        try {
+            //retrieve index, if it has value
+            if (futures[idx].has_value()) {
+                //yield value of future
+                co_yield std::move(futures[idx]).get();
+                //activate the generator
+                activate(idx);
+            } else {
+                //if generator has no value, decrease count of running generators
+                --cnt;
+            }
+            continue;
+        } catch (...) {
+            e = std::current_exception();
         }
+        co_yield std::move(e);
+
+        activate(idx);
     }
 }
 

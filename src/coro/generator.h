@@ -123,6 +123,10 @@ public:
             this->set_value(std::forward<Arg>(val));
             return {};
         }
+        switch_awaiter yield_value(std::exception_ptr e) {
+            this->set_exception(std::move(e));
+            return {};
+        }
 
         switch_awaiter final_suspend() noexcept {
             return {};

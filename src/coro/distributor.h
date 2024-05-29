@@ -135,8 +135,8 @@ public:
             ntf = iter->first.cancel();
             if (&(iter->first) != &_subscribers.back().first) {
                 std::swap(*iter, _subscribers.back());
-                _subscribers.pop_back();
             }
+            _subscribers.pop_back();
         }
         return ntf;
     }
