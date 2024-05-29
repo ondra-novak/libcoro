@@ -18,6 +18,8 @@ public:
     prepared_coro() = default;
     ///construct with handle
     prepared_coro(std::coroutine_handle<> h):_h(h) {}
+    template<typename X>
+    prepared_coro(std::coroutine_handle<X> h):_h(h) {}
     ///move
     prepared_coro(prepared_coro &&other):_h(other.release()) {}
     ///move assign

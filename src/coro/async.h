@@ -4,6 +4,7 @@
 #include "allocator.h"
 #include "future.h"
 
+#include <cstdint>
 namespace coro {
 
 #ifdef _MSC_VER
@@ -58,6 +59,40 @@ public:
     class promise_type: public _details::coro_promise<T>, public coro_allocator_helper<Alloc> {
     public:
 
+        /**
+         * The standard does not guarantee the call order of some operations.
+         * For example, the conversion from async to future can happen
+         * before initial_suspend (clang).This could cause a coroutine that
+         * is not yet fully initialized to run early (because assigning a coroutine to a future calls resume() )
+         *
+         * To address this problem, a pointer to a bound future is used as a flag
+         * for incomplete initialization.
+         * If this flag does not have nullptr during the first run,
+         * it means that the coroutine is not yet fully initialized.
+         *
+         * If the flag does not have this special value in initial_suspend,
+         * then there is no initial suspend andthe coroutine is
+         * started immediately
+         *
+         */
+        static future<T> *invalid_value() {
+            return reinterpret_cast<future<T> *>(std::uintptr_t(-1));
+        }
+
+        promise_type() {
+            this->fut = invalid_value();
+        }
+
+        struct initial_awaiter {
+            promise_type *me;
+            bool await_ready() const noexcept {return me->fut != invalid_value();}
+            void await_suspend(std::coroutine_handle<>) noexcept {
+                //initialization is finished, reset the pointer
+                me->fut = nullptr;
+            }
+            static constexpr void await_resume() noexcept {};
+        };
+
         struct final_awaiter {
             bool detached;
             bool await_ready() const noexcept {return detached;}
@@ -80,12 +115,22 @@ public:
             void await_resume() const noexcept {}
         };
 
-        std::suspend_always initial_suspend() const noexcept {return {};}
+        initial_awaiter initial_suspend() noexcept {return {this};}
         final_awaiter final_suspend() const noexcept {return {this->fut == nullptr};}
         async get_return_object() {return {this};}
 
-        void attach(promise<T> &prom) {this->fut = prom.release();}
-
+        prepared_coro attach(promise<T> &prom) {
+            if (std::exchange(this->fut, prom.release()) == nullptr) {
+                return std::coroutine_handle<promise_type>::from_promise(*this);
+            }
+            return {};
+        }
+        prepared_coro detach() {
+            if (std::exchange(this->fut, nullptr) == nullptr) {
+                return std::coroutine_handle<promise_type>::from_promise(*this);
+            }
+            return {};
+        }
     };
 
     ///construct uninitialized object
@@ -102,9 +147,7 @@ public:
      * object is cleared after return (no longer controls the coroutine)
      */
     void detach() {
-        auto p = _promise_ptr.release();
-        auto h = std::coroutine_handle<promise_type>::from_promise(*p);
-        h.resume();
+        _promise_ptr.release()->detach();
     }
 
     ///detach coroutine using symmetric transfer
@@ -113,37 +156,32 @@ public:
      * return value as result of await_suspend();
      */
     std::coroutine_handle<> detach_on_await_suspend() {
-        auto p = _promise_ptr.release();
-        return std::coroutine_handle<promise_type>::from_promise(*p);
+        return _promise_ptr.release()->detach().symmetric_transfer();
     }
 
     ///Start coroutine and return future
     future<T> start() {
         return future<T>([me = std::move(*this)](auto promise) mutable {
-            me._promise_ptr->attach(promise);
-            me.detach();
+            me._promise_ptr.release()->attach(promise);
         });
     }
 
     ///Start coroutine and pass return value to promise
     void start(promise<T> prom) {
-        _promise_ptr->attach(prom);
-        detach();
+        _promise_ptr.release()->attach(prom);
     }
 
     ///Defer start of coroutine
     deferred_future<T> defer_start() {
         return [me = std::move(*this)](auto promise) mutable {
-            me._promise_ptr->attach(promise);
-            return me.detach_on_await_suspend();
+            return me._promise_ptr.release()->attach(promise);
         };
     }
 
     ///Start coroutine and return shared future
     shared_future<T> shared_start() {
         return [me = std::move(*this)](auto promise) mutable {
-            me._promise_ptr->attach(promise);
-            me.detach();
+            me._promise_ptr.release()->attach(promise);
         };
     }
 
@@ -155,8 +193,7 @@ public:
     ///convert coroutine to future, start immediatelly
     operator future<T>() {
         return future<T>([me = std::move(*this)](auto promise) mutable {
-            me._promise_ptr->attach(promise);
-            me.detach();
+            me._promise_ptr.release()->attach(promise);
         });
     }
 
