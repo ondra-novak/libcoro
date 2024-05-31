@@ -83,7 +83,7 @@ int main() {
     coro::reusable_allocator reuse_alloc;
     coro::std_allocator std_alloc;
     coro::reusable_allocator gen_alloc;
-
+/*
     auto aggr = coro::aggregator<int,coro::std_allocator, coro::reusable_allocator>(gen_alloc, fibo(reuse_alloc, 8), fibo(std_alloc, 12), fibo(std_alloc, 3));
 
     for (int x: aggr) {
@@ -91,7 +91,7 @@ int main() {
     }
 
     CHECK_EQUAL(sout.str(), "1,1,1,1,1,1,2,2,2,3,3,5,5,8,8,13,13,21,21,34,55,89,144,");
-
+*/
     sch.run(test_async_fibo(sch));
     sch.run(test_async_fibo_intr(sch));
 

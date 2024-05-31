@@ -36,7 +36,10 @@ generator<T, Alloc> aggregator(Alloc &, std::vector<generator<T> > gens) {
     //activate function - activate generator and awaits it passing index to queue
     auto activate = [&](std::size_t idx) {
         futures[idx] = gens[idx]();
-        futures[idx] >> [&q, idx]{q.push(idx);};
+        futures[idx] >> [&q, idx]{
+            return q.push(idx).symmetric_transfer();
+//            q.push(idx); return prepared_coro();
+        };
     };
 
     //prepare array of futures

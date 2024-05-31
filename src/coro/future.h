@@ -1143,14 +1143,14 @@ protected:
                                   return RegAwtRes::resolved;
 
             case State::pending: //<still pending? move awaiter
-                new(&_awaiter) auto(to_awaiter(std::forward<Awt>(awt)));
+                new(&_awaiter) auto(to_awaiter(awt));
                 break;
             default:
             case State::evaluating:  //<locked - this is error
                 throw still_pending_exception();
             case State::awaited:   //<already awaited? destroy previous awaiter and construct new one
                 std::destroy_at(&_awaiter);
-                new(&_awaiter) auto(to_awaiter(std::forward<Awt>(awt)));
+                new(&_awaiter) auto(to_awaiter(awt));
                 break;
             case State::deferred: //<deferred ? perform evaluation and try again
                 if (!startDeferredEvaluation(resumeFn)) return RegAwtRes::resolved;
@@ -1168,9 +1168,9 @@ protected:
     }
 
     template<std::invocable<> Fn>
-    static awaiter_type to_awaiter(Fn &&fn) {
+    static awaiter_type to_awaiter(Fn &fn) {
         if constexpr (std::is_constructible_v<prepared_coro, std::invoke_result_t<Fn> >) {
-            return std::forward<Fn>(fn);
+            return std::move(fn);
         } else {
             return [fn = std::move(fn)]() mutable -> prepared_coro {
               fn();return {};
@@ -1330,8 +1330,6 @@ protected:
     void set_exception(std::exception_ptr e) {
         if (fut) fut->set_exception(std::move(e));
     }
-
-
 
 public:
     void unhandled_exception() {

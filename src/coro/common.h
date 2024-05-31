@@ -105,6 +105,19 @@ template<awaitable T>
 using awaitable_result = typename awaitable_result_impl<T>::type;
 
 
+#ifdef __clang__
+#define CORO_OPT_BARRIER [[clang::optnone]]
+#else
+///marks function which servers as barrier between suspended coroutine and normal code
+/**
+ * Some compilers (clang) have too aggresive optimization which leads to
+ * declaring stack variables in coroutine frame, which can lead to
+ * crash,when these variables are overwritten after nested resume. This
+ * option disables optimization for the barrier function, which
+ * prevents compiler to reuse space allocated in coroutine frame
+ */
+#define CORO_OPT_BARRIER
+#endif
 
 }
 

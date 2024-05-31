@@ -112,9 +112,27 @@ public:
 
             std::coroutine_handle<> await_suspend(std::coroutine_handle<promise_type> h) noexcept {
                 promise_type &self = h.promise();
-                return self.set_resolved().symmetric_transfer();
+                return self.set_resolved_switch();
             }
         };
+
+        /* WORKAROUND: clang 16+ fails here resulting in code crash during test - this is workaround
+         *
+         * CORO_OPT_BARRIER separates optimization between suspended coroutine and
+         * normal code. For the clang it means to disable optimizations
+         *
+         * DETAILS: return value of set_resolved is prepared_coro which
+         * must be initialized in current stack frame. However, the clang's
+         * too aggresive optimization causes that this value is initialized
+         * in coroutine frame at the same address as next awaiter, which
+         * leads to overwritting its content on next (probably nested)
+         * suspend event. The code crashes when it returns from suspenssion.
+         *
+         */
+
+        CORO_OPT_BARRIER inline std::coroutine_handle<> set_resolved_switch() {
+            return this->set_resolved().symmetric_transfer();
+        }
 
 
         template<typename Arg>
@@ -292,7 +310,7 @@ public:
             static constexpr bool await_ready() noexcept {return false;}
             arg_type &await_resume() noexcept {return *self->arg;}
 
-            std::coroutine_handle<> await_suspend(std::coroutine_handle<promise_type> h) noexcept {
+            CORO_OPT_BARRIER std::coroutine_handle<> await_suspend(std::coroutine_handle<promise_type> h) noexcept {
                 self = &h.promise();
                 return self->set_resolved().symmetric_transfer();
             }
