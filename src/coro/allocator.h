@@ -2,7 +2,7 @@
 
 #include <concepts>
 #include <stdexcept>
-
+#include "trace.h"
 
 namespace coro {
 
@@ -79,11 +79,21 @@ class coro_allocator_helper;
 template<>
 class coro_allocator_helper<std_allocator> {
 public:
-
+#ifdef LIBCORO_ENABLE_TRACE
+    void *operator new(std::size_t sz) {
+        void *ptr = ::operator new(sz);
+        LIBCORO_TRACE_ON_CREATE(ptr, sz);
+        return ptr;
+    }
+    void operator delete(void *ptr, std::size_t) {
+        LIBCORO_TRACE_ON_DESTROY(ptr);
+        ::operator delete(ptr);
+    }
+#endif
 };
 
 template<>
-class coro_allocator_helper<const std_allocator> {
+class coro_allocator_helper<const std_allocator>: public coro_allocator_helper<std_allocator> {
 public:
 
 };
@@ -95,12 +105,15 @@ public:
 
 
     void operator delete(void *ptr, std::size_t sz) {
+        LIBCORO_TRACE_ON_DESTROY(ptr);
         Alloc::dealloc(ptr, sz);
     }
 
     template<typename ... Args>
     void *operator new(std::size_t sz, Alloc &a, Args  && ...) {
-        return a.alloc(sz);
+        void *ptr = a.alloc(sz);
+        LIBCORO_TRACE_ON_CREATE(ptr, sz);
+        return ptr;
     }
 
     template<typename ... Args>
@@ -111,7 +124,9 @@ public:
 
     template<typename This, typename ... Args>
     void *operator new(std::size_t sz, This &, Alloc &a, Args && ...) {
-        return a.alloc(sz);
+        void *ptr = a.alloc(sz);
+        LIBCORO_TRACE_ON_CREATE(ptr, sz);
+        return ptr;
     }
 
     template<typename This, typename ... Args>
@@ -135,11 +150,14 @@ template<coro_allocator_global Alloc>
 class coro_allocator_helper<Alloc> {
 public:
     void operator delete(void *ptr, std::size_t sz) {
+        LIBCORO_TRACE_ON_DESTROY(ptr);
         Alloc::dealloc(ptr, sz);
     }
 
     void *operator new(std::size_t sz) {
-        return Alloc::alloc(sz);
+        void *ptr = Alloc::alloc(sz);;
+        LIBCORO_TRACE_ON_CREATE(ptr, sz);
+        return ptr;
     }
 };
 

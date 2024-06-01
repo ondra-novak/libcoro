@@ -1331,10 +1331,12 @@ protected:
         if (fut) fut->set_exception(std::move(e));
     }
 
+
 public:
     void unhandled_exception() {
         if (fut) fut->set_exception(std::current_exception());
     }
+    LIBCORO_TRACE_AWAIT
 
 };
 

@@ -34,6 +34,8 @@ public:
         static constexpr void return_void() {}
         static void unhandled_exception() {std::terminate();}
         basic_coroutine get_return_object() const {return {};}
+
+        LIBCORO_TRACE_AWAIT
     };
 };
 

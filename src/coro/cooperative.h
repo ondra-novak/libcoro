@@ -41,7 +41,7 @@ namespace coro {
  * @ingroup cooperative, awaitable
  *
  */
-class suspend : public std::suspend_always{
+class suspend : public suspend_always{
 public:
 
     ///this function is static.
@@ -55,6 +55,7 @@ public:
         } else {
             std::queue<prepared_coro> q;
             local_queue = &q;
+            LIBCORO_TRACE_ON_RESUME(h);
             h.resume();
             while (!q.empty()) {
                 auto n = std::move(q.front());

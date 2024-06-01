@@ -10,6 +10,7 @@
 
 template<typename Alloc>
 coro::generator<int, Alloc> fibo(Alloc &, int count) {
+    LIBCORO_TRACE_SET_NAME();
     int a = 1;
     int b = 1;
 
@@ -24,6 +25,7 @@ coro::generator<int, Alloc> fibo(Alloc &, int count) {
 
 
  coro::generator<int> async_fibo(coro::scheduler &sch, int count, int sleep) {
+     LIBCORO_TRACE_SET_NAME();
     int a = 1;
     int b = 1;
 
@@ -38,6 +40,7 @@ coro::generator<int, Alloc> fibo(Alloc &, int count) {
 }
 
  coro::future<void> test_async_fibo(coro::scheduler &sch) {
+     LIBCORO_TRACE_SET_NAME();
     auto aggr = coro::aggregator(async_fibo(sch, 8, 5), async_fibo(sch,12,6), async_fibo(sch,3,7));
     std::ostringstream sout;
     std::set<int> res;
@@ -45,6 +48,7 @@ coro::generator<int, Alloc> fibo(Alloc &, int count) {
     while (co_await !!r) {
         int x = r;
         res.emplace(x);
+        LIBCORO_TRACE_LOG("value:", x);
         r = aggr();
     }
     auto values = {5,6,7,10,12,15,14,18,25,30,40,65,48,105,78,126,204,330,534,864};
@@ -55,23 +59,23 @@ coro::generator<int, Alloc> fibo(Alloc &, int count) {
 }
 
 coro::future<void> test_async_fibo_intr(coro::scheduler &sch) {
-    {
-        auto aggr = coro::aggregator(async_fibo(sch, 8, 5), async_fibo(sch,12,6), async_fibo(sch,3,7));
-        std::ostringstream sout;
-        std::set<int> res;
-        auto r = aggr();
-        while (co_await !!r) {
-            int x = r;
-            res.emplace(x);
-            if (x == 65) break;
-            r = aggr();
-        }
-        auto values = {5,6,7,10,12,15,14,18,25,30,40,65};
-        for (int c:values ) {
-            CHECK_PRINT(res.find(c) != res.end(),c);
-        }
-    }
+    LIBCORO_TRACE_SET_NAME();
 
+    auto aggr = coro::aggregator(async_fibo(sch, 8, 5), async_fibo(sch,12,6), async_fibo(sch,3,7));
+    std::ostringstream sout;
+    std::set<int> res;
+    auto r = aggr();
+    while (co_await !!r) {
+        int x = r;
+        res.emplace(x);
+        LIBCORO_TRACE_LOG("value:", x);
+        if (x == 65) break;
+        r = aggr();
+    }
+    auto values = {5,6,7,10,12,15,14,18,25,30,40,65};
+    for (int c:values ) {
+        CHECK_PRINT(res.find(c) != res.end(),c);
+    }
 
 }
 

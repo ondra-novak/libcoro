@@ -104,7 +104,7 @@ public:
                         public coro_allocator_helper<Alloc> {
     public:
 
-        constexpr std::suspend_always initial_suspend() const {return {};}
+        constexpr suspend_always initial_suspend() const {return {};}
 
         struct switch_awaiter {
             static constexpr bool await_ready() noexcept {return false;}
@@ -112,7 +112,9 @@ public:
 
             std::coroutine_handle<> await_suspend(std::coroutine_handle<promise_type> h) noexcept {
                 promise_type &self = h.promise();
-                return self.set_resolved_switch();
+                std::coroutine_handle<> g = self.set_resolved_switch();
+                LIBCORO_TRACE_ON_SWITCH(h,g);
+                return g;
             }
         };
 
@@ -138,10 +140,12 @@ public:
         template<typename Arg>
         requires future_constructible<T, Arg>
         switch_awaiter yield_value(Arg && val) {
+            LIBCORO_TRACE_YIELD(std::coroutine_handle<const promise_type>::from_promise(*this),val);
             this->set_value(std::forward<Arg>(val));
             return {};
         }
         switch_awaiter yield_value(std::exception_ptr e) {
+            LIBCORO_TRACE_YIELD(std::coroutine_handle<const promise_type>::from_promise(*this), e);
             this->set_exception(std::move(e));
             return {};
         }
@@ -296,7 +300,7 @@ public:
                         public coro_allocator_helper<Alloc> {
     public:
 
-        constexpr std::suspend_always initial_suspend() const {return {};}
+        constexpr suspend_always initial_suspend() const {return {};}
 
         struct fetch_arg_awaiter {
             arg_type *arg;
@@ -312,18 +316,22 @@ public:
 
             CORO_OPT_BARRIER std::coroutine_handle<> await_suspend(std::coroutine_handle<promise_type> h) noexcept {
                 self = &h.promise();
-                return self->set_resolved().symmetric_transfer();
+                auto g = self->set_resolved().symmetric_transfer();
+                LIBCORO_TRACE_ON_SWITCH(h,g);
+                return g;
             }
         };
 
         template<typename Arg>
         requires future_constructible<R, Arg>
         switch_awaiter yield_value(Arg && val) {
+            LIBCORO_TRACE_YIELD(std::coroutine_handle<const promise_type>::from_promise(*this),val);
             this->set_value(std::forward<Arg>(val));
             return {};
         }
 
         switch_awaiter yield_value(std::exception_ptr e) {
+            LIBCORO_TRACE_YIELD(std::coroutine_handle<const promise_type>::from_promise(*this),e);
             this->set_exception(std::move(e));
             return {};
         }
@@ -354,7 +362,9 @@ public:
             return [this](auto promise)  {
                 if (done()) return;
                 this->fut = promise.release();
-                std::coroutine_handle<promise_type>::from_promise(*this).resume();
+                auto h = std::coroutine_handle<promise_type>::from_promise(*this);
+                LIBCORO_TRACE_ON_RESUME(h);
+                h.resume();
             };
         }
 

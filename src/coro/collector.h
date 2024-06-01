@@ -52,7 +52,9 @@ public:
             std::coroutine_handle<> await_suspend(std::coroutine_handle<promise_type> me) noexcept {
                 promise_type &self = me.promise();
                 self.set_resolved();
-                return self._waiting(true).symmetric_transfer();
+                auto h = self._waiting(true).symmetric_transfer();
+                LIBCORO_TRACE_ON_SWITCH(me, h);
+                return h;
             }
         };
 
@@ -64,7 +66,9 @@ public:
             static constexpr bool await_ready() noexcept {return false;}
             std::coroutine_handle<> await_suspend(std::coroutine_handle<promise_type> me) {
                self = &me.promise();
-               return self->_waiting(false).symmetric_transfer();
+               auto h = self->_waiting(false).symmetric_transfer();
+               LIBCORO_TRACE_ON_SWITCH(me, h);
+               return h;
             }
             Collectible await_resume() {
                 return self->_factory->create();
@@ -72,7 +76,8 @@ public:
         };
 
         template<typename X>
-        yield_awaiter yield_value(X &&) {
+        yield_awaiter yield_value(X &&x) {
+            LIBCORO_TRACE_YIELD(std::coroutine_handle<const promise_type>::from_promise(*this),x);
             return {};
         }
 
@@ -86,7 +91,9 @@ public:
         }
 
         void resume() {
-            std::coroutine_handle<promise_type>::from_promise(*this).resume();
+            auto h =std::coroutine_handle<promise_type>::from_promise(*this);
+            LIBCORO_TRACE_ON_RESUME(h);
+            h.resume();
         }
         void destroy() {
             std::coroutine_handle<promise_type>::from_promise(*this).destroy();

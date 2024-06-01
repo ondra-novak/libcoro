@@ -1,6 +1,7 @@
 #pragma once
 
 #include <coroutine>
+#include "trace.h"
 
 namespace coro {
 
@@ -33,7 +34,10 @@ public:
 
     ///destructor - resumes coroutine if still in prepared state
     ~prepared_coro() {
-        if (_h) _h.resume();
+        if (_h) {
+            LIBCORO_TRACE_ON_RESUME(_h);
+            _h.resume();
+        }
     }
 
     ///release handle
@@ -55,7 +59,10 @@ public:
     ///object can be used as callable (you can pass it to differen thread)
     void operator()() {
         auto h = release();
-        if (h) h.resume();
+        if (h) {
+            LIBCORO_TRACE_ON_RESUME(h);
+            h.resume();
+        }
     }
 
     ///test whether there is coroutine prepared

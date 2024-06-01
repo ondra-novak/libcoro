@@ -86,9 +86,10 @@ public:
         struct initial_awaiter {
             promise_type *me;
             bool await_ready() const noexcept {return me->fut != invalid_value();}
-            void await_suspend(std::coroutine_handle<>) noexcept {
+            void await_suspend(std::coroutine_handle<> h)  noexcept {
                 //initialization is finished, reset the pointer
                 me->fut = nullptr;
+                LIBCORO_TRACE_ON_SWITCH(h, std::coroutine_handle<>());
             }
             static constexpr void await_resume() noexcept {};
         };
@@ -101,12 +102,14 @@ public:
                 promise_type &self = h.promise();
                 std::coroutine_handle<> retval = self.set_resolved().symmetric_transfer();
                 h.destroy();
+                LIBCORO_TRACE_ON_RESUME(h);
                 return retval.resume();
             }
             #else
             std::coroutine_handle<>  await_suspend(std::coroutine_handle<promise_type> h) const noexcept {
                 promise_type &self = h.promise();
                 std::coroutine_handle<> retval = self.set_resolved().symmetric_transfer();
+                LIBCORO_TRACE_ON_SWITCH(h,retval);
                 h.destroy();
                 return retval;          //MSC RELEASE BUILD: Handle is passed by a register
             }

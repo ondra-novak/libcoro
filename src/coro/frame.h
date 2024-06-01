@@ -166,6 +166,7 @@ public:
             if constexpr(std::is_convertible_v<Ret, std::coroutine_handle<> >) {
                 auto g = awt.await_suspend(h);
                 if (g == h) return false;
+                LIBCORO_TRACE_ON_RESUME(g);
                 g.resume();
             } else if constexpr(std::is_convertible_v<Ret, bool>) {
                 if (!awt.await_suspend(h)) {
