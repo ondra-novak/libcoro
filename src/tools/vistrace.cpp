@@ -4,9 +4,12 @@
 #include <sstream>
 #include <stack>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 #include <charconv>
 #include <numeric>
+#include <getopt.h>
+#include <cstdlib>
 
 #include <cxxabi.h>
 
@@ -42,8 +45,13 @@ struct rel_create {
 };
 
 struct rel_destroy {
+    enum type {
+        t_call,
+        t_suspend,
+        t_return
+    };
     std::string _target;
-    bool is_return = false;
+    type _type = t_call;
 };
 
 struct rel_yield {
@@ -125,6 +133,9 @@ public:
     void export_dot(std::ostream &out);
     void export_uml(std::ostream &out);
 
+    bool filter_active();
+    void filter_nevents(unsigned int n);
+
 protected:
     std::string b1;
 
@@ -142,6 +153,7 @@ protected:
     static std::string demangle(const std::string &txt);
 
     void solve_conflict(std::string id);
+    void filter_actors();
 };
 
 
@@ -203,7 +215,7 @@ inline void App::parse(std::istream &f) {
                         rel._coro = _relations.back()._coro;
                         rel._rel_type = rel_destroy{
                             std::get<rel_suspend>(_relations.back()._rel_type)._target,
-                            true
+                            rel_destroy::t_suspend
                         };
                         _relations.pop_back();
                     } else {
@@ -211,10 +223,10 @@ inline void App::parse(std::istream &f) {
                         std::string destroying_coro ( parts.at(2));
                         if (destroying_coro == rel._coro) {
                             deactivate_coro(rel._thread, destroying_coro);
-                            rel._rel_type = rel_destroy{get_active_coro(rel._thread), true};
+                            rel._rel_type = rel_destroy{get_active_coro(rel._thread), rel_destroy::t_suspend};
                         } else {
                             deactivate_coro(rel._thread, destroying_coro);
-                            rel._rel_type = rel_destroy{destroying_coro, false};
+                            rel._rel_type = rel_destroy{destroying_coro, rel_destroy::t_call};
                         }
                     }
                     mark_destroyed(parts.at(2));
@@ -235,17 +247,23 @@ inline void App::parse(std::istream &f) {
                             && std::get<rel_suspend>(_relations.back()._rel_type)._target.empty()) {
                         //after switch to "unknown"
                         rel._coro = _relations.back()._coro;
+                        remove_stack_level(rel._thread);
+                        rel._rel_type = rel_return{get_active_coro(rel._thread)};
                         _relations.pop_back();
 
                     } else if (!_relations.empty()
                                 && std::holds_alternative<rel_destroy>(_relations.back()._rel_type)
+                                && std::get<rel_destroy>(_relations.back()._rel_type)._type == rel_destroy::t_suspend
                                 && get_active_coro(rel._thread).empty()) {
-                         rel._coro = std::get<rel_destroy>(_relations.back()._rel_type)._target;
+                         rel._coro = _relations.back()._coro;
+                         remove_stack_level(rel._thread);
+                         rel._rel_type = rel_destroy{get_active_coro(rel._thread), rel_destroy::t_return};
+                         _relations.pop_back();
                     }else {
                         rel._coro = get_active_coro(rel._thread);
+                        remove_stack_level(rel._thread);
+                        rel._rel_type = rel_return{get_active_coro(rel._thread)};
                     }
-                    remove_stack_level(rel._thread);
-                    rel._rel_type = rel_return{get_active_coro(rel._thread)};
                     break;
                 case type::sym_switch:
                     ensure_active_coro(rel._thread, parts.at(2));
@@ -286,43 +304,15 @@ inline void App::parse(std::istream &f) {
                     rel._coro = get_active_coro(rel._thread);
                     rel._rel_type = rel_yield{demangle(std::string(parts.at(3)))};
                     break;
-/*                default:
-                    throw 1;*/
+                default:
+                    throw 1;
+            }
+            if (rel._rel_type.index() == 0) {
+                throw 2;
             }
             _relations.push_back(rel);
         }
-        /*
-        relation_list_t tmp = std::move(_relations);
-        for (auto iter = tmp.begin(); iter != tmp.end(); ++iter) {
-            if (std::holds_alternative<rel_suspend>(iter->_rel_type)) {
-                auto nx = iter;
-                ++nx;
-                if (nx != tmp.end()
-                     && std::get<rel_suspend>(iter->_rel_type)._target.empty()
-                     && std::holds_alternative<rel_return>(nx->_rel_type)
-                     && nx->_coro.empty()) {
-                        _relations.push_back({
-                            iter->_thread,
-                            iter->_coro,
-                            nx->_rel_type
-                        });
-                        iter = nx;
-                } else {
-                    _relations.push_back(std::move(*iter));
-                }
-            } else if (std::holds_alternative<rel_await>(iter->_rel_type)
-                    && std::get<rel_await>(iter->_rel_type)._type == "coro::trace_name") {
-                continue;
-            } else {
-                _relations.push_back(std::move(*iter));
-            }
-        }
 
-        _relations.erase(std::remove_if(_relations.begin(), _relations.end(), [](const relation_t &x){
-            return std::holds_alternative<rel_return>(x._rel_type) &&
-                    x._coro.empty() && std::get<rel_return>(x._rel_type)._target.empty();
-            }), _relations.end());
-*/
 
     } catch (int x) {
         std::string msg = "Parse error at line: `" + b1 + "` argument " + std::to_string(x);
@@ -456,6 +446,8 @@ inline void App::solve_conflict(std::string id) {
     auto niter = introduce_coro(new_name);
     niter->second = citer->second;
     niter->second.id = new_name;
+    citer->second = {};
+    citer->second.id = id;
     for (auto &r: _relations) {
         if (r._coro == id) r._coro = new_name;
         std::visit([&](auto &item){
@@ -588,20 +580,6 @@ inline std::string thread_state_t::generate_label(unsigned int id) const {
 
 
 
-int main(int argc, char **argv) {
-    App app;
-    if (argc == 1) {
-        app.parse(std::cin);
-    } else {
-        std::ifstream f(argv[1]);
-        if (!f) {
-            std::cerr << "Failed to open: " << argv[1] << std::endl;
-            return 1;
-        }
-        app.parse(f);
-    }
-    app.export_uml(std::cout);
-}
 
 static std::string strip_path(std::string_view where) {
     auto pos = where.find_last_of("\\/");
@@ -633,9 +611,24 @@ void App::export_uml(std::ostream &out) {
         out << "control \"" << info.generate_label(id) << "\" as T" << id << "\n";
         out << "activate T" << id << "\n";
     }
-/*    for (const auto &[id,info]: _coro_map) {
-        out << "participant \"" << info.generate_label() << "\" as C" << id << "\n";
-    }*/
+
+    std::unordered_set<std::string_view> created_actors;
+
+
+    for (auto &r: _relations) {
+          std::visit([&](const auto &rel){
+              using T = std::decay_t<decltype(rel)>;
+              if constexpr(std::is_same_v<T, rel_create>) {
+                  created_actors.insert(rel._target);
+              }
+          },r._rel_type);
+    }
+
+    for (const auto &[id,info]: _coro_map) {
+        if (created_actors.find(id) == created_actors.end()) {
+                    out << "participant \"" << info.generate_label() << "\" as C" << id << "\n";
+        }
+    }
 
     auto node_name = [](unsigned int thread, std::string_view coro) {
         if (coro.empty()) return "T"+std::to_string(thread);
@@ -667,11 +660,19 @@ void App::export_uml(std::ostream &out) {
                       out << "activate " << node_name(r._thread, rel._target) << "\n";
                   }
               } else if constexpr(std::is_same_v<T, rel_destroy>) {
-                  if (rel.is_return) {
-                      out << node_name(r._thread, r._coro) << "->"  << node_name(r._thread, rel._target) << " --++ \n";
-                      out << "destroy " << node_name(r._thread, r._coro) << "\n";
-                  } else {
-                      out << node_name(r._thread, r._coro) << "->"  << node_name(r._thread, rel._target) << " !! \n";
+                  switch (rel._type) {
+                      default:
+                      case rel_destroy::t_call:
+                          out << node_name(r._thread, r._coro) << "->"  << node_name(r._thread, rel._target) << " !! \n";
+                          break;
+                      case rel_destroy::t_suspend:
+                          out << node_name(r._thread, r._coro) << "->"  << node_name(r._thread, rel._target) << " --++ \n";
+                          out << "destroy " << node_name(r._thread, r._coro) << "\n";
+                          break;
+                      case rel_destroy::t_return:
+                          out << node_name(r._thread, r._coro) << "->"  << node_name(r._thread, rel._target) << " :return \n";
+                          out << "destroy " << node_name(r._thread, r._coro) << " \n";
+                          break;
                   }
               } else if constexpr(std::is_same_v<T, rel_yield>) {
                   out << "note over " << node_name(r._thread, r._coro) << ": **co_yield** " << rel._type << "\n";
@@ -707,13 +708,178 @@ void App::export_uml(std::ostream &out) {
                   out << "note over " << node_name(r._thread, r._coro) << ": **unknown state** " << demangle(typeid(T).name()) << "\n";
               }
 
-              /* else if constexpr(std::is_same_v<T, rel_switch>) {
-                  node_name(r._thread, r._coro, false);
-                  out << "->";
-                  node_name(r._thread, rel._target,true);
-                  out << " [label=\"switch\"]\n";
-              }*/
           },r._rel_type);
       }
+
+
     out << "@enduml\n";
+}
+
+
+bool App::filter_active() {
+    std::unordered_map<unsigned int, bool> not_relevant;
+    _relations.erase(std::remove_if(_relations.begin(), _relations.end(),
+            [&](const relation_t &rel)->bool{
+
+        bool remove = false;
+
+        int target_del = std::visit([&](const auto &item) {
+            if constexpr(has_target<decltype(item)>) {
+                if (item._target.empty()) return -1;
+                auto iter = _coro_map.find(item._target);
+                if (iter == _coro_map.end()) return -1;
+                return iter->second._destroyed?1:0;
+            } else {
+                return -1;
+            }
+        },  rel._rel_type);
+
+        if (target_del) {
+            if (!rel._coro.empty()) {
+                auto iter = _coro_map.find(rel._coro);
+                if (iter != _coro_map.end()) {
+                    remove = iter->second._destroyed;
+                }
+            } else if (target_del == 1){
+                remove = true;
+            } else {
+                remove = not_relevant[rel._thread];
+            }
+        }
+        not_relevant[rel._thread] = remove;
+        return remove;
+
+    }), _relations.end());
+
+    if (_relations.empty()) return false;
+
+    filter_actors();
+
+    return true;
+}
+
+void App::filter_nevents(unsigned int n) {
+    if (n >= _relations.size()) return;
+    auto beg = _relations.begin();
+    auto end = beg + _relations.size() - n;
+    _relations.erase(beg,end);
+
+    filter_actors();
+}
+
+void App::filter_actors() {
+
+    std::unordered_set<unsigned int> threads;
+    std::unordered_set<std::string_view> coros;
+
+    for (const auto &rel: _relations) {
+        threads.insert(rel._thread);
+        coros.insert(rel._coro);
+        std::visit([&](const auto &x){
+            if constexpr(has_target<decltype(x)>) {
+                coros.insert(x._target);
+            }
+        }, rel._rel_type);
+    }
+
+    for (auto iter = _thread_map.begin(); iter != _thread_map.end();) {
+        if (threads.find(iter->first) == threads.end()) {
+            iter = _thread_map.erase(iter);
+        } else {
+            ++iter;
+        }
+    }
+    for (auto iter = _coro_map.begin(); iter != _coro_map.end();) {
+        if (coros.find(iter->first) == coros.end()) {
+            iter = _coro_map.erase(iter);
+        } else {
+            ++iter;
+        }
+    }
+
+}
+
+
+void print_help() {
+    std::cout << "Usage: program [-ah] [-f <file>] [-n count] [-o <output_file>]\n"
+              << "  -a         Process all\n"
+              << "  -h        Help\n"
+              << "  -f <file> Input file name\n"
+              << "  -o        Output file\n"
+              << "  -n count  Maximum number of lines\n";
+}
+
+int main(int argc, char *argv[]) {
+    int opt;
+    bool process_all = false;
+    bool show_help = false;
+    std::string input_file;
+    std::string output_file;
+    int max_count = -1;
+
+    while ((opt = getopt(argc, argv, "ahf:n:o:")) != -1) {
+        switch (opt) {
+            case 'a':
+                process_all = true;
+                break;
+            case 'h':
+                show_help = true;
+                break;
+            case 'f':
+                input_file = optarg;
+                break;
+            case 'o':
+                output_file = optarg;
+                break;
+            case 'n':
+                max_count = std::atoi(optarg);
+                break;
+            default:
+                print_help();
+                return 1;
+        }
+    }
+
+    if (show_help) {
+        print_help();
+        return 0;
+    }
+
+    App app;
+
+
+
+    if (input_file.empty()) {
+        app.parse(std::cin);
+    } else {
+        std::ifstream f(input_file);
+        if (!f) {
+            std::cerr << "Failed to open: " << argv[1] << std::endl;
+            return 1;
+        }
+        app.parse(f);
+    }
+    if (!process_all) {
+        if (!app.filter_active()) {
+            std::cerr << "No active coroutines. To process whole file, specify -a" << std::endl;
+            return 2;
+        }
+    }
+    if (max_count > 0) {
+        app.filter_nevents(max_count);
+    }
+
+    if (output_file.empty()) {
+        app.export_uml(std::cout);
+    } else {
+        std::ofstream f(output_file, std::ios::trunc);
+        if (!f) {
+            std::cerr << "Failed to open: " << argv[1] << std::endl;
+            return 1;
+        }
+        app.export_uml(f);
+    }
+
+
+    return 0;
 }

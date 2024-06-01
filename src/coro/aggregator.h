@@ -66,6 +66,7 @@ generator<T, Alloc> aggregator(Alloc &, std::vector<generator<T> > gens) {
         if (pending) {
             //coroutine
             auto dtch = [](std::vector<generator<T> > , std::vector<deferred_future<T> > futures) -> coroutine {
+                LIBCORO_TRACE_SET_NAME();
                 //cycle over all futures and @b co_await for just has_value - we don't need the value
                 for (auto &f: futures) {
                     co_await f.wait();

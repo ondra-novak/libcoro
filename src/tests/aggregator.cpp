@@ -69,7 +69,8 @@ coro::future<void> test_async_fibo_intr(coro::scheduler &sch) {
         int x = r;
         res.emplace(x);
         LIBCORO_TRACE_LOG("value:", x);
-        if (x == 65) break;
+        if (x == 65)
+            break;
         r = aggr();
     }
     auto values = {5,6,7,10,12,15,14,18,25,30,40,65};
@@ -82,20 +83,23 @@ coro::future<void> test_async_fibo_intr(coro::scheduler &sch) {
 
 int main() {
 
-    std::ostringstream sout;
     coro::scheduler sch;
-    coro::reusable_allocator reuse_alloc;
-    coro::std_allocator std_alloc;
-    coro::reusable_allocator gen_alloc;
-/*
-    auto aggr = coro::aggregator<int,coro::std_allocator, coro::reusable_allocator>(gen_alloc, fibo(reuse_alloc, 8), fibo(std_alloc, 12), fibo(std_alloc, 3));
+    std::ostringstream sout;
+    {
+        coro::reusable_allocator reuse_alloc;
+        coro::std_allocator std_alloc;
+        coro::reusable_allocator gen_alloc;
 
-    for (int x: aggr) {
-        sout << x << ',';
+        auto aggr = coro::aggregator<int,coro::std_allocator, coro::reusable_allocator>(gen_alloc, fibo(reuse_alloc, 8), fibo(std_alloc, 12), fibo(std_alloc, 3));
+
+        for (int x: aggr) {
+            LIBCORO_TRACE_LOG("value:", x);
+            sout << x << ',';
+        }
+
+        CHECK_EQUAL(sout.str(), "1,1,1,1,1,1,2,2,2,3,3,5,5,8,8,13,13,21,21,34,55,89,144,");
     }
 
-    CHECK_EQUAL(sout.str(), "1,1,1,1,1,1,2,2,2,3,3,5,5,8,8,13,13,21,21,34,55,89,144,");
-*/
     sch.run(test_async_fibo(sch));
     sch.run(test_async_fibo_intr(sch));
 

@@ -94,9 +94,9 @@ public:
         header(record_type::yield) << coro << separator << typeid(Arg).name() << std::endl;
     }
 
-    void set_name(const void *ptr, const char *src, const char *fn) {
+    void set_name(const void *ptr, const char *src, const char *fn, unsigned int line) {
         std::lock_guard _(_mx);
-        header(record_type::name) << ptr << separator << src << separator << fn << std::endl;
+        header(record_type::name) << ptr << separator << src << ":" << line << separator << fn << std::endl;
     }
 
     template<typename ... Args>
@@ -167,9 +167,10 @@ inline auto handle_await_transform(X &&awt) {
 struct trace_name: std::suspend_always {
     const char *src_name;
     const char *fn_name;
-    trace_name(const char *src, const char *fn):src_name(src),fn_name(fn) {}
+    unsigned int line;
+    trace_name(const char *src, const char *fn, unsigned int line):src_name(src),fn_name(fn),line(line) {}
     bool await_suspend(std::coroutine_handle<> h) {
-        trace::_instance.set_name(h.address(), src_name, fn_name);
+        trace::_instance.set_name(h.address(), src_name, fn_name,line);
         return false;
     }
 };
@@ -186,7 +187,7 @@ inline thread_local trace::thread_state trace::_state;
 #define LIBCORO_TRACE_ON_SWITCH(from, to) ::coro::trace::_instance.on_switch(from.address(), to.address())
 #define LIBCORO_TRACE_AWAIT template<typename X> auto await_transform(X &&awt) {return handle_await_transform(std::forward<X>(awt));}
 #define LIBCORO_TRACE_YIELD(h, arg) ::coro::trace::_instance.on_yield(h.address(), arg)
-#define LIBCORO_TRACE_SET_NAME() (co_await ::coro::trace_name(__FILE__, __FUNCTION__))
+#define LIBCORO_TRACE_SET_NAME() (co_await ::coro::trace_name(__FILE__, __FUNCTION__,__LINE__))
 #define LIBCORO_TRACE_LOG(...) ::coro::trace::_instance.user_report(__VA_ARGS__)
 #define LIBCORO_TRACE_AWAIT_ON(h, awaiter, type) ::coro::trace::_instance.on_await_on(h.address(),awaiter,type)
 
