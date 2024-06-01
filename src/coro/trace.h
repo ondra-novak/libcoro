@@ -25,6 +25,8 @@ public:
     }
 
 
+    static constexpr char separator = '|';
+
     enum class record_type: char {
         create = 'c',
         destroy = 'x',
@@ -55,14 +57,14 @@ public:
 
     std::ostream &header(record_type rt) {
         auto &f = stream();
-        f  << _state.id << ":" << static_cast<char>(rt) << ":";
+        f  << _state.id << separator << static_cast<char>(rt) << separator;
         return f;
 
     }
 
     void on_create(const void *ptr, std::size_t size) {
         std::lock_guard _(_mx);
-        header(record_type::create) << ptr << ":" << size << std::endl;
+        header(record_type::create) << ptr << separator << size << std::endl;
         _foutput.flush();
     }
     void on_destroy(const void *ptr) {
@@ -80,21 +82,21 @@ public:
     void on_switch(const void *from, const void *to) {
         std::lock_guard _(_mx);
         if (to == std::noop_coroutine().address()) to = nullptr;
-        header(record_type::sym_switch) << from << ":" << to << std::endl;
+        header(record_type::sym_switch) << from << separator << to << std::endl;
     }
     void on_await_on(const void *coro, const void *on, const char *awt_name) {
         std::lock_guard _(_mx);
-        header(record_type::awaits_on) << coro << ":" << awt_name << ":" << on << std::endl;
+        header(record_type::awaits_on) << coro << separator << awt_name << separator << on << std::endl;
     }
     template<typename Arg>
     void on_yield(const void *coro, Arg &) {
         std::lock_guard _(_mx);
-        header(record_type::yield) << coro << ":" << typeid(Arg).name() << std::endl;
+        header(record_type::yield) << coro << separator << typeid(Arg).name() << std::endl;
     }
 
     void set_name(const void *ptr, const char *src, const char *fn) {
         std::lock_guard _(_mx);
-        header(record_type::name) << ptr << ":" << src << ":" << fn << std::endl;
+        header(record_type::name) << ptr << separator << src << separator << fn << std::endl;
     }
 
     template<typename ... Args>
@@ -186,6 +188,7 @@ inline thread_local trace::thread_state trace::_state;
 #define LIBCORO_TRACE_YIELD(h, arg) ::coro::trace::_instance.on_yield(h.address(), arg)
 #define LIBCORO_TRACE_SET_NAME() (co_await ::coro::trace_name(__FILE__, __FUNCTION__))
 #define LIBCORO_TRACE_LOG(...) ::coro::trace::_instance.user_report(__VA_ARGS__)
+#define LIBCORO_TRACE_AWAIT_ON(h, awaiter, type) ::coro::trace::_instance.on_await_on(h.address(),awaiter,type)
 
 struct suspend_always : public std::suspend_always{
     static void await_suspend(std::coroutine_handle<> h) noexcept  {
@@ -203,6 +206,7 @@ struct suspend_always : public std::suspend_always{
 #define LIBCORO_TRACE_YIELD(h, arg)
 #define LIBCORO_TRACE_LOG(...)
 #define LIBCORO_TRACE_SET_NAME()
+#define LIBCORO_TRACE_AWAIT_ON(h, awaiter, type)
 
 namespace coro {
     using suspend_always = std::suspend_always;

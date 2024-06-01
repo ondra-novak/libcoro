@@ -27,6 +27,8 @@ namespace coro {
 template<typename T, coro_allocator Alloc = std_allocator>
 generator<T, Alloc> aggregator(Alloc &, std::vector<generator<T> > gens) {
 
+    LIBCORO_TRACE_SET_NAME();
+
     //list of futures waiting for results from generators
     std::vector<deferred_future<T> > futures;
     //queue - stores index to resolved future
