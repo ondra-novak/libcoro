@@ -1,15 +1,16 @@
 #pragma once
 
-#ifdef LIBCORO_ENABLE_TRACE
 
 #include "common.h"
-
+#include <mutex>
+#ifdef LIBCORO_ENABLE_TRACE
 #include <fstream>
 #include <filesystem>
-#include <mutex>
 #include <atomic>
 #include <typeinfo>
 #include <thread>
+
+
 namespace coro {
 
 
@@ -233,7 +234,6 @@ struct suspend_always : public std::suspend_always{
 }
 #else
 
-#include "common.h"
 
 ///Record creation of an coroutine
 /**

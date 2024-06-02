@@ -343,6 +343,8 @@ inline void App::parse(std::istream &f) {
                         } else {
                             rel._rel_type = rel_suspend{get_active_coro(rel._thread)};
                         }
+                    } else if (parts.at(3) == rel._coro) {
+                        continue;
                     } else {
                         deactivate_coro(rel._thread,rel._coro);
                         activate_coro(rel._thread, parts.at(3));
@@ -556,13 +558,12 @@ inline std::string coro_info_t::generate_label(bool nl) const {
     }
     std::string_view nlseq = nl?"\n":"\\n";
 
-    std::string n;
-    if (file.empty()) {
-        n = name;
-    } else if (name.empty()) {
-        n = strip_path(file);
-    } else {
-        n = name+nlseq.data()+strip_path(file);
+    std::string n = id;
+    if (!file.empty()) {
+        n.append(nlseq).append(strip_path(file));
+    }
+    if (!name.empty()) {
+        n.append(nlseq).append(name);
     }
     if (!user_data.empty()) {
         n.append(nlseq).append(user_data);
@@ -647,7 +648,7 @@ void App::export_uml(std::ostream &out, unsigned int label_size) {
                           out << node_name(r._thread, r._coro) << "->"  << node_name(r._thread, rel._target) << " !! : destroy \n";
                           break;
                       case rel_destroy::t_suspend:
-                          out << node_name(r._thread, r._coro) << "->"  << node_name(r._thread, rel._target) << " --++ \n";
+                          out << node_name(r._thread, r._coro) << "->"  << node_name(r._thread, rel._target) << " : destroy and return \n";
                           out << "destroy " << node_name(r._thread, r._coro) << "\n";
                           break;
                       case rel_destroy::t_return:
@@ -711,14 +712,16 @@ void App::export_uml(std::ostream &out, unsigned int label_size) {
 
 bool App::filter_active() {
     std::unordered_map<unsigned int, bool> not_relevant;
-    _relations.erase(std::remove_if(_relations.begin(), _relations.end(),
-            [&](const relation_t &rel)->bool{
 
-        bool remove = false;
+
+    _relations.erase(std::remove_if(_relations.begin(), _relations.end(),
+            [&](relation_t &rel)->bool{
+
+        bool remove = true;
 
         int target_del = std::visit([&](const auto &item) {
             if constexpr(has_target<decltype(item)>) {
-                if (item._target.empty()) return -1;
+                if (item._target.empty()) return 0;
                 auto iter = _coro_map.find(item._target);
                 if (iter == _coro_map.end()) return -1;
                 return iter->second._destroyed?1:0;
@@ -727,17 +730,19 @@ bool App::filter_active() {
             }
         },  rel._rel_type);
 
-        if (target_del) {
+        if (target_del != 1) {
             if (!rel._coro.empty()) {
                 auto iter = _coro_map.find(rel._coro);
                 if (iter != _coro_map.end()) {
                     remove = iter->second._destroyed;
                 }
-            } else if (target_del == 1){
-                remove = true;
+            } else if (target_del == 0){
+                remove = false;
             } else {
                 remove = not_relevant[rel._thread];
             }
+        } else {
+            remove = true;
         }
         not_relevant[rel._thread] = remove;
         return remove;
