@@ -10,7 +10,7 @@
 
 template<typename Alloc>
 coro::generator<int, Alloc> fibo(Alloc &, int count) {
-    LIBCORO_TRACE_SET_NAME();
+    LIBCORO_TRACE_SET_NAME(count);
     int a = 1;
     int b = 1;
 
@@ -25,7 +25,7 @@ coro::generator<int, Alloc> fibo(Alloc &, int count) {
 
 
  coro::generator<int> async_fibo(coro::scheduler &sch, int count, int sleep) {
-     LIBCORO_TRACE_SET_NAME();
+     LIBCORO_TRACE_SET_NAME(count," ",sleep);
     int a = 1;
     int b = 1;
 
@@ -83,6 +83,7 @@ coro::future<void> test_async_fibo_intr(coro::scheduler &sch) {
 
 int main() {
 
+    LIBCORO_TRACE_SEPARATOR("synchronous");
     coro::scheduler sch;
     std::ostringstream sout;
     {
@@ -100,7 +101,9 @@ int main() {
         CHECK_EQUAL(sout.str(), "1,1,1,1,1,1,2,2,2,3,3,5,5,8,8,13,13,21,21,34,55,89,144,");
     }
 
+    LIBCORO_TRACE_SEPARATOR("asynchronous");
     sch.run(test_async_fibo(sch));
+    LIBCORO_TRACE_SEPARATOR("asynchronous with interrupt");
     sch.run(test_async_fibo_intr(sch));
 
 

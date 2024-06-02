@@ -9,6 +9,7 @@
 #include <mutex>
 #include <atomic>
 #include <typeinfo>
+#include <thread>
 namespace coro {
 
 
@@ -20,7 +21,7 @@ public:
     static std::string get_file_name() {
         std::filesystem::path exe_path = std::filesystem::read_symlink("/proc/self/exe");
         std::string exe_name = exe_path.stem().string();
-        std::string trace_filename = exe_name + ".trace";
+        std::string trace_filename = exe_name + ".corotrace";
         return trace_filename;
     }
 
@@ -36,7 +37,10 @@ public:
         awaits_on = 'a',
         yield = 'y',
         name = 'N',
-        user_report = 'U'
+        user_report = 'U',
+        thread = 'T',
+        hr = 'H'
+
 
     };
 
@@ -52,11 +56,17 @@ public:
     struct thread_state {
         static std::atomic<unsigned int> counter;
         unsigned int id = 0;
+        bool is_new = true;
         thread_state():id(++counter) {}
     };
 
     std::ostream &header(record_type rt) {
         auto &f = stream();
+        if (_state.is_new) {
+            f << _state.id << separator << static_cast<char>(record_type::thread) << separator
+                        << gettid() << std::endl;
+            _state.is_new = false;
+        }
         f  << _state.id << separator << static_cast<char>(rt) << separator;
         return f;
 
@@ -94,9 +104,20 @@ public:
         header(record_type::yield) << coro << separator << typeid(Arg).name() << std::endl;
     }
 
-    void set_name(const void *ptr, const char *src, const char *fn, unsigned int line) {
+    template<typename ... Args>
+    void set_name(const void *ptr, const char *src, const char *fn, unsigned int line, const std::tuple<Args...> &args) {
         std::lock_guard _(_mx);
-        header(record_type::name) << ptr << separator << src << ":" << line << separator << fn << std::endl;
+        auto &f = header(record_type::name);
+        f << ptr << separator << src << ":" << line << separator << fn << separator;
+        std::apply([&](const auto & ... args){
+            ((f << args),...);
+        }, args);
+        f << std::endl;
+    }
+
+    void hline(std::string_view text) {
+        std::lock_guard _(_mx);
+        header(record_type::hr) << text << std::endl;
     }
 
     template<typename ... Args>
@@ -164,13 +185,17 @@ inline auto handle_await_transform(X &&awt) {
     }
 }
 
+template<typename ... Args>
 struct trace_name: std::suspend_always {
     const char *src_name;
     const char *fn_name;
     unsigned int line;
-    trace_name(const char *src, const char *fn, unsigned int line):src_name(src),fn_name(fn),line(line) {}
+    std::tuple<std::conditional_t<std::is_array_v<Args>,
+        std::add_pointer_t<std::add_const_t<std::remove_extent_t<Args> > >,
+        std::add_lvalue_reference_t<std::add_const_t<Args> > >...> args;
+    trace_name(const char *src, const char *fn, unsigned int line, const Args &...args):src_name(src),fn_name(fn),line(line),args(args...) {}
     bool await_suspend(std::coroutine_handle<> h) {
-        trace::_instance.set_name(h.address(), src_name, fn_name,line);
+        trace::_instance.set_name(h.address(), src_name, fn_name,line,args);
         return false;
     }
 };
@@ -187,9 +212,10 @@ inline thread_local trace::thread_state trace::_state;
 #define LIBCORO_TRACE_ON_SWITCH(from, to) ::coro::trace::_instance.on_switch(from.address(), to.address())
 #define LIBCORO_TRACE_AWAIT template<typename X> auto await_transform(X &&awt) {return handle_await_transform(std::forward<X>(awt));}
 #define LIBCORO_TRACE_YIELD(h, arg) ::coro::trace::_instance.on_yield(h.address(), arg)
-#define LIBCORO_TRACE_SET_NAME() (co_await ::coro::trace_name(__FILE__, __FUNCTION__,__LINE__))
+#define LIBCORO_TRACE_SET_NAME(...) (co_await ::coro::trace_name(__FILE__, __FUNCTION__,__LINE__ __VA_OPT__(,) __VA_ARGS__))
 #define LIBCORO_TRACE_LOG(...) ::coro::trace::_instance.user_report(__VA_ARGS__)
 #define LIBCORO_TRACE_AWAIT_ON(h, awaiter, type) ::coro::trace::_instance.on_await_on(h.address(),awaiter,type)
+#define LIBCORO_TRACE_SEPARATOR(text) ::coro::trace::_instance.hline(text)
 
 struct suspend_always : public std::suspend_always{
     static void await_suspend(std::coroutine_handle<> h) noexcept  {
@@ -208,6 +234,7 @@ struct suspend_always : public std::suspend_always{
 #define LIBCORO_TRACE_LOG(...)
 #define LIBCORO_TRACE_SET_NAME()
 #define LIBCORO_TRACE_AWAIT_ON(h, awaiter, type)
+#define LIBCORO_TRACE_SEPARATOR(text)
 
 namespace coro {
     using suspend_always = std::suspend_always;

@@ -1,3 +1,7 @@
+#include "../coro/trace.h"
+#include "getoptxx.h"
+
+
 #include <variant>
 #include <iostream>
 #include <fstream>
@@ -8,12 +12,10 @@
 #include <vector>
 #include <charconv>
 #include <numeric>
-#include <getopt.h>
 #include <cstdlib>
 
 #include <cxxabi.h>
 
-#include "../coro/trace.h"
 
 #include <algorithm>
 struct coro_info_t {
@@ -21,7 +23,7 @@ struct coro_info_t {
     std::string name = {};
     std::string file = {};
     std::size_t size = 0;
-    unsigned int _ev_counter = 0;
+    std::string user_data = {};
     bool _destroyed = false;
     std::string generate_label() const;
 
@@ -34,7 +36,7 @@ struct thread_state_t {
 
     main_stack_t _stack;
     std::string _last_active;
-    unsigned int _ev_counter = 0;
+    std::string _tid;
     std::string generate_label(unsigned int id) const;
 
 };
@@ -42,6 +44,7 @@ struct thread_state_t {
 struct rel_create {
     std::string _target;
     bool _suspended = false;
+    bool operator==(const rel_create &) const = default;
 };
 
 struct rel_destroy {
@@ -52,37 +55,60 @@ struct rel_destroy {
     };
     std::string _target;
     type _type = t_call;
+    bool operator==(const rel_destroy &) const = default;
 };
 
 struct rel_yield {
     std::string _type;
+    bool operator==(const rel_yield &) const = default;
 };
+
 
 struct rel_await {
     std::string _type;
     std::size_t _offset = 0;
+    bool operator==(const rel_await &) const = default;
 };
 
 struct rel_resume {
     std::string _target;
+    bool operator==(const rel_resume &) const = default;
 };
 
 struct rel_return {
     std::string _target;
+    bool operator==(const rel_return &) const = default;
 };
 
 struct rel_suspend{
     std::string _target;
+    bool operator==(const rel_suspend &) const = default;
 };
 
 struct rel_switch{
     std::string _target;
+    bool operator==(const rel_switch &) const = default;
 };
 struct rel_user_log {
     std::string text;
+    bool operator==(const rel_user_log &) const = default;
 };
 struct rel_unknown_switch {
     std::string _target;
+    bool operator==(const rel_unknown_switch &) const = default;
+};
+struct rel_hline {
+    std::string _text;
+    bool operator==(const rel_hline &) const = default;
+};
+struct rel_loop {
+    std::size_t count;
+    bool operator==(const rel_loop &) const = default;
+};
+
+struct rel_end_loop {
+    std::size_t count;
+    bool operator==(const rel_end_loop &) const = default;
 };
 
 template<typename T>
@@ -100,7 +126,10 @@ using relation_type_t = std::variant<std::monostate,
                                      rel_switch,
                                      rel_return,
                                      rel_user_log,
-                                     rel_unknown_switch
+                                     rel_unknown_switch,
+                                     rel_hline,
+                                     rel_loop,
+                                     rel_end_loop
                                      >;
 
 
@@ -108,14 +137,30 @@ struct relation_t {
     unsigned int _thread = 0;
     std::string _coro;
     relation_type_t _rel_type;
-    unsigned int _src_ev_id = 0;
-    unsigned int _trg_ev_id = 0;
+    bool operator==(const relation_t &other) const = default;
+    bool equal_ignore_user(const relation_t &other) const {
+        return _thread == other._thread
+                && _coro == other._coro
+                && std::visit([](const auto &a, const auto &b){
+            using T = std::decay_t<decltype(a)>;
+            using U = std::decay_t<decltype(b)>;
+            if constexpr(std::is_same_v<T, U>) {
+                if constexpr(std::is_same_v<T, rel_user_log>) {
+                    return true;
+                } else {
+                    return a == b;
+                }
+            } else {
+                return false;
+            }
+        }, _rel_type, other._rel_type);
+    }
 };
 
 
 using coro_map_t = std::unordered_map<std::string, coro_info_t>;
 using thread_map_t = std::unordered_map<unsigned int, thread_state_t>;
-using relation_list_t = std::deque<relation_t>;
+using relation_list_t = std::vector<relation_t>;
 
 class App {
 public:
@@ -136,6 +181,8 @@ public:
     bool filter_active();
     void filter_nevents(unsigned int n);
 
+    template<bool ignore_user>
+    void detect_loops();
 protected:
     std::string b1;
 
@@ -143,7 +190,7 @@ protected:
     void deactivate_coro(unsigned int thread, std::string_view id);
     void activate_coro(unsigned int thread, std::string_view id);
     void ensure_active_coro(unsigned int thread, std::string_view id);
-    void set_name(std::string_view id, std::string_view file, std::string_view name);
+    void set_name(std::string_view id, std::string_view file, std::string_view name, std::string_view user);
     void add_stack_level(unsigned int thread);
     void remove_stack_level(unsigned int thread);
     coro_map_t::iterator introduce_coro(std::string_view id);
@@ -151,9 +198,12 @@ protected:
     void mark_destroyed(std::string_view id);
 
     static std::string demangle(const std::string &txt);
+    void set_thread(unsigned int thread, std::string_view id);
 
     void solve_conflict(std::string id);
     void filter_actors();
+    template<bool ignore_user>
+    bool detect_loop_cycle();
 };
 
 
@@ -194,6 +244,9 @@ inline void App::parse(std::istream &f) {
             flag = parts.at(1)[0];
 
             switch (static_cast<type>(flag)) {
+                case type::thread:
+                    set_thread(rel._thread, parts.at(2));
+                    continue;
                 case type::create:
                     rel._coro = get_active_coro(rel._thread);
                     {
@@ -231,8 +284,11 @@ inline void App::parse(std::istream &f) {
                     }
                     mark_destroyed(parts.at(2));
                     break;
+                case type::hr:
+                    rel._rel_type = rel_hline{std::string(parts.at(2))};
+                    break;
                 case type::name:
-                    set_name(parts.at(2), parts.at(3), parts.at(4));
+                    set_name(parts.at(2), parts.at(3), parts.at(4), parts.at(5));
                     continue;
                     break;
                 case type::resume_enter:
@@ -364,10 +420,11 @@ inline void App::ensure_active_coro(unsigned int thread, std::string_view id) {
 }
 
 inline void App::set_name(std::string_view id, std::string_view file,
-        std::string_view name) {
+        std::string_view name, std::string_view user) {
     auto &c = _coro_map[std::string(id)];
     c.file = std::string(file);
     c.name = std::string(name);
+    c.user_data = std::string(user);
 
 }
 
@@ -575,7 +632,12 @@ inline void App::export_dot(std::ostream &out) {
 }
 
 inline std::string thread_state_t::generate_label(unsigned int id) const {
-    return "thread #" + std::to_string(id);
+    std::string z = _tid;
+    for (char &c: z) {
+        if (c == '"') c = '`';
+        if (c >= 0 && c < 32) c = '.';
+    }
+    return "thread #" + std::to_string(id) + "\\n" + z;
 }
 
 
@@ -599,7 +661,13 @@ inline std::string coro_info_t::generate_label() const {
     } else {
         n = name+"\\n"+strip_path(file);
     }
-    for (char &c: n) if (c == '"') c = '`';
+    if (!user_data.empty()) {
+        n.append("\\n").append(user_data);
+    }
+    for (char &c: n) {
+        if (c == '"') c = '`';
+        if (c >=0 && c<32) c = '.';
+    }
     return n;
 }
 
@@ -643,13 +711,15 @@ void App::export_uml(std::ostream &out) {
     auto flush_note = [&](const std::string &coro) {
         auto iter = _coro_suspend_notes.find(coro);
         if (iter != _coro_suspend_notes.end()) {
-            out << "note over C" << coro << ": " << iter->second << std::endl;
+            out << "hnote over C" << coro << ": " << iter->second << std::endl;
             _coro_suspend_notes.erase(iter);
         }
     };
 
 
     for (auto &r: _relations) {
+
+
           std::visit([&](const auto &rel){
               using T = std::decay_t<decltype(rel)>;
               if constexpr(std::is_same_v<T, rel_create>) {
@@ -674,8 +744,20 @@ void App::export_uml(std::ostream &out) {
                           out << "destroy " << node_name(r._thread, r._coro) << " \n";
                           break;
                   }
+              } else if constexpr(std::is_same_v<T, rel_hline>) {
+                  out << "== ";
+                  for (char c: rel._text) {
+                      if (c == '\n') out << "\\n";
+                      else if (c >= 0 && c < 32) out << '.';
+                      else out << c;
+                  }
+                  out << " ==\n";
+              } else if constexpr(std::is_same_v<T, rel_loop>) {
+                  out << "loop " << rel.count << "x\n";
+              } else if constexpr(std::is_same_v<T, rel_end_loop>) {
+                  out << "end\n";
               } else if constexpr(std::is_same_v<T, rel_yield>) {
-                  out << "note over " << node_name(r._thread, r._coro) << ": **co_yield** " << rel._type << "\n";
+                  out << "hnote over " << node_name(r._thread, r._coro) << ": **co_yield** " << rel._type << "\n";
               } else if constexpr(std::is_same_v<T, rel_suspend>) {
                   out << node_name(r._thread, r._coro) << "->" << node_name(r._thread, rel._target) << ": suspend\n";
                   out << "deactivate " << node_name(r._thread, r._coro) << "\n";
@@ -800,24 +882,93 @@ void App::filter_actors() {
 }
 
 
+void App::set_thread(unsigned int thread, std::string_view id) {
+    _thread_map[thread]._tid = std::string(id);
+}
+
+template<bool ignore_user>
+void App::detect_loops() {
+    while (detect_loop_cycle<ignore_user>());
+}
+
+template<bool ignore_user>
+bool App::detect_loop_cycle() {
+
+    auto compare = [](const relation_t &a, const relation_t &b) {
+        if constexpr(ignore_user) {
+            return a.equal_ignore_user(b);
+        } else {
+            return a == b;
+        }
+    };
+
+    std::size_t max_len = _relations.size();
+    std::size_t max_seq_len = max_len/2;
+    for (std::size_t len = 1; len < max_seq_len; ++len) {
+        for (std::size_t pos = 0; pos < (max_len-2*len); ++pos) {
+            bool found_cycle = true;
+            for (std::size_t i = 0; i < len; ++i) {
+                if (!compare(_relations[pos+i],_relations[pos+i+len])) {
+                    found_cycle = false;
+                    break;
+                }
+            }
+            if (found_cycle) {
+                std::size_t count = 1;
+                do {
+                    ++count;
+                    if (pos + (count+1)*len > max_len) break;
+                    for (std::size_t i = 0; i < len; ++i) {
+                        if (!compare(_relations[pos+i] ,_relations[pos+i+count*len])) {
+                            found_cycle = false;
+                            break;
+                        }
+                    }
+                } while (found_cycle);
+
+                auto iter = _relations.begin();
+                std::advance(iter, pos);
+                *iter = relation_t{
+                    iter->_thread,{},rel_loop{count}
+                };
+                auto iter_end = iter;
+                std::advance(iter_end,(count-1)*len);
+                std::advance(iter,1);
+                _relations.erase(iter, iter_end);
+                std::advance(iter,len);
+                _relations.insert(iter,relation_t{
+                    0,{},rel_end_loop{count}
+                });
+
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 void print_help() {
-    std::cout << "Usage: program [-ah] [-f <file>] [-n count] [-o <output_file>]\n"
-              << "  -a         Process all\n"
-              << "  -h        Help\n"
-              << "  -f <file> Input file name\n"
-              << "  -o        Output file\n"
-              << "  -n count  Maximum number of lines\n";
+    std::cout << "Usage: program [-ah] [-f <file>] [-n count] [-o <file>]\n"
+            << "  -f <file> input file name (default stdin)\n"
+            << "  -o <file> output file name (default stdout)\n"
+            << "  -a        all coroutines (include finished)\n"
+            << "  -l        detect and collapse loops\n"
+            << "  -L        detect and collapse loops ignore user data\n"
+            << "  -n count  process only  last <count> events\n"
+            << "  -h        show help\n";
 }
 
 int main(int argc, char *argv[]) {
     int opt;
     bool process_all = false;
     bool show_help = false;
+    bool collapse_loops = false;
+    bool collapse_loops_ignore_user = false;
     std::string input_file;
     std::string output_file;
     int max_count = -1;
 
-    while ((opt = getopt(argc, argv, "ahf:n:o:")) != -1) {
+    while ((opt = getopt(argc, argv, "ahlLf:n:o:")) != -1) {
         switch (opt) {
             case 'a':
                 process_all = true;
@@ -830,6 +981,12 @@ int main(int argc, char *argv[]) {
                 break;
             case 'o':
                 output_file = optarg;
+                break;
+            case 'l':
+                collapse_loops = true;
+                break;
+            case 'L':
+                collapse_loops_ignore_user = true;
                 break;
             case 'n':
                 max_count = std::atoi(optarg);
@@ -868,6 +1025,8 @@ int main(int argc, char *argv[]) {
     if (max_count > 0) {
         app.filter_nevents(max_count);
     }
+
+    app.detect_loops<true>();
 
     if (output_file.empty()) {
         app.export_uml(std::cout);
