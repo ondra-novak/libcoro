@@ -45,6 +45,11 @@
  */
 
 /**
+ * @defgroup trace Trace
+ * API to trace coroutine execution
+ */
+
+/**
  * @defgroup exceptions Exceptions
  */
 

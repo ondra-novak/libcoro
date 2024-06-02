@@ -235,18 +235,141 @@ struct suspend_always : public std::suspend_always{
 
 #include "common.h"
 
+///Record creation of an coroutine
+/**
+ * @param ptr pointer to coroutine (handle.address())
+ * @param size size in bytes
+ *
+ * @note requires LIBCORO_ENABLE_TRACE
+ *
+ * @ingroup trace
+ */
 #define LIBCORO_TRACE_ON_CREATE(ptr,size)
+///Record destruction of an coroutine
+/**
+ * @param ptr pointer to coroutine (handle.address())
+ *
+ * @note requires LIBCORO_ENABLE_TRACE
+ *
+ * @ingroup trace
+ */
 #define LIBCORO_TRACE_ON_DESTROY(ptr)
+///Record resumption of an coroutine
+/**
+ * Use this macro before h.resume() is called
+ * @param ptr pointer to coroutine (handle.address())
+ *
+ * @note requires LIBCORO_ENABLE_TRACE
+ *
+ * @ingroup trace
+ */
 #define LIBCORO_TRACE_ON_RESUME(h)
+///Record switch (symmetric transfer) from one coroutine to other
+/**
+ * Use this macro before returning from await_suspend.
+ * @param from coroutine being suspended
+ * @param to coroutine being resumed (nullptr for none)
+ *
+ * @note requires LIBCORO_ENABLE_TRACE
+ *
+ * @ingroup trace
+ */
+
 #define LIBCORO_TRACE_ON_SWITCH(from, to)
+/// Macro declares await_transform function to capture all co_await events
+/**
+ * Declare inside promise body
+ * @note requires LIBCORO_ENABLE_TRACE
+ *
+ * @ingroup trace
+ */
 #define LIBCORO_TRACE_AWAIT
+
+
+///Record co_yield
+/**
+ * Use macro inside of yield_value() function
+ *
+ * @param h handle of coroutine
+ * @param arg argument to yield
+ *
+ * @note requires LIBCORO_ENABLE_TRACE
+ *
+ * @ingroup trace
+ */
 #define LIBCORO_TRACE_YIELD(h, arg)
+
+///Record custom user value
+/**
+ * This macro can be used anywhere to put a custom data to trace log
+ *
+ * @param ... any count of arguments to report into the trace log. All argumnets
+ * must support stream operator <<;
+ *
+ * @note requires LIBCORO_ENABLE_TRACE
+ *
+ * @ingroup trace
+ */
 #define LIBCORO_TRACE_LOG(...)
+
+///Set coroutine name
+/**
+ * Use macro at the beginning of coroutine to specify name and location of the coroutine
+ *
+ * @param ... any count of arguments to report into the trace log. All argumnets
+ * must support stream operator <<. Useful to report coroutine's arguments
+ *
+ * @note requires LIBCORO_ENABLE_TRACE
+ *
+ * @ingroup trace
+ */
 #define LIBCORO_TRACE_SET_NAME(...)
+///Record co_await operation (manually)
+/**
+ * @param h handle
+ * @param awaiter pointer to an awaiter
+ * @param type string type of awaiter (typeid(awaiter).name())
+ *
+ * @note requires LIBCORO_ENABLE_TRACE
+ *
+ * @ingroup trace
+ */
 #define LIBCORO_TRACE_AWAIT_ON(h, awaiter, type)
+
+///Insert separator to trace log with a title
+/**
+ * @param text title of separator
+ *
+ * @code
+ * LIBCORO_TRACE_SEPARATOR("server start");
+ * ...
+ * ...
+ * LIBCORO_TRACE_SEPARATOR("server exit");
+ * @endcode
+ *
+ * @note requires LIBCORO_ENABLE_TRACE
+ *
+ * @ingroup trace
+ */
+
 #define LIBCORO_TRACE_SEPARATOR(text)
+///Sets coroutine type
+/**
+ * @param h handle
+ * @param name typeid(coroutine_type).name()
+ *
+ * @note requires LIBCORO_ENABLE_TRACE
+ *
+ * @ingroup trace
+ */
 #define LIBCORO_TRACE_SET_CORO_TYPE(h,name)
+
 namespace coro {
+
+    ///replaces std::suspend_always for purpose of tracing
+    /** This correctly reports suspend_always awaiter
+     * use only for purpose of initial or final suspend
+     */
     using suspend_always = std::suspend_always;
 }
 
