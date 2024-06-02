@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['reusable_5fallocator_269',['reusable_allocator',['../classcoro_1_1reusable__allocator.html',1,'coro']]]
+  ['reusable_5fallocator_284',['reusable_allocator',['../classcoro_1_1reusable__allocator.html',1,'coro']]]
 ];

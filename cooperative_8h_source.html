@@ -80,7 +80,7 @@ $(function() {
 <div class="line"><a name="l00007"></a><span class="lineno">    7</span>&#160;<span class="keyword">namespace </span><a class="code" href="namespacecoro.html">coro</a> {</div>
 <div class="line"><a name="l00008"></a><span class="lineno">    8</span>&#160; </div>
 <div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160; </div>
-<div class="line"><a name="l00044"></a><span class="lineno"><a class="line" href="classcoro_1_1suspend.html">   44</a></span>&#160;<span class="keyword">class </span><a class="code" href="classcoro_1_1suspend.html">suspend</a> : <span class="keyword">public</span> std::suspend_always{</div>
+<div class="line"><a name="l00044"></a><span class="lineno"><a class="line" href="classcoro_1_1suspend.html">   44</a></span>&#160;<span class="keyword">class </span><a class="code" href="classcoro_1_1suspend.html">suspend</a> : <span class="keyword">public</span> <a class="code" href="namespacecoro_a194e0c6536284e5571466b883e708122.html#a194e0c6536284e5571466b883e708122">suspend_always</a>{</div>
 <div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;<span class="keyword">public</span>:</div>
 <div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160; </div>
 <div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160; </div>
@@ -90,49 +90,52 @@ $(function() {
 <div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;        } <span class="keywordflow">else</span> {</div>
 <div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;            std::queue&lt;prepared_coro&gt; q;</div>
 <div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;            local_queue = &amp;q;</div>
-<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;            h.resume();</div>
-<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;            <span class="keywordflow">while</span> (!q.empty()) {</div>
-<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;                <span class="keyword">auto</span> n = std::move(q.front());</div>
-<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;                q.pop();</div>
-<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;                n();</div>
-<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;            }</div>
-<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;            local_queue = <span class="keyword">nullptr</span>;</div>
-<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;        }</div>
-<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;    }</div>
-<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160; </div>
-<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160; </div>
-<div class="line"><a name="l00074"></a><span class="lineno"><a class="line" href="group__cooperative_ga0e9fe3f189193a83d04440f139e95154.html#ga0e9fe3f189193a83d04440f139e95154">   74</a></span>&#160;    <span class="keyword">friend</span> <span class="keywordtype">bool</span> <a class="code" href="group__cooperative_ga0e9fe3f189193a83d04440f139e95154.html#ga0e9fe3f189193a83d04440f139e95154">in_cooperative_mode</a>() {</div>
-<div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160;        <span class="keywordflow">return</span> local_queue != <span class="keyword">nullptr</span>;</div>
-<div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160;    }</div>
-<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160; </div>
-<div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160; </div>
-<div class="line"><a name="l00087"></a><span class="lineno"><a class="line" href="group__cooperative_gae7e12e6bfb1e7b12d7cc63d5259d0147.html#gae7e12e6bfb1e7b12d7cc63d5259d0147">   87</a></span>&#160;    <span class="keyword">friend</span> <span class="keywordtype">void</span> <a class="code" href="group__cooperative_gae7e12e6bfb1e7b12d7cc63d5259d0147.html#gae7e12e6bfb1e7b12d7cc63d5259d0147">enqueue</a>(<a class="code" href="classcoro_1_1prepared__coro.html">prepared_coro</a> c) {</div>
-<div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;        <a class="code" href="classcoro_1_1suspend_a3fd73bbc139b4679d90d204bf2aa1865.html#a3fd73bbc139b4679d90d204bf2aa1865">await_suspend</a>(c.<a class="code" href="classcoro_1_1prepared__coro_a4f66ec8bec49f53daa78613aedf2aa52.html#a4f66ec8bec49f53daa78613aedf2aa52">symmetric_transfer</a>());</div>
-<div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160;    }</div>
-<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160; </div>
+<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;            <a class="code" href="group__trace_gad10cffe48b8f29cd99addefdc8ea8e47.html#gad10cffe48b8f29cd99addefdc8ea8e47">LIBCORO_TRACE_ON_RESUME</a>(h);</div>
+<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;            h.resume();</div>
+<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;            <span class="keywordflow">while</span> (!q.empty()) {</div>
+<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;                <span class="keyword">auto</span> n = std::move(q.front());</div>
+<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;                q.pop();</div>
+<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;                n();</div>
+<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;            }</div>
+<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;            local_queue = <span class="keyword">nullptr</span>;</div>
+<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;        }</div>
+<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;    }</div>
+<div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160; </div>
+<div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160; </div>
+<div class="line"><a name="l00075"></a><span class="lineno"><a class="line" href="group__cooperative_ga0e9fe3f189193a83d04440f139e95154.html#ga0e9fe3f189193a83d04440f139e95154">   75</a></span>&#160;    <span class="keyword">friend</span> <span class="keywordtype">bool</span> <a class="code" href="group__cooperative_ga0e9fe3f189193a83d04440f139e95154.html#ga0e9fe3f189193a83d04440f139e95154">in_cooperative_mode</a>() {</div>
+<div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160;        <span class="keywordflow">return</span> local_queue != <span class="keyword">nullptr</span>;</div>
+<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;    }</div>
+<div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160; </div>
+<div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160; </div>
+<div class="line"><a name="l00088"></a><span class="lineno"><a class="line" href="group__cooperative_gae7e12e6bfb1e7b12d7cc63d5259d0147.html#gae7e12e6bfb1e7b12d7cc63d5259d0147">   88</a></span>&#160;    <span class="keyword">friend</span> <span class="keywordtype">void</span> <a class="code" href="group__cooperative_gae7e12e6bfb1e7b12d7cc63d5259d0147.html#gae7e12e6bfb1e7b12d7cc63d5259d0147">enqueue</a>(<a class="code" href="classcoro_1_1prepared__coro.html">prepared_coro</a> c) {</div>
+<div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160;        <a class="code" href="classcoro_1_1suspend_a3fd73bbc139b4679d90d204bf2aa1865.html#a3fd73bbc139b4679d90d204bf2aa1865">await_suspend</a>(c.<a class="code" href="classcoro_1_1prepared__coro_a4f66ec8bec49f53daa78613aedf2aa52.html#a4f66ec8bec49f53daa78613aedf2aa52">symmetric_transfer</a>());</div>
+<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;    }</div>
 <div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160; </div>
 <div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160; </div>
-<div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160;<span class="keyword">protected</span>:</div>
-<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;    <span class="keyword">static</span> thread_local std::queue&lt;prepared_coro&gt; *local_queue;</div>
-<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;};</div>
-<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160; </div>
+<div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160; </div>
+<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;<span class="keyword">protected</span>:</div>
+<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;    <span class="keyword">static</span> thread_local std::queue&lt;prepared_coro&gt; *local_queue;</div>
+<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;};</div>
 <div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160; </div>
-<div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;<span class="keyword">inline</span> thread_local std::queue&lt;prepared_coro&gt; *suspend::local_queue = <span class="keyword">nullptr</span>;</div>
-<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160; </div>
+<div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160; </div>
+<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;<span class="keyword">inline</span> thread_local std::queue&lt;prepared_coro&gt; *suspend::local_queue = <span class="keyword">nullptr</span>;</div>
 <div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160; </div>
 <div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160; </div>
-<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;}</div>
-<div class="ttc" id="aclasscoro_1_1prepared__coro_a4f66ec8bec49f53daa78613aedf2aa52_html_a4f66ec8bec49f53daa78613aedf2aa52"><div class="ttname"><a href="classcoro_1_1prepared__coro_a4f66ec8bec49f53daa78613aedf2aa52.html#a4f66ec8bec49f53daa78613aedf2aa52">coro::prepared_coro::symmetric_transfer</a></div><div class="ttdeci">std::coroutine_handle symmetric_transfer()</div><div class="ttdoc">release handle to be used in function await_suspend()</div><div class="ttdef"><b>Definition:</b> <a href="prepared__coro_8h_source.html#l00050">prepared_coro.h:50</a></div></div>
-<div class="ttc" id="aclasscoro_1_1prepared__coro_html"><div class="ttname"><a href="classcoro_1_1prepared__coro.html">coro::prepared_coro</a></div><div class="ttdoc">contains prepared coroutine (prepared to run)</div><div class="ttdef"><b>Definition:</b> <a href="prepared__coro_8h_source.html#l00014">prepared_coro.h:14</a></div></div>
+<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160; </div>
+<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;}</div>
+<div class="ttc" id="aclasscoro_1_1prepared__coro_a4f66ec8bec49f53daa78613aedf2aa52_html_a4f66ec8bec49f53daa78613aedf2aa52"><div class="ttname"><a href="classcoro_1_1prepared__coro_a4f66ec8bec49f53daa78613aedf2aa52.html#a4f66ec8bec49f53daa78613aedf2aa52">coro::prepared_coro::symmetric_transfer</a></div><div class="ttdeci">std::coroutine_handle symmetric_transfer()</div><div class="ttdoc">release handle to be used in function await_suspend()</div><div class="ttdef"><b>Definition:</b> <a href="prepared__coro_8h_source.html#l00054">prepared_coro.h:54</a></div></div>
+<div class="ttc" id="aclasscoro_1_1prepared__coro_html"><div class="ttname"><a href="classcoro_1_1prepared__coro.html">coro::prepared_coro</a></div><div class="ttdoc">contains prepared coroutine (prepared to run)</div><div class="ttdef"><b>Definition:</b> <a href="prepared__coro_8h_source.html#l00015">prepared_coro.h:15</a></div></div>
 <div class="ttc" id="aclasscoro_1_1suspend_a3fd73bbc139b4679d90d204bf2aa1865_html_a3fd73bbc139b4679d90d204bf2aa1865"><div class="ttname"><a href="classcoro_1_1suspend_a3fd73bbc139b4679d90d204bf2aa1865.html#a3fd73bbc139b4679d90d204bf2aa1865">coro::suspend::await_suspend</a></div><div class="ttdeci">static void await_suspend(std::coroutine_handle&lt;&gt; h)</div><div class="ttdoc">this function is static.</div><div class="ttdef"><b>Definition:</b> <a href="cooperative_8h_source.html#l00052">cooperative.h:52</a></div></div>
 <div class="ttc" id="aclasscoro_1_1suspend_html"><div class="ttname"><a href="classcoro_1_1suspend.html">coro::suspend</a></div><div class="ttdoc">Suspend current coroutine and switch to another coroutine ready to run.</div><div class="ttdef"><b>Definition:</b> <a href="cooperative_8h_source.html#l00044">cooperative.h:44</a></div></div>
-<div class="ttc" id="agroup__cooperative_ga0e9fe3f189193a83d04440f139e95154_html_ga0e9fe3f189193a83d04440f139e95154"><div class="ttname"><a href="group__cooperative_ga0e9fe3f189193a83d04440f139e95154.html#ga0e9fe3f189193a83d04440f139e95154">coro::suspend::in_cooperative_mode</a></div><div class="ttdeci">friend bool in_cooperative_mode()</div><div class="ttdoc">Determines, whether current thread is in cooperative mode.</div><div class="ttdef"><b>Definition:</b> <a href="cooperative_8h_source.html#l00074">cooperative.h:74</a></div></div>
-<div class="ttc" id="agroup__cooperative_gae7e12e6bfb1e7b12d7cc63d5259d0147_html_gae7e12e6bfb1e7b12d7cc63d5259d0147"><div class="ttname"><a href="group__cooperative_gae7e12e6bfb1e7b12d7cc63d5259d0147.html#gae7e12e6bfb1e7b12d7cc63d5259d0147">coro::suspend::enqueue</a></div><div class="ttdeci">friend void enqueue(prepared_coro c)</div><div class="ttdoc">Enqueue coroutine to the queue in the cooperative mode.</div><div class="ttdef"><b>Definition:</b> <a href="cooperative_8h_source.html#l00087">cooperative.h:87</a></div></div>
+<div class="ttc" id="agroup__cooperative_ga0e9fe3f189193a83d04440f139e95154_html_ga0e9fe3f189193a83d04440f139e95154"><div class="ttname"><a href="group__cooperative_ga0e9fe3f189193a83d04440f139e95154.html#ga0e9fe3f189193a83d04440f139e95154">coro::suspend::in_cooperative_mode</a></div><div class="ttdeci">friend bool in_cooperative_mode()</div><div class="ttdoc">Determines, whether current thread is in cooperative mode.</div><div class="ttdef"><b>Definition:</b> <a href="cooperative_8h_source.html#l00075">cooperative.h:75</a></div></div>
+<div class="ttc" id="agroup__cooperative_gae7e12e6bfb1e7b12d7cc63d5259d0147_html_gae7e12e6bfb1e7b12d7cc63d5259d0147"><div class="ttname"><a href="group__cooperative_gae7e12e6bfb1e7b12d7cc63d5259d0147.html#gae7e12e6bfb1e7b12d7cc63d5259d0147">coro::suspend::enqueue</a></div><div class="ttdeci">friend void enqueue(prepared_coro c)</div><div class="ttdoc">Enqueue coroutine to the queue in the cooperative mode.</div><div class="ttdef"><b>Definition:</b> <a href="cooperative_8h_source.html#l00088">cooperative.h:88</a></div></div>
+<div class="ttc" id="agroup__trace_gad10cffe48b8f29cd99addefdc8ea8e47_html_gad10cffe48b8f29cd99addefdc8ea8e47"><div class="ttname"><a href="group__trace_gad10cffe48b8f29cd99addefdc8ea8e47.html#gad10cffe48b8f29cd99addefdc8ea8e47">LIBCORO_TRACE_ON_RESUME</a></div><div class="ttdeci">#define LIBCORO_TRACE_ON_RESUME(h)</div><div class="ttdoc">Record resumption of an coroutine.</div><div class="ttdef"><b>Definition:</b> <a href="trace_8h_source.html#l00266">trace.h:266</a></div></div>
+<div class="ttc" id="anamespacecoro_a194e0c6536284e5571466b883e708122_html_a194e0c6536284e5571466b883e708122"><div class="ttname"><a href="namespacecoro_a194e0c6536284e5571466b883e708122.html#a194e0c6536284e5571466b883e708122">coro::suspend_always</a></div><div class="ttdeci">std::suspend_always suspend_always</div><div class="ttdoc">replaces std::suspend_always for purpose of tracing</div><div class="ttdef"><b>Definition:</b> <a href="trace_8h_source.html#l00373">trace.h:373</a></div></div>
 <div class="ttc" id="anamespacecoro_html"><div class="ttname"><a href="namespacecoro.html">coro</a></div><div class="ttdoc">main namespace</div><div class="ttdef"><b>Definition:</b> <a href="aggregator_8h_source.html#l00008">aggregator.h:8</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri May 31 2024 13:21:53 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+Generated on Sun Jun 2 2024 13:04:02 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
 </small></address>
 </body>
 </html>
