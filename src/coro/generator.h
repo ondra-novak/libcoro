@@ -104,6 +104,10 @@ public:
                         public coro_allocator_helper<Alloc> {
     public:
 
+        promise_type() {
+            LIBCORO_TRACE_SET_CORO_TYPE(std::coroutine_handle<promise_type>::from_promise(*this), typeid(generator).name());
+        }
+
         constexpr suspend_always initial_suspend() const {return {};}
 
         struct switch_awaiter {
@@ -299,6 +303,11 @@ public:
     class promise_type: public _details::coro_promise_base<R>,
                         public coro_allocator_helper<Alloc> {
     public:
+
+        promise_type() {
+            LIBCORO_TRACE_SET_CORO_TYPE(std::coroutine_handle<promise_type>::from_promise(*this), typeid(generator).name());
+        }
+
 
         constexpr suspend_always initial_suspend() const {return {};}
 

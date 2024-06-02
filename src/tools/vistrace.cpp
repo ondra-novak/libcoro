@@ -1,3 +1,7 @@
+#ifndef LIBCORO_ENABLE_TRACE
+#define LIBCORO_ENABLE_TRACE
+#endif
+
 #include "../coro/trace.h"
 #include "getoptxx.h"
 
@@ -24,8 +28,9 @@ struct coro_info_t {
     std::string file = {};
     std::size_t size = 0;
     std::string user_data = {};
+    std::string type = {};
     bool _destroyed = false;
-    std::string generate_label() const;
+    std::string generate_label(bool nl) const;
 
 };
 
@@ -111,6 +116,7 @@ struct rel_end_loop {
     bool operator==(const rel_end_loop &) const = default;
 };
 
+
 template<typename T>
 concept has_target = requires(T t) {
     {t._target};
@@ -175,8 +181,7 @@ public:
 
     void parse(std::istream &f);
 
-    void export_dot(std::ostream &out);
-    void export_uml(std::ostream &out);
+    void export_uml(std::ostream &out, unsigned int label_size);
 
     bool filter_active();
     void filter_nevents(unsigned int n);
@@ -191,6 +196,7 @@ protected:
     void activate_coro(unsigned int thread, std::string_view id);
     void ensure_active_coro(unsigned int thread, std::string_view id);
     void set_name(std::string_view id, std::string_view file, std::string_view name, std::string_view user);
+    void set_type(std::string_view id, std::string_view type);
     void add_stack_level(unsigned int thread);
     void remove_stack_level(unsigned int thread);
     coro_map_t::iterator introduce_coro(std::string_view id);
@@ -198,6 +204,7 @@ protected:
     void mark_destroyed(std::string_view id);
 
     static std::string demangle(const std::string &txt);
+    static std::string short_label_size_template(std::string txt, unsigned int size);
     void set_thread(unsigned int thread, std::string_view id);
 
     void solve_conflict(std::string id);
@@ -287,6 +294,9 @@ inline void App::parse(std::istream &f) {
                 case type::hr:
                     rel._rel_type = rel_hline{std::string(parts.at(2))};
                     break;
+                case type::coroutine_type:
+                    set_type(parts.at(2), parts.at(3));
+                    continue;
                 case type::name:
                     set_name(parts.at(2), parts.at(3), parts.at(4), parts.at(5));
                     continue;
@@ -428,6 +438,11 @@ inline void App::set_name(std::string_view id, std::string_view file,
 
 }
 
+inline void App::set_type(std::string_view id, std::string_view type) {
+    auto &c = _coro_map[std::string(id)];
+    c.type = demangle(std::string(type));
+}
+
 inline void App::add_stack_level(unsigned int thread) {
     auto &thr = _thread_map[thread];
     thr._stack.push({});
@@ -517,120 +532,6 @@ inline void App::solve_conflict(std::string id) {
 
 
 
-inline void App::export_dot(std::ostream &out) {
-    out << "digraph Trace {\n" ;
-    std::unordered_map<unsigned int, unsigned int> thread_interactions;
-    std::unordered_map<std::string_view, unsigned int> coro_interactions;
-
-    for (auto &r: _relations) {
-        auto &p = thread_interactions[r._thread];
-        std::visit([&](auto &item){
-            if constexpr(has_target<decltype(item)>) {
-                if (item._target.empty()) {
-                    ++p;
-                }
-                else {
-                    auto &c = coro_interactions[std::string_view(item._target)];
-                    ++c;
-                }
-            }
-        }, r._rel_type);
-    }
-
-
-    for (auto &thr: _thread_map) {
-        out << "subgraph thread_" << thr.first << "{\n"
-                "cluster=true\n"
-                "node [shape=point]\n"
-                "label=\"" << thr.second.generate_label(thr.first) << "\"\n";
-        unsigned int cnt = thread_interactions[thr.first];
-        out << "t_" << thr.first << "_0" ;
-        for (unsigned int i = 0; i < cnt; ++i) {
-            out << "->t_" << thr.first << "_" << (i+1);
-        }
-        out << " [style=invis]\n";
-        out << "}\n";
-    }
-
-    for (auto &coro: _coro_map) {
-        out << "subgraph coro_" << coro.first << "{\n"
-                "cluster=true\n"
-                "node [shape=point]\n"
-                "label=\"" << coro.second.generate_label() << "\"\n";
-        unsigned int cnt = coro_interactions[coro.first];
-        out << "c_" << coro.first << "_n0" << "\n";
-        for (unsigned int i = 0; i < cnt; ++i) {
-            out << "->c_" << coro.first << "_n" << (i+1);
-        }
-        out << " [style=invis]\n";
-        out << "}\n";
-    }
-
-    auto node_name = [&](int thread, std::string_view coro, bool target) {
-
-        if (coro.empty()) {
-            auto &n = thread_interactions[thread];
-            if (target) ++n;
-            out << "t_" << thread <<  "_" << n;
-        }
-        else {
-            auto &n = coro_interactions[coro];
-            if (target) ++n;
-            out << "c_" << coro << "_n" << n;
-        }
-    };
-
-    for (auto &[k,v]: thread_interactions) v = 0;
-    for (auto &[k,v]: coro_interactions) v = 0;
-
-    unsigned int hlpcnt = 0;
-
-    for (auto &r: _relations) {
-        std::visit([&](const auto &rel){
-            using T = std::decay_t<decltype(rel)>;
-            if constexpr(std::is_same_v<T, rel_create>) {
-                node_name(r._thread, r._coro, false);
-                out << "->";
-                node_name(r._thread, rel._target,true);
-                out << " [label=\"create\"]\n";
-            } else if constexpr(std::is_same_v<T, rel_destroy>) {
-                node_name(r._thread, r._coro, false);
-                out << "->";
-                node_name(r._thread, rel._target,true);
-                out << " [label=\"destroy\",arrowhead=tee]\n";
-            } else if constexpr(std::is_same_v<T, rel_yield>) {
-                hlpcnt++;
-                out << "hlp_" << hlpcnt << " [label=\"yield:\\n" << rel._type << "\"]\n";
-                node_name(r._thread, r._coro, false);
-                out << "->";
-                out << "hlp_" << hlpcnt << " [style=dotted]\n";
-            } else if constexpr(std::is_same_v<T, rel_suspend>) {
-                node_name(r._thread, r._coro, false);
-                out << "->";
-                node_name(r._thread, rel._target,true);
-                out << " [label=\"suspend\"]\n";
-            } else if constexpr(std::is_same_v<T, rel_resume>) {
-                node_name(r._thread, r._coro, false);
-                out << "->";
-                node_name(r._thread, rel._target,true);
-                out << " [label=\"resume\"]\n";
-            } else if constexpr(std::is_same_v<T, rel_return>) {
-                node_name(r._thread, r._coro, false);
-                out << "->";
-                node_name(r._thread, rel._target,true);
-                out << " [label=\"return\"]\n";
-            } else if constexpr(std::is_same_v<T, rel_switch>) {
-                node_name(r._thread, r._coro, false);
-                out << "->";
-                node_name(r._thread, rel._target,true);
-                out << " [label=\"switch\"]\n";
-            }
-        },r._rel_type);
-    }
-
-    out << "}\n";
-}
-
 inline std::string thread_state_t::generate_label(unsigned int id) const {
     std::string z = _tid;
     for (char &c: z) {
@@ -649,31 +550,35 @@ static std::string strip_path(std::string_view where) {
     return std::string(where.substr(pos+1));
 }
 
-inline std::string coro_info_t::generate_label() const {
+inline std::string coro_info_t::generate_label(bool nl) const {
     if (name.empty() && file.empty()) {
         return id;
     }
+    std::string_view nlseq = nl?"\n":"\\n";
+
     std::string n;
     if (file.empty()) {
         n = name;
     } else if (name.empty()) {
         n = strip_path(file);
     } else {
-        n = name+"\\n"+strip_path(file);
+        n = name+nlseq.data()+strip_path(file);
     }
     if (!user_data.empty()) {
-        n.append("\\n").append(user_data);
+        n.append(nlseq).append(user_data);
     }
     for (char &c: n) {
         if (c == '"') c = '`';
+        if (nl && c == '\n') continue;
         if (c >=0 && c<32) c = '.';
     }
     return n;
 }
 
 
-void App::export_uml(std::ostream &out) {
-    out << "@startuml\nskinparam NoteTextAlignment center\n";
+void App::export_uml(std::ostream &out, unsigned int label_size) {
+    out << "@startuml\n"
+            "skinparam NoteTextAlignment center\n";
 
     for (const auto &[id,info]: _thread_map) {
         out << "control \"" << info.generate_label(id) << "\" as T" << id << "\n";
@@ -694,10 +599,13 @@ void App::export_uml(std::ostream &out) {
 
     for (const auto &[id,info]: _coro_map) {
         if (created_actors.find(id) == created_actors.end()) {
-                    out << "participant \"" << info.generate_label() << "\" as C" << id << "\n";
+            out << "participant C" << id << "[\n"
+                    << info.generate_label(true) << "\n"
+                    << "----\n"
+                    << short_label_size_template(info.type, label_size) << "\n"
+                    << "]\n";
         }
     }
-
     auto node_name = [](unsigned int thread, std::string_view coro) {
         if (coro.empty()) return "T"+std::to_string(thread);
         else return std::string("C").append(coro);
@@ -724,23 +632,26 @@ void App::export_uml(std::ostream &out) {
               using T = std::decay_t<decltype(rel)>;
               if constexpr(std::is_same_v<T, rel_create>) {
                   const auto &info = _coro_map[rel._target];
-                  out << "create participant \"" << info.generate_label() << "\" as C" << rel._target << "\n";
-                  out << node_name(r._thread, r._coro) << "->" << node_name(r._thread, rel._target) << ": Create\n";
+                  out << "create participant \"" << info.generate_label(false) << "\" as C" << rel._target << "\n";
+                  out << node_name(r._thread, r._coro) << "->" << node_name(r._thread, rel._target) << ": create\n";
                   if (!rel._suspended) {
                       out << "activate " << node_name(r._thread, rel._target) << "\n";
+                  }
+                  if (!info.type.empty()) {
+                      out << "note right : " << short_label_size_template(info.type, label_size) << "\n";
                   }
               } else if constexpr(std::is_same_v<T, rel_destroy>) {
                   switch (rel._type) {
                       default:
                       case rel_destroy::t_call:
-                          out << node_name(r._thread, r._coro) << "->"  << node_name(r._thread, rel._target) << " !! \n";
+                          out << node_name(r._thread, r._coro) << "->"  << node_name(r._thread, rel._target) << " !! : destroy \n";
                           break;
                       case rel_destroy::t_suspend:
                           out << node_name(r._thread, r._coro) << "->"  << node_name(r._thread, rel._target) << " --++ \n";
                           out << "destroy " << node_name(r._thread, r._coro) << "\n";
                           break;
                       case rel_destroy::t_return:
-                          out << node_name(r._thread, r._coro) << "->"  << node_name(r._thread, rel._target) << " :return \n";
+                          out << node_name(r._thread, rel._target) << "<-" <<  node_name(r._thread, r._coro) <<  " : destroy and return \n";
                           out << "destroy " << node_name(r._thread, r._coro) << " \n";
                           break;
                   }
@@ -757,21 +668,21 @@ void App::export_uml(std::ostream &out) {
               } else if constexpr(std::is_same_v<T, rel_end_loop>) {
                   out << "end\n";
               } else if constexpr(std::is_same_v<T, rel_yield>) {
-                  out << "hnote over " << node_name(r._thread, r._coro) << ": **co_yield** " << rel._type << "\n";
+                  out << "hnote over " << node_name(r._thread, r._coro) << ": **co_yield** " << short_label_size_template(rel._type, label_size) << "\n";
               } else if constexpr(std::is_same_v<T, rel_suspend>) {
-                  out << node_name(r._thread, r._coro) << "->" << node_name(r._thread, rel._target) << ": suspend\n";
+                  out << node_name(r._thread, rel._target) << "<-" << node_name(r._thread, r._coro) << ": suspend\n";
                   out << "deactivate " << node_name(r._thread, r._coro) << "\n";
                   flush_note(r._coro);
               } else if constexpr(std::is_same_v<T, rel_resume>) {
                   out << node_name(r._thread, r._coro) << "->" << node_name(r._thread, rel._target) << ": resume\n";
                   out << "activate " << node_name(r._thread, rel._target) << "\n";
               } else if constexpr(std::is_same_v<T, rel_return>) {
-                  out << node_name(r._thread, r._coro) << "->" << node_name(r._thread, rel._target) << " : return\n";
+                  out << node_name(r._thread, rel._target) << "<-" << node_name(r._thread, r._coro) << " : return\n";
                   if (!r._coro.empty()) out << "deactivate " << node_name(r._thread, r._coro) << "\n";
                   if (r._coro.empty() && rel._target.empty()) out << "deactivate " << node_name(r._thread, "") << "\n";
                   flush_note(r._coro);
               } else if constexpr(std::is_same_v<T, rel_await>) {
-                  add_note(r._coro,"**co_await**\\n" + rel._type);
+                  add_note(r._coro,"**co_await**\\n" + short_label_size_template(rel._type, label_size));
               } else if constexpr(std::is_same_v<T, rel_switch>) {
                   out << node_name(r._thread, r._coro) << "->" << node_name(r._thread, rel._target) << " --++ \n";
                   flush_note(r._coro);
@@ -886,6 +797,24 @@ void App::set_thread(unsigned int thread, std::string_view id) {
     _thread_map[thread]._tid = std::string(id);
 }
 
+std::string App::short_label_size_template(std::string txt, unsigned int size) {
+    while (txt.length() > size) {
+        auto pos = txt.rfind('<');
+        if (pos == txt.npos) break;
+        auto end = txt.find('>', pos);
+        if (end == txt.npos) {
+            txt[pos] = '\x1E';
+        } else {
+            txt.replace(pos, end-pos+1, "\x1E...\x1F");
+        }
+    }
+    for (char &c: txt) {
+        if (c == '\x1E')  c = '<';
+        else if (c == '\x1F')  c = '>';
+    }
+    return txt;
+}
+
 template<bool ignore_user>
 void App::detect_loops() {
     while (detect_loop_cycle<ignore_user>());
@@ -948,18 +877,20 @@ bool App::detect_loop_cycle() {
 }
 
 void print_help() {
-    std::cout << "Usage: program [-ah] [-f <file>] [-n count] [-o <file>]\n"
+    std::cerr << "Usage: program [-ah] [-ss count] [-f <file>] [-n count] [-o <file>]\n"
             << "  -f <file> input file name (default stdin)\n"
             << "  -o <file> output file name (default stdout)\n"
             << "  -a        all coroutines (include finished)\n"
             << "  -l        detect and collapse loops\n"
             << "  -L        detect and collapse loops ignore user data\n"
+            << "  -s count  short labels up to characters (default=50)\n"
             << "  -n count  process only  last <count> events\n"
             << "  -h        show help\n";
 }
 
 int main(int argc, char *argv[]) {
     int opt;
+    getopt_t getopt;
     bool process_all = false;
     bool show_help = false;
     bool collapse_loops = false;
@@ -967,8 +898,9 @@ int main(int argc, char *argv[]) {
     std::string input_file;
     std::string output_file;
     int max_count = -1;
+    int label_size = 50;
 
-    while ((opt = getopt(argc, argv, "ahlLf:n:o:")) != -1) {
+    while ((opt = getopt(argc, argv, "ahlLf:n:o:s:")) != -1) {
         switch (opt) {
             case 'a':
                 process_all = true;
@@ -977,10 +909,10 @@ int main(int argc, char *argv[]) {
                 show_help = true;
                 break;
             case 'f':
-                input_file = optarg;
+                input_file = getopt.optarg;
                 break;
             case 'o':
-                output_file = optarg;
+                output_file = getopt.optarg;
                 break;
             case 'l':
                 collapse_loops = true;
@@ -989,9 +921,13 @@ int main(int argc, char *argv[]) {
                 collapse_loops_ignore_user = true;
                 break;
             case 'n':
-                max_count = std::atoi(optarg);
+                max_count = std::atoi(getopt.optarg);
+                break;
+            case 's':
+                label_size = std::atoi(getopt.optarg);
                 break;
             default:
+                std::cerr << getopt.errmsg << std::endl;
                 print_help();
                 return 1;
         }
@@ -1026,17 +962,22 @@ int main(int argc, char *argv[]) {
         app.filter_nevents(max_count);
     }
 
-    app.detect_loops<true>();
+    if (collapse_loops) {
+        app.detect_loops<false>();
+    }
+    if (collapse_loops_ignore_user) {
+        app.detect_loops<true>();
+    }
 
     if (output_file.empty()) {
-        app.export_uml(std::cout);
+        app.export_uml(std::cout, label_size);
     } else {
         std::ofstream f(output_file, std::ios::trunc);
         if (!f) {
             std::cerr << "Failed to open: " << argv[1] << std::endl;
             return 1;
         }
-        app.export_uml(f);
+        app.export_uml(f, label_size);
     }
 
 

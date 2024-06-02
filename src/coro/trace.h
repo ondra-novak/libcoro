@@ -39,7 +39,8 @@ public:
         name = 'N',
         user_report = 'U',
         thread = 'T',
-        hr = 'H'
+        hr = 'H',
+        coroutine_type = 't'
 
 
     };
@@ -102,6 +103,11 @@ public:
     void on_yield(const void *coro, Arg &) {
         std::lock_guard _(_mx);
         header(record_type::yield) << coro << separator << typeid(Arg).name() << std::endl;
+    }
+
+    void set_coroutine_type(const void *ptr, const char *type) {
+        std::lock_guard _(_mx);
+        header(record_type::coroutine_type) << ptr << separator << type << std::endl;
     }
 
     template<typename ... Args>
@@ -213,6 +219,7 @@ inline thread_local trace::thread_state trace::_state;
 #define LIBCORO_TRACE_AWAIT template<typename X> auto await_transform(X &&awt) {return handle_await_transform(std::forward<X>(awt));}
 #define LIBCORO_TRACE_YIELD(h, arg) ::coro::trace::_instance.on_yield(h.address(), arg)
 #define LIBCORO_TRACE_SET_NAME(...) (co_await ::coro::trace_name(__FILE__, __FUNCTION__,__LINE__ __VA_OPT__(,) __VA_ARGS__))
+#define LIBCORO_TRACE_SET_CORO_TYPE(h,name) ::coro::trace::_instance.set_coroutine_type(h.address(), name);
 #define LIBCORO_TRACE_LOG(...) ::coro::trace::_instance.user_report(__VA_ARGS__)
 #define LIBCORO_TRACE_AWAIT_ON(h, awaiter, type) ::coro::trace::_instance.on_await_on(h.address(),awaiter,type)
 #define LIBCORO_TRACE_SEPARATOR(text) ::coro::trace::_instance.hline(text)
@@ -225,6 +232,9 @@ struct suspend_always : public std::suspend_always{
 
 }
 #else
+
+#include "common.h"
+
 #define LIBCORO_TRACE_ON_CREATE(ptr,size)
 #define LIBCORO_TRACE_ON_DESTROY(ptr)
 #define LIBCORO_TRACE_ON_RESUME(h)
@@ -232,10 +242,10 @@ struct suspend_always : public std::suspend_always{
 #define LIBCORO_TRACE_AWAIT
 #define LIBCORO_TRACE_YIELD(h, arg)
 #define LIBCORO_TRACE_LOG(...)
-#define LIBCORO_TRACE_SET_NAME()
+#define LIBCORO_TRACE_SET_NAME(...)
 #define LIBCORO_TRACE_AWAIT_ON(h, awaiter, type)
 #define LIBCORO_TRACE_SEPARATOR(text)
-
+#define LIBCORO_TRACE_SET_CORO_TYPE(h,name)
 namespace coro {
     using suspend_always = std::suspend_always;
 }

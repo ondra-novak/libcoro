@@ -1,6 +1,6 @@
 
-#include <string.h>
-#include <stdio.h>
+#include <cstring>
+#include <cstdio>
 #include <string_view>
 
 struct getopt_t {
@@ -10,12 +10,14 @@ int     optind = 1;             /* index into parent argv vector */
 int     optopt = 0;                 /* character checked for validity */
 int     optreset = 0;               /* reset getopt */
 const char    *optarg = nullptr;                /* argument associated with option */
-const char *place;
+std::string errmsg;
 
 
 static constexpr int BADCH = '?';
 static constexpr int BADARG =':';
 static constexpr std::string_view EMSG = {"",1};
+
+const char *place = EMSG.data();
 
 /*
  * getopt --
@@ -24,6 +26,8 @@ static constexpr std::string_view EMSG = {"",1};
 int operator()(int nargc, char * const nargv[], const char *ostr)
 {
   const char *oli;                              /* option letter list index */
+
+
 
   if (optreset || !*place) {              /* update scanning pointer */
     optreset = 0;
@@ -47,8 +51,10 @@ int operator()(int nargc, char * const nargv[], const char *ostr)
         return (-1);
       if (!*place)
         ++optind;
-      if (opterr && *ostr != ':')
-        (void)printf("illegal option -- %c\n", optopt);
+      if (opterr && *ostr != ':') {
+          errmsg = "illegal option -- ";
+          errmsg.push_back(optopt);
+      }
       return (BADCH);
   }
   if (*++oli != ':') {                    /* don't need argument */
@@ -60,16 +66,18 @@ int operator()(int nargc, char * const nargv[], const char *ostr)
     if (*place)                     /* no white space */
       optarg = place;
     else if (nargc <= ++optind) {   /* no arg */
-      place = EMSG;
+      place = EMSG.data();
       if (*ostr == ':')
         return (BADARG);
-      if (opterr)
-        (void)printf("option requires an argument -- %c\n", optopt);
+      if (opterr) {
+          errmsg = "option requires an argument --  ";
+          errmsg.push_back(optopt);
+      }
       return (BADCH);
     }
     else                            /* white space */
       optarg = nargv[optind];
-    place = EMSG;
+    place = EMSG.data();
     ++optind;
   }
   return (optopt);                        /* dump back option letter */

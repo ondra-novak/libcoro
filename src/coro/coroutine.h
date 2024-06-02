@@ -36,6 +36,11 @@ public:
         basic_coroutine get_return_object() const {return {};}
 
         LIBCORO_TRACE_AWAIT
+
+        promise_type() {
+            LIBCORO_TRACE_SET_CORO_TYPE(std::coroutine_handle<promise_type>::from_promise(*this), typeid(basic_coroutine).name());
+        }
+
     };
 };
 

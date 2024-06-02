@@ -48,6 +48,10 @@ public:
     public:
         std::suspend_never initial_suspend() const noexcept {return {};}
 
+        promise_type() {
+            LIBCORO_TRACE_SET_CORO_TYPE(std::coroutine_handle<promise_type>::from_promise(*this), typeid(collector).name());
+        }
+
         struct final_awaiter: std::suspend_always {
             std::coroutine_handle<> await_suspend(std::coroutine_handle<promise_type> me) noexcept {
                 promise_type &self = me.promise();
@@ -76,7 +80,7 @@ public:
         };
 
         template<typename X>
-        yield_awaiter yield_value(X &&x) {
+        yield_awaiter yield_value([[maybe_unused]] X &&x) {
             LIBCORO_TRACE_YIELD(std::coroutine_handle<const promise_type>::from_promise(*this),x);
             return {};
         }

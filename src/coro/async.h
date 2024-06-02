@@ -81,12 +81,13 @@ public:
 
         promise_type() {
             this->fut = invalid_value();
+            LIBCORO_TRACE_SET_CORO_TYPE(std::coroutine_handle<promise_type>::from_promise(*this), typeid(async).name());
         }
 
         struct initial_awaiter {
             promise_type *me;
             bool await_ready() const noexcept {return me->fut != invalid_value();}
-            void await_suspend(std::coroutine_handle<> h)  noexcept {
+            void await_suspend([[maybe_unused]] std::coroutine_handle<> h)  noexcept {
                 //initialization is finished, reset the pointer
                 me->fut = nullptr;
                 LIBCORO_TRACE_ON_SWITCH(h, std::coroutine_handle<>());
