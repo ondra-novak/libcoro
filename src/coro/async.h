@@ -124,8 +124,11 @@ public:
         async get_return_object() {return {this};}
 
         prepared_coro attach(promise<T> &prom) {
-            if (std::exchange(this->fut, prom.release()) == nullptr) {
-                return std::coroutine_handle<promise_type>::from_promise(*this);
+            auto fut = prom.release();
+            auto h = std::coroutine_handle<promise_type>::from_promise(*this);
+            LIBCORO_TRACE_LINK(h.address(), fut);
+            if (std::exchange(this->fut, fut) == nullptr) {
+                return h;
             }
             return {};
         }

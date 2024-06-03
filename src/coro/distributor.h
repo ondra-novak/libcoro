@@ -112,6 +112,7 @@ public:
     }
 
     void subscribe(promise_t &&prom, ID id = { }) {
+        LIBCORO_TRACE_LINK(this, prom.get_future());
         std::lock_guard _(_mx);
         _subscribers.push_back(std::pair<promise_t, ID>(std::move(prom), id));
     }

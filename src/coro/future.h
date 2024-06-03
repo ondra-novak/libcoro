@@ -274,6 +274,19 @@ public:
         return claim();
     }
 
+    ///Retrieve pointer to an associated future
+    /**
+     * This allows to identify target object. You should avoid to use pointer to control
+     * associated future. This is reason, why only const API is only defined
+     * @return const pointer to the associated future
+     *
+     * @note If you need to control the associated future, you need to call release()
+     */
+    const FutureType *get_future() const {
+        return _ptr.load(std::memory_order_relaxed);
+    }
+
+
     ///Combine two promises into one
     /**
      * Two promises are combined into one and they can be fulfilled together by

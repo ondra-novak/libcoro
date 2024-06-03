@@ -1,3 +1,6 @@
+#include <cstdint>
+#include <map>
+
 #ifndef LIBCORO_ENABLE_TRACE
 #define LIBCORO_ENABLE_TRACE
 #endif
@@ -27,6 +30,7 @@ struct coro_info_t {
     std::string name = {};
     std::string file = {};
     std::size_t size = 0;
+    std::uintptr_t addr = 0;
     std::string user_data = {};
     std::string type = {};
     bool _destroyed = false;
@@ -116,6 +120,10 @@ struct rel_end_loop {
     bool operator==(const rel_end_loop &) const = default;
 };
 
+struct rel_link {
+    std::string _target;
+    bool operator==(const rel_link &) const = default;
+};
 
 template<typename T>
 concept has_target = requires(T t) {
@@ -135,7 +143,8 @@ using relation_type_t = std::variant<std::monostate,
                                      rel_unknown_switch,
                                      rel_hline,
                                      rel_loop,
-                                     rel_end_loop
+                                     rel_end_loop,
+                                     rel_link
                                      >;
 
 
@@ -163,10 +172,17 @@ struct relation_t {
     }
 };
 
+struct addr_map_item_t {
+    std::size_t size;
+    std::string id;
+};
+
 
 using coro_map_t = std::unordered_map<std::string, coro_info_t>;
 using thread_map_t = std::unordered_map<unsigned int, thread_state_t>;
 using relation_list_t = std::vector<relation_t>;
+using coro_addr_map_t = std::map<std::uintptr_t, addr_map_item_t>;
+
 
 class App {
 public:
@@ -175,6 +191,7 @@ public:
     coro_map_t _coro_map;
     thread_map_t _thread_map;
     relation_list_t _relations;
+    coro_addr_map_t _coro_addr_map;
 
 
     bool parse_line(std::istream &f, std::vector<std::string_view> &parts);
@@ -211,10 +228,31 @@ protected:
     void filter_actors();
     template<bool ignore_user>
     bool detect_loop_cycle();
+
+    static std::uintptr_t parse_address(std::string_view id);
+    const std::string *find_coro_by_address(std::string_view id);
 };
 
+std::uintptr_t App::parse_address(std::string_view id) {
+    if (id.substr(0,2) == "0x")  {
+        id = id.substr(2);
+        std::uintptr_t n;
+        auto [ptr, err] = std::from_chars(id.begin(), id. end(), n, 16);
+        if (err == std::errc()) return n;
+    }
+    std::string errmsg = "Character sequence `";
+    errmsg.append(id);
+    errmsg.append("` is not a valid address");
+    throw std::runtime_error(errmsg);
+}
 
-
+const std::string *App::find_coro_by_address(std::string_view id) {
+    auto a = parse_address(id);
+    auto iter =_coro_addr_map.upper_bound(a);
+    if (iter == _coro_addr_map.end()) return nullptr;
+    if (iter->first - a  > iter->second.size) return nullptr;
+    return &iter->second.id;
+}
 
 inline bool App::parse_line(std::istream &f, std::vector<std::string_view> &parts) {
     std::getline(f,b1);
@@ -372,6 +410,15 @@ inline void App::parse(std::istream &f) {
                     rel._coro = get_active_coro(rel._thread);
                     rel._rel_type = rel_yield{demangle(std::string(parts.at(3)))};
                     break;
+                case type::link: {
+                    auto from_coro = find_coro_by_address(parts.at(2));
+                    auto to_coro = find_coro_by_address(parts.at(3));
+                    if (from_coro == nullptr || to_coro == nullptr) continue;
+                    rel._coro = *from_coro;
+                    rel._rel_type = rel_link(*to_coro);
+                }
+                break;
+
                 default:
                     throw 1;
             }
@@ -481,15 +528,19 @@ inline void App::create_coro(std::string_view id, std::size_t sz) {
     auto iter = introduce_coro(id);
     if (iter->second._destroyed) {
         solve_conflict(std::string(id));
-        introduce_coro(id)->second.size = sz;
-    } else {
-        iter->second.size = sz;
+        iter = introduce_coro(id);
     }
+    iter->second.size = sz;
+    auto addr = parse_address(id);
+    iter->second.addr = addr+sz;
+    _coro_addr_map.insert({iter->second.addr, {sz, std::string(id)}});
 
 }
 
 inline void App::mark_destroyed(std::string_view id) {
-    introduce_coro(id)->second._destroyed= true;
+    auto iter = introduce_coro(id);
+    iter->second._destroyed= true;
+    _coro_addr_map.erase(iter->second.addr);
 }
 
 inline std::string App::demangle(const std::string &txt) {
@@ -614,14 +665,23 @@ void App::export_uml(std::ostream &out, unsigned int label_size) {
 
 
     std::unordered_map<std::string, std::string> _coro_suspend_notes;
+    std::unordered_map<std::string, std::string> _coro_suspend_links;
     auto add_note = [&](const std::string &coro, const std::string &note) {
         _coro_suspend_notes[coro] = note;
+    };
+    auto add_link = [&](const std::string &coro, const std::string &link_coro) {
+        _coro_suspend_links[coro] = link_coro;
     };
     auto flush_note = [&](const std::string &coro) {
         auto iter = _coro_suspend_notes.find(coro);
         if (iter != _coro_suspend_notes.end()) {
             out << "hnote over C" << coro << ": " << iter->second << std::endl;
             _coro_suspend_notes.erase(iter);
+        }
+        iter = _coro_suspend_links.find(coro);
+        if (iter != _coro_suspend_links.end()) {
+            out << "C" << coro << " o<-- " << "C" << iter->second << " : awaiting " << std::endl;
+            _coro_suspend_links.erase(iter);
         }
     };
 
@@ -687,6 +747,8 @@ void App::export_uml(std::ostream &out, unsigned int label_size) {
               } else if constexpr(std::is_same_v<T, rel_switch>) {
                   out << node_name(r._thread, r._coro) << "->" << node_name(r._thread, rel._target) << " --++ \n";
                   flush_note(r._coro);
+              } else if constexpr(std::is_same_v<T, rel_link>) {
+                  add_link(rel._target, r._coro);
               } else if constexpr(std::is_same_v<T, rel_user_log>) {
                   out << "note over " << node_name(r._thread, r._coro) << ": **output**\\n " << rel.text << "\n";
               } else if constexpr(std::is_same_v<T, rel_unknown_switch>) {

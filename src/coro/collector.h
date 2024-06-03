@@ -96,6 +96,7 @@ public:
 
         void resume() {
             auto h =std::coroutine_handle<promise_type>::from_promise(*this);
+            LIBCORO_TRACE_LINK(h.address(), _waiting.get_future());
             LIBCORO_TRACE_ON_RESUME(h);
             h.resume();
         }

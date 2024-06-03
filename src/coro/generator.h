@@ -171,7 +171,9 @@ public:
             return [this](auto promise) -> std::coroutine_handle<> {
                 if (done()) return {};
                 this->fut = promise.release();
-                return std::coroutine_handle<promise_type>::from_promise(*this);
+                auto h = std::coroutine_handle<promise_type>::from_promise(*this);
+                LIBCORO_TRACE_LINK(h.address(), this->fut);
+                return h;
             };
         }
     };
@@ -372,6 +374,7 @@ public:
                 if (done()) return;
                 this->fut = promise.release();
                 auto h = std::coroutine_handle<promise_type>::from_promise(*this);
+                LIBCORO_TRACE_LINK(h.address(), this->fut);
                 LIBCORO_TRACE_ON_RESUME(h);
                 h.resume();
             };

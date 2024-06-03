@@ -10,7 +10,6 @@
 #include <typeinfo>
 #include <thread>
 
-
 namespace coro {
 
 
@@ -41,7 +40,9 @@ public:
         user_report = 'U',
         thread = 'T',
         hr = 'H',
-        coroutine_type = 't'
+        coroutine_type = 't',
+        link = 'l',
+        proxy = 'p',
 
 
     };
@@ -109,6 +110,15 @@ public:
     void set_coroutine_type(const void *ptr, const char *type) {
         std::lock_guard _(_mx);
         header(record_type::coroutine_type) << ptr << separator << type << std::endl;
+    }
+
+    void on_link(const void *from, const void *to) {
+        std::lock_guard _(_mx);
+        header(record_type::link) << from << separator << to<< std::endl;
+    }
+    void set_proxy(void *ptr, std::size_t sz, bool destroyed) {
+        std::lock_guard _(_mx);
+        header(record_type::link) << ptr << separator << sz<< separator << destroyed <<std::endl;
     }
 
     template<typename ... Args>
@@ -223,6 +233,7 @@ inline thread_local trace::thread_state trace::_state;
 #define LIBCORO_TRACE_SET_CORO_TYPE(h,name) ::coro::trace::_instance.set_coroutine_type(h.address(), name);
 #define LIBCORO_TRACE_LOG(...) ::coro::trace::_instance.user_report(__VA_ARGS__)
 #define LIBCORO_TRACE_AWAIT_ON(h, awaiter, type) ::coro::trace::_instance.on_await_on(h.address(),awaiter,type)
+#define LIBCORO_TRACE_LINK(from_ptr, to_ptr) ::coro::trace::_instance.on_link(from_ptr, to_ptr);
 #define LIBCORO_TRACE_SEPARATOR(text) ::coro::trace::_instance.hline(text)
 
 struct suspend_always : public std::suspend_always{
@@ -363,6 +374,21 @@ struct suspend_always : public std::suspend_always{
  * @ingroup trace
  */
 #define LIBCORO_TRACE_SET_CORO_TYPE(h,name)
+
+
+///Report link between coroutines (when one coroutine awaits to other)
+/**
+ * @param from_ptr pointer to coroutine (must be pointer, not handle)
+ * @param to_ptr pointer to object which should be inside of waiting coroutine (awaiter)
+ *
+ * Not every link can be visualised. The vistrace engine must be able to
+ * detect both sides of the link
+ *
+ * @note requires LIBCORO_ENABLE_TRACE
+ *
+ * @ingroup trace
+ */
+#define LIBCORO_TRACE_LINK(from_ptr, to_ptr)
 
 namespace coro {
 
