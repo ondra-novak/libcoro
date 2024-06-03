@@ -1,0 +1,4 @@
+<map id="coro::promise::get_future" name="coro::promise::get_future">
+<area shape="rect" id="node1" title="Retrieve pointer to an associated future." alt="" coords="184,5,324,47"/>
+<area shape="rect" id="node2" href="$classcoro_1_1queue_a1875f8e5f4d570fd99544eaa6702a5e9.html#a1875f8e5f4d570fd99544eaa6702a5e9" title="Pop item into a promise." alt="" coords="5,13,136,39"/>
+</map>
