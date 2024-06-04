@@ -27,7 +27,7 @@ namespace coro {
 template<coro_allocator Alloc = std_allocator>
 class basic_coroutine {
 public:
-    class promise_type: public coro_allocator_helper<Alloc> {
+    class promise_type: public coro_allocator_helper<Alloc> , public trace::base_promise_type{
     public:
         static constexpr std::suspend_never initial_suspend() noexcept {return {};}
         static constexpr std::suspend_never final_suspend() noexcept {return {};}
@@ -35,10 +35,9 @@ public:
         static void unhandled_exception() {std::terminate();}
         basic_coroutine get_return_object() const {return {};}
 
-        LIBCORO_TRACE_AWAIT
 
         promise_type() {
-            LIBCORO_TRACE_SET_CORO_TYPE(std::coroutine_handle<promise_type>::from_promise(*this), typeid(basic_coroutine).name());
+            trace::set_class(std::coroutine_handle<promise_type>::from_promise(*this), typeid(basic_coroutine).name());
         }
 
     };

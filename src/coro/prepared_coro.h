@@ -35,8 +35,7 @@ public:
     ///destructor - resumes coroutine if still in prepared state
     ~prepared_coro() {
         if (_h) {
-            LIBCORO_TRACE_ON_RESUME(_h);
-            _h.resume();
+            trace::resume(_h);
         }
     }
 
@@ -60,8 +59,7 @@ public:
     void operator()() {
         auto h = release();
         if (h) {
-            LIBCORO_TRACE_ON_RESUME(h);
-            h.resume();
+            trace::resume(h);
         }
     }
 

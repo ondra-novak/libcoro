@@ -49,16 +49,14 @@ public:
         std::suspend_never initial_suspend() const noexcept {return {};}
 
         promise_type() {
-            LIBCORO_TRACE_SET_CORO_TYPE(std::coroutine_handle<promise_type>::from_promise(*this), typeid(collector).name());
+            trace::set_class(std::coroutine_handle<promise_type>::from_promise(*this), typeid(collector).name());
         }
 
         struct final_awaiter: std::suspend_always {
             std::coroutine_handle<> await_suspend(std::coroutine_handle<promise_type> me) noexcept {
                 promise_type &self = me.promise();
                 self.set_resolved();
-                auto h = self._waiting(true).symmetric_transfer();
-                LIBCORO_TRACE_ON_SWITCH(me, h);
-                return h;
+                return trace::on_switch(me,self._waiting(true).symmetric_transfer(),{});
             }
         };
 
@@ -68,11 +66,9 @@ public:
         struct yield_awaiter {
             promise_type *self;
             static constexpr bool await_ready() noexcept {return false;}
-            std::coroutine_handle<> await_suspend(std::coroutine_handle<promise_type> me) {
+            std::coroutine_handle<> await_suspend(std::coroutine_handle<promise_type> me, std::source_location loc = std::source_location::current()) {
                self = &me.promise();
-               auto h = self->_waiting(false).symmetric_transfer();
-               LIBCORO_TRACE_ON_SWITCH(me, h);
-               return h;
+               return trace::on_switch(me, self->_waiting(false).symmetric_transfer(),&loc);
             }
             Collectible await_resume() {
                 return self->_factory->create();
@@ -81,7 +77,7 @@ public:
 
         template<typename X>
         yield_awaiter yield_value([[maybe_unused]] X &&x) {
-            LIBCORO_TRACE_YIELD(std::coroutine_handle<const promise_type>::from_promise(*this),x);
+            trace::on_yield(std::coroutine_handle<const promise_type>::from_promise(*this),x);
             return {};
         }
 
@@ -96,9 +92,8 @@ public:
 
         void resume() {
             auto h =std::coroutine_handle<promise_type>::from_promise(*this);
-            LIBCORO_TRACE_LINK(h.address(), _waiting.get_future());
-            LIBCORO_TRACE_ON_RESUME(h);
-            h.resume();
+            trace::on_link(h, _waiting.get_future());
+            trace::resume(h);
         }
         void destroy() {
             std::coroutine_handle<promise_type>::from_promise(*this).destroy();

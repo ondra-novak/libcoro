@@ -7,6 +7,17 @@
 #include <vector>
 namespace coro {
 
+namespace _details {
+template<typename T>
+coroutine aggregator_cleanup(std::vector<generator<T> > , std::vector<deferred_future<T> > futures) {
+    //cycle over all futures and @b co_await for just has_value - we don't need the value
+    for (auto &f: futures) {
+        trace::on_link(&f, &futures, sizeof(f));
+        co_await f.wait();
+    }
+}
+}
+
 ///Construct generator which aggregates results of multiple generators
 /**
  * Aggregator is generator which aggregates results of multiple generators. The
@@ -27,7 +38,6 @@ namespace coro {
 template<typename T, coro_allocator Alloc = std_allocator>
 generator<T, Alloc> aggregator(Alloc &, std::vector<generator<T> > gens) {
 
-    LIBCORO_TRACE_SET_NAME();
 
     //list of futures waiting for results from generators
     std::vector<deferred_future<T> > futures;
@@ -42,6 +52,7 @@ generator<T, Alloc> aggregator(Alloc &, std::vector<generator<T> > gens) {
             return q.push(idx).symmetric_transfer();
 //            q.push(idx); return prepared_coro();
         };
+        trace::on_link(gens[idx].get_id(),&q);
     };
 
     //prepare array of futures
@@ -64,17 +75,8 @@ generator<T, Alloc> aggregator(Alloc &, std::vector<generator<T> > gens) {
         }
         //if such future exists, install a coroutine, which awaits to resolution
         if (pending) {
-            //coroutine
-            auto dtch = [](std::vector<generator<T> > , std::vector<deferred_future<T> > futures) -> coroutine {
-                LIBCORO_TRACE_SET_NAME("<cleanup>");
-                //cycle over all futures and @b co_await for just has_value - we don't need the value
-                for (auto &f: futures) {
-                    co_await f.wait();
-                }
-
-            };
-            //move futures and generators to the coroutine
-            dtch(std::move(gens), std::move(futures));
+            //perform cleanup inside of coroutine
+            _details::aggregator_cleanup(std::move(gens), std::move(futures));
         }
     };
 

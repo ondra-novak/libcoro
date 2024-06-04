@@ -14,8 +14,8 @@
 #include <fstream>
 #include <sstream>
 #include <stack>
-#include <unordered_map>
-#include <unordered_set>
+#include <map>
+#include <set>
 #include <vector>
 #include <charconv>
 #include <numeric>
@@ -26,32 +26,46 @@
 
 #include <algorithm>
 struct coro_info_t {
+    std::size_t slot_id = 0;
     std::string id = {};
-    std::string name = {};
+    std::string fn_name = {};
     std::string file = {};
+    unsigned int line = 0;
     std::size_t size = 0;
     std::uintptr_t addr = 0;
-    std::string user_data = {};
     std::string type = {};
     bool _destroyed = false;
-    std::string generate_label(bool nl) const;
+    template<bool multiline>
+    std::string generate_label(unsigned int label_limit) const;
+
+    coro_info_t(std::string_view id, std::size_t slot_id):slot_id(slot_id),id(id) {};
+
+
 
 };
 
+
+
+using coro_ident = std::shared_ptr<coro_info_t>;
+
 struct thread_state_t {
 
-    using coro_stack_t = std::deque<std::string>;
-    using main_stack_t = std::stack<coro_stack_t>;
+    struct stack_item_t {
+        coro_ident id;
+        bool created;
+    };
+
+    using main_stack_t = std::stack<stack_item_t>;
 
     main_stack_t _stack;
-    std::string _last_active;
+    coro_ident _last_active;
     std::string _tid;
     std::string generate_label(unsigned int id) const;
 
 };
 
 struct rel_create {
-    std::string _target;
+    coro_ident _target;
     bool _suspended = false;
     bool operator==(const rel_create &) const = default;
 };
@@ -62,7 +76,7 @@ struct rel_destroy {
         t_suspend,
         t_return
     };
-    std::string _target;
+    coro_ident _target;
     type _type = t_call;
     bool operator==(const rel_destroy &) const = default;
 };
@@ -80,22 +94,26 @@ struct rel_await {
 };
 
 struct rel_resume {
-    std::string _target;
+    coro_ident _target;
     bool operator==(const rel_resume &) const = default;
 };
 
 struct rel_return {
-    std::string _target;
+    coro_ident _target;
     bool operator==(const rel_return &) const = default;
 };
 
 struct rel_suspend{
-    std::string _target;
+    coro_ident _target;
     bool operator==(const rel_suspend &) const = default;
 };
 
+struct rel_location{
+    bool operator==(const rel_location &) const {return true;}
+};
+
 struct rel_switch{
-    std::string _target;
+    coro_ident _target;
     bool operator==(const rel_switch &) const = default;
 };
 struct rel_user_log {
@@ -103,7 +121,7 @@ struct rel_user_log {
     bool operator==(const rel_user_log &) const = default;
 };
 struct rel_unknown_switch {
-    std::string _target;
+    coro_ident _target;
     bool operator==(const rel_unknown_switch &) const = default;
 };
 struct rel_hline {
@@ -121,7 +139,7 @@ struct rel_end_loop {
 };
 
 struct rel_link {
-    std::string _target;
+    coro_ident _target;
     bool operator==(const rel_link &) const = default;
 };
 
@@ -144,14 +162,17 @@ using relation_type_t = std::variant<std::monostate,
                                      rel_hline,
                                      rel_loop,
                                      rel_end_loop,
-                                     rel_link
+                                     rel_link,
+                                     rel_location
                                      >;
 
 
 struct relation_t {
     unsigned int _thread = 0;
-    std::string _coro;
+    coro_ident _coro;
     relation_type_t _rel_type;
+    std::string _file = {};
+    unsigned int _line = 0;
     bool operator==(const relation_t &other) const = default;
     bool equal_ignore_user(const relation_t &other) const {
         return _thread == other._thread
@@ -170,19 +191,20 @@ struct relation_t {
             }
         }, _rel_type, other._rel_type);
     }
+    bool has_location() const {return !_file.empty();}
 };
 
 struct addr_map_item_t {
     std::size_t size;
-    std::string id;
+    coro_ident id;
 };
 
 
-using coro_map_t = std::unordered_map<std::string, coro_info_t>;
-using thread_map_t = std::unordered_map<unsigned int, thread_state_t>;
+using coro_map_t = std::map<std::string, coro_ident, std::less<> >;
+using thread_map_t = std::map<unsigned int, thread_state_t>;
 using relation_list_t = std::vector<relation_t>;
 using coro_addr_map_t = std::map<std::uintptr_t, addr_map_item_t>;
-
+using unresolved_links_t = std::map<std::uintptr_t, coro_ident>;
 
 class App {
 public:
@@ -192,6 +214,8 @@ public:
     thread_map_t _thread_map;
     relation_list_t _relations;
     coro_addr_map_t _coro_addr_map;
+    unresolved_links_t _unresolved_links;
+    std::vector<coro_ident> _all_coro_idents;
 
 
     bool parse_line(std::istream &f, std::vector<std::string_view> &parts);
@@ -200,38 +224,110 @@ public:
 
     void export_uml(std::ostream &out, unsigned int label_size);
 
+    bool filter_section(const std::string &section);
     bool filter_active();
     void filter_nevents(unsigned int n);
+
+    template<bool included> void filter_coro(std::vector<std::string> coros);
 
     template<bool ignore_user>
     void detect_loops();
 protected:
     std::string b1;
 
-    const std::string &get_active_coro(unsigned int thread);
-    void deactivate_coro(unsigned int thread, std::string_view id);
-    void activate_coro(unsigned int thread, std::string_view id);
-    void ensure_active_coro(unsigned int thread, std::string_view id);
-    void set_name(std::string_view id, std::string_view file, std::string_view name, std::string_view user);
-    void set_type(std::string_view id, std::string_view type);
-    void add_stack_level(unsigned int thread);
-    void remove_stack_level(unsigned int thread);
-    coro_map_t::iterator introduce_coro(std::string_view id);
-    void create_coro(std::string_view id, std::size_t sz);
-    void mark_destroyed(std::string_view id);
+    coro_ident get_active_coro(unsigned int thread);
+    void ensure_active_coro(unsigned int thread, coro_ident id);
+    void set_name(coro_ident id, std::string_view file, unsigned int line, std::string_view fun_name);
+    void set_type(coro_ident id, std::string_view type);
+    void add_stack_level(unsigned int thread, coro_ident id, bool create);
+    void remove_stack_level(unsigned int thread, bool suspend);
+    coro_ident introduce_coro(std::string_view id);
+    void create_coro(coro_ident id, std::size_t sz);
+    void switch_coro(unsigned int thread, coro_ident id);
+    bool suspend_expected(unsigned int thread);
+    void mark_destroyed(coro_ident id);
 
     static std::string demangle(const std::string &txt);
     static std::string short_label_size_template(std::string txt, unsigned int size);
     void set_thread(unsigned int thread, std::string_view id);
 
-    void solve_conflict(std::string id);
     void filter_actors();
     template<bool ignore_user>
     bool detect_loop_cycle();
 
+
     static std::uintptr_t parse_address(std::string_view id);
-    const std::string *find_coro_by_address(std::string_view id);
+    const coro_ident find_coro_by_address(std::string_view id);
+
+
+    std::vector<coro_ident> resolve_link(std::string_view source, std::size_t proxy_size);
+    void record_unresolved(coro_ident from_coro, std::string_view to_coro);
 };
+
+std::string wordwrap(std::string_view text, unsigned long linelen) {
+    std::string out;
+    std::size_t begline = 0;
+    constexpr std::string_view wrap_chars = " :<>,;\\/()[]";
+    std::size_t fpos = text.find_first_of(wrap_chars);
+    std::size_t ppos = 0;
+    while (fpos != text.npos) {
+        char c= text[fpos];
+        int ofs = 1;
+        if (c != ' ' && c != ':' && c != ')' && c != ']') {
+            ++fpos;
+            ofs = 0;
+        }  else if (c == ':' && fpos+1< text.size()) {
+            ofs = 2;
+        }
+        if (begline < out.size() && (fpos - ppos)+(out.size() - begline) > linelen) {
+            out.push_back('\n');
+            begline = out.size();
+        }
+        out.append(text.substr(ppos, fpos-ppos));
+        if (ofs) {
+            if (begline < out.size() && ofs+(out.size() - begline) > linelen) {
+                out.push_back('\n');
+                begline = out.size();
+            }
+            if (c != ' ' || begline != out.size()) {
+                out.append(text.substr(fpos, ofs));
+            }
+        }
+        ppos = fpos+ofs;
+        while (begline == out.size() && ppos < text.size() && std::isspace(text[ppos])) {
+            ++ppos;
+        }
+        fpos = text.find_first_of(wrap_chars, ppos);
+    }
+    if ((out.size() - begline) + (text.length() - ppos) > linelen) {
+        out.push_back('\n');
+    }
+    out.append(text.substr(ppos));
+    return out;
+}
+
+
+std::string sanitise_for_line(std::string s) {
+    std::string out;
+    for (char c: s) {
+        if (c == '\n') out.append("\\n");
+        else if (c == '"') out.append("\"");
+        else if (c >= 0 && c < 32) out.push_back('.');
+        else out.push_back(c);
+    }
+    return out;
+}
+
+std::string sanitise_for_multiline(std::string s) {
+    std::string out;
+    for (char c: s) {
+        if ((c >= 0 && c < 32) && c != '\n') out.push_back('.');
+        else out.push_back(c);
+    }
+    return out;
+}
+
+
 
 std::uintptr_t App::parse_address(std::string_view id) {
     if (id.substr(0,2) == "0x")  {
@@ -246,12 +342,12 @@ std::uintptr_t App::parse_address(std::string_view id) {
     throw std::runtime_error(errmsg);
 }
 
-const std::string *App::find_coro_by_address(std::string_view id) {
+const coro_ident App::find_coro_by_address(std::string_view id) {
     auto a = parse_address(id);
     auto iter =_coro_addr_map.upper_bound(a);
     if (iter == _coro_addr_map.end()) return nullptr;
     if (iter->first - a  > iter->second.size) return nullptr;
-    return &iter->second.id;
+    return iter->second.id;
 }
 
 inline bool App::parse_line(std::istream &f, std::vector<std::string_view> &parts) {
@@ -268,6 +364,26 @@ inline bool App::parse_line(std::istream &f, std::vector<std::string_view> &part
     }
     parts.push_back(std::string_view(b1).substr(psep));
     return true;
+}
+
+inline std::vector<coro_ident> App::resolve_link(std::string_view source, std::size_t proxy_size) {
+    auto addr = parse_address(source);
+    auto from = _unresolved_links.lower_bound(addr);
+    auto to = _unresolved_links.upper_bound(addr+proxy_size);
+    std::vector<coro_ident> targets;
+    while (from != to) {
+        if (!from->second->_destroyed) {
+                targets.push_back(from->second);
+        }
+        ++from;
+    }
+    _unresolved_links.erase(from, to);
+    return targets;
+}
+
+inline void App::record_unresolved(coro_ident from_coro, std::string_view to_coro) {
+    auto addr = parse_address(to_coro);
+    _unresolved_links[addr] = from_coro;
 }
 
 inline void App::parse(std::istream &f) {
@@ -300,15 +416,18 @@ inline void App::parse(std::istream &f) {
                         if (ec != std::errc()) {
                             throw 3;
                         }
-                        create_coro(parts.at(2), sz);
+                        create_coro(introduce_coro(parts.at(2)), sz);
                     }
-                    rel._rel_type = rel_create{std::string(parts.at(2))};
-                    activate_coro(rel._thread, parts.at(2));
+                    {
+                        auto coro = introduce_coro(parts.at(2));
+                        rel._rel_type = rel_create{coro};
+                        add_stack_level(rel._thread, coro, true);
+                    }
                     break;
                 case type::destroy:
                     if (!_relations.empty()
                             && std::holds_alternative<rel_suspend>(_relations.back()._rel_type)
-                            && _relations.back()._coro == parts.at(2)) {
+                            && _relations.back()._coro == introduce_coro(parts.at(2))) {
 
                         rel._coro = _relations.back()._coro;
                         rel._rel_type = rel_destroy{
@@ -318,74 +437,86 @@ inline void App::parse(std::istream &f) {
                         _relations.pop_back();
                     } else {
                         rel._coro = get_active_coro(rel._thread);
-                        std::string destroying_coro ( parts.at(2));
+                        auto  destroying_coro  = introduce_coro(parts.at(2));
                         if (destroying_coro == rel._coro) {
-                            deactivate_coro(rel._thread, destroying_coro);
-                            rel._rel_type = rel_destroy{get_active_coro(rel._thread), rel_destroy::t_suspend};
+                            if (suspend_expected(rel._thread)) {
+                                remove_stack_level(rel._thread, true);
+                                rel._rel_type = rel_destroy{get_active_coro(rel._thread), rel_destroy::t_return};
+                            } else {
+                                rel._rel_type = rel_destroy{get_active_coro(rel._thread), rel_destroy::t_suspend};
+                            }
                         } else {
-                            deactivate_coro(rel._thread, destroying_coro);
                             rel._rel_type = rel_destroy{destroying_coro, rel_destroy::t_call};
                         }
                     }
-                    mark_destroyed(parts.at(2));
+                    mark_destroyed(introduce_coro(parts.at(2)));
                     break;
                 case type::hr:
                     rel._rel_type = rel_hline{std::string(parts.at(2))};
                     break;
                 case type::coroutine_type:
-                    set_type(parts.at(2), parts.at(3));
+                    set_type(introduce_coro(parts.at(2)), parts.at(3));
                     continue;
-                case type::name:
-                    set_name(parts.at(2), parts.at(3), parts.at(4), parts.at(5));
-                    continue;
-                    break;
-                case type::resume_enter:
-                    rel._coro = get_active_coro(rel._thread);
-                    rel._rel_type = rel_resume{std::string(parts.at(2))};
-                    add_stack_level(rel._thread);
-                    activate_coro(rel._thread,parts.at(2));
+                case type::resume_enter: {
+                        rel._coro = get_active_coro(rel._thread);
+                        auto coro = introduce_coro(parts.at(2));
+                        rel._rel_type = rel_resume{coro};
+                        add_stack_level(rel._thread, coro, false);
+                    }
                     break;
                 case type::resume_exit:
                     if (!_relations.empty()
                             && std::holds_alternative<rel_suspend>(_relations.back()._rel_type)
-                            && std::get<rel_suspend>(_relations.back()._rel_type)._target.empty()) {
+                            && std::get<rel_suspend>(_relations.back()._rel_type)._target == nullptr) {
                         //after switch to "unknown"
                         rel._coro = _relations.back()._coro;
-                        remove_stack_level(rel._thread);
+                        rel._file = _relations.back()._file;
+                        rel._line = _relations.back()._line;
+                        remove_stack_level(rel._thread, false);
                         rel._rel_type = rel_return{get_active_coro(rel._thread)};
                         _relations.pop_back();
 
                     } else if (!_relations.empty()
                                 && std::holds_alternative<rel_destroy>(_relations.back()._rel_type)
-                                && std::get<rel_destroy>(_relations.back()._rel_type)._type == rel_destroy::t_suspend
-                                && get_active_coro(rel._thread).empty()) {
+                                && std::get<rel_destroy>(_relations.back()._rel_type)._type == rel_destroy::t_suspend) {
                          rel._coro = _relations.back()._coro;
-                         remove_stack_level(rel._thread);
+                         remove_stack_level(rel._thread, false);
                          rel._rel_type = rel_destroy{get_active_coro(rel._thread), rel_destroy::t_return};
                          _relations.pop_back();
                     }else {
                         rel._coro = get_active_coro(rel._thread);
-                        remove_stack_level(rel._thread);
+                        remove_stack_level(rel._thread, false);
                         rel._rel_type = rel_return{get_active_coro(rel._thread)};
                     }
                     break;
                 case type::sym_switch:
-                    ensure_active_coro(rel._thread, parts.at(2));
+                    ensure_active_coro(rel._thread, introduce_coro(parts.at(2)));
+                    if (parts.size() == 7) {
+                        unsigned int ln;
+                        auto [_, err] = std::from_chars(parts.at(5).begin(), parts.at(5).end(),ln,10);
+                        if (err != std::errc()) throw 6;
+                        set_name(introduce_coro(parts.at(2)), parts.at(4), ln, parts.at(6));
+                        rel._file = parts.at(4);
+                        rel._line = ln;
+                    }
                     rel._coro = get_active_coro(rel._thread);
                     if (parts.at(3) == "0") {
-                        deactivate_coro(rel._thread,rel._coro);
-                        if (!_relations.empty()
-                                && std::holds_alternative<rel_create>(_relations.back()._rel_type)) {
-                            std::get<rel_create>(_relations.back()._rel_type)._suspended = true;
-                            continue;
+                        if (suspend_expected(rel._thread)) {
+                            remove_stack_level(rel._thread, true);
+                            if (!_relations.empty()
+                                    && std::holds_alternative<rel_create>(_relations.back()._rel_type)) {
+                                std::get<rel_create>(_relations.back()._rel_type)._suspended = true;
+                                continue;
+                            } else {
+                                rel._rel_type = rel_suspend{get_active_coro(rel._thread)};
+                            }
                         } else {
-                            rel._rel_type = rel_suspend{get_active_coro(rel._thread)};
+                            rel._rel_type = rel_location{};
                         }
-                    } else if (parts.at(3) == rel._coro) {
+                    } else if (introduce_coro(parts.at(3)) == rel._coro) {
                         continue;
                     } else {
-                        deactivate_coro(rel._thread,rel._coro);
-                        activate_coro(rel._thread, parts.at(3));
+                        switch_coro(rel._thread, introduce_coro(parts.at(3)));
                         rel._rel_type = rel_switch{get_active_coro(rel._thread)};
                     }
                     break;
@@ -401,21 +532,45 @@ inline void App::parse(std::istream &f) {
                     };
                     break;
                 case type::awaits_on:
-                    ensure_active_coro(rel._thread, parts.at(2));
+                    ensure_active_coro(rel._thread, introduce_coro(parts.at(2)));
                     rel._coro = get_active_coro(rel._thread);
                     rel._rel_type = rel_await{demangle(std::string(parts.at(3)))};
                     break;
                 case type::yield:
-                    ensure_active_coro(rel._thread, parts.at(2));
+                    ensure_active_coro(rel._thread, introduce_coro(parts.at(2)));
                     rel._coro = get_active_coro(rel._thread);
                     rel._rel_type = rel_yield{demangle(std::string(parts.at(3)))};
                     break;
                 case type::link: {
-                    auto from_coro = find_coro_by_address(parts.at(2));
+                    std::size_t proxy_size; {
+                        auto [_, ec] = std::from_chars(parts.at(4).begin(), parts.at(4).end(), proxy_size,10);
+                        if (ec != std::errc()) throw 4;
+                    }
                     auto to_coro = find_coro_by_address(parts.at(3));
-                    if (from_coro == nullptr || to_coro == nullptr) continue;
-                    rel._coro = *from_coro;
-                    rel._rel_type = rel_link(*to_coro);
+
+                    if (proxy_size) {
+                        auto trg = resolve_link(parts.at(2), proxy_size);
+                        if (to_coro) {
+                            for (auto &t: trg) {
+                                _relations.push_back({rel._thread,t,rel_link{to_coro}});
+                            }
+                        } else {
+                            for (auto &t: trg) {
+                                record_unresolved(t, parts.at(3));
+                            }
+                        }
+                    }
+
+                    auto from_coro = find_coro_by_address(parts.at(2));
+                    if (from_coro != nullptr && to_coro == nullptr && proxy_size == 0) {
+                        record_unresolved(from_coro, parts.at(3));
+                        continue;
+                    }
+                    if (from_coro == nullptr || to_coro == nullptr || from_coro == to_coro) {
+                        continue;
+                    }
+                    rel._coro = from_coro;
+                    rel._rel_type = rel_link{to_coro};
                 }
                 break;
 
@@ -435,112 +590,94 @@ inline void App::parse(std::istream &f) {
     }
 }
 
-inline const std::string& App::get_active_coro(unsigned int thread) {
+inline coro_ident App::get_active_coro(unsigned int thread) {
     return _thread_map[thread]._last_active;
 }
 
-inline void App::deactivate_coro(unsigned int thread, std::string_view id) {
-    introduce_coro(id);
-    auto &thr = _thread_map[thread];
-    if (!thr._stack.empty()) {
-        auto &s = thr._stack.top();
-        auto f = std::find(s.begin(), s.end(), std::string(id));
-        if (f != s.end()) {
-            s.erase(f, s.end());
-        }
-        if (!s.empty()) thr._last_active = s.front();
-        else thr._last_active = {};
-    } else {
-        thr._last_active = {};
+inline void App::switch_coro(unsigned int thread, coro_ident id) {
+    auto &t = _thread_map[thread];
+    if (!t._stack.empty()) {
+        t._stack.top().id = id;
     }
+    t._last_active = id;
 }
 
-inline void App::activate_coro(unsigned int thread, std::string_view id) {
-    introduce_coro(id);
-    auto &thr = _thread_map[thread];
-    if (!thr._stack.empty()) {
-        auto &s = thr._stack.top();
-        if (s.empty() || s.front() != id)  {
-            s.push_back(std::string(id));
-        }
-    }
-    thr._last_active = std::string(id);
-
+inline bool App::suspend_expected(unsigned int thread) {
+    auto &t = _thread_map[thread];
+    return !t._stack.empty() && t._stack.top().created;
 }
 
-inline void App::ensure_active_coro(unsigned int thread, std::string_view id) {
-    introduce_coro(id);
+inline void App::ensure_active_coro(unsigned int thread, coro_ident id) {
     if (get_active_coro(thread) !=  id) {
        _relations.push_back(relation_t{
-           thread, get_active_coro(thread), rel_unknown_switch{std::string(id)}
+           thread, get_active_coro(thread), rel_unknown_switch{id}
        });
-       activate_coro(thread, id);
+       switch_coro(thread, id);
     }
 }
 
-inline void App::set_name(std::string_view id, std::string_view file,
-        std::string_view name, std::string_view user) {
-    auto &c = _coro_map[std::string(id)];
-    c.file = std::string(file);
-    c.name = std::string(name);
-    c.user_data = std::string(user);
+inline void App::set_name(coro_ident c, std::string_view file, unsigned int line,
+        std::string_view fun_name) {
+    c->file = std::string(file);
+    c->fn_name = std::string(fun_name);
+    c->line = line;
 
 }
 
-inline void App::set_type(std::string_view id, std::string_view type) {
-    auto &c = _coro_map[std::string(id)];
-    c.type = demangle(std::string(type));
+inline void App::set_type(coro_ident c, std::string_view type) {
+    c->type = demangle(std::string(type));
 }
 
-inline void App::add_stack_level(unsigned int thread) {
+inline void App::add_stack_level(unsigned int thread, coro_ident coro, bool created) {
     auto &thr = _thread_map[thread];
-    thr._stack.push({});
+    thr._stack.push({coro, created});
+    thr._last_active = thr._stack.top().id;
 }
 
-inline void App::remove_stack_level(unsigned int thread) {
+inline void App::remove_stack_level(unsigned int thread, bool suspend) {
     auto &thr = _thread_map[thread];
     if (thr._stack.empty()) {
         thr._last_active = {};
     } else {
+        if (suspend && !thr._stack.top().created) return ;
         thr._stack.pop();
         if (thr._stack.empty()) {
             thr._last_active = {};
         } else {
-            auto &s = thr._stack.top();
-            if (!s.empty()) {
-                thr._last_active = s.back();
-            }
+            thr._last_active  = thr._stack.top().id;
         }
     }
 }
 
-inline coro_map_t::iterator App::introduce_coro(std::string_view id) {
+inline coro_ident App::introduce_coro(std::string_view id) {
     std::string str_id(id);
     auto iter = _coro_map.find(str_id);
     if (iter == _coro_map.end()) {
-        return _coro_map.emplace(str_id, coro_info_t{str_id}).first;
+        auto inst = std::make_shared<coro_info_t>(id, _all_coro_idents.size());
+        _all_coro_idents.push_back(inst);
+        inst->addr = parse_address(id);
+        _coro_map.emplace(str_id, inst);
+        return inst;
     } else {
-        return iter;
+        return iter->second;
     }
 }
 
-inline void App::create_coro(std::string_view id, std::size_t sz) {
-    auto iter = introduce_coro(id);
-    if (iter->second._destroyed) {
-        solve_conflict(std::string(id));
-        iter = introduce_coro(id);
-    }
-    iter->second.size = sz;
-    auto addr = parse_address(id);
-    iter->second.addr = addr+sz;
-    _coro_addr_map.insert({iter->second.addr, {sz, std::string(id)}});
+inline void App::create_coro(coro_ident id, std::size_t sz) {
+
+    id->addr = id->addr - id->size + sz;
+    id->size = sz;
+    _coro_addr_map.insert({id->addr, {sz, id}});
+
 
 }
 
-inline void App::mark_destroyed(std::string_view id) {
-    auto iter = introduce_coro(id);
-    iter->second._destroyed= true;
-    _coro_addr_map.erase(iter->second.addr);
+inline void App::mark_destroyed(coro_ident id) {
+    if (id->_destroyed) return;
+    id->_destroyed = true;
+    _coro_addr_map.erase(id->addr);
+    _coro_map.erase(id->id);
+
 }
 
 inline std::string App::demangle(const std::string &txt) {
@@ -557,31 +694,6 @@ inline std::string App::demangle(const std::string &txt) {
     return out;
 }
 
-inline void App::solve_conflict(std::string id) {
-    int pos = 1;
-    std::string new_name;
-    do {
-        new_name = id + "_" + std::to_string(pos);
-        auto iter =_coro_map.find(new_name);
-        if (iter == _coro_map.end()) break;
-        ++pos;
-    } while (true);
-
-    auto citer = introduce_coro(id);
-    auto niter = introduce_coro(new_name);
-    niter->second = citer->second;
-    niter->second.id = new_name;
-    citer->second = {};
-    citer->second.id = id;
-    for (auto &r: _relations) {
-        if (r._coro == id) r._coro = new_name;
-        std::visit([&](auto &item){
-            if constexpr(has_target<decltype(item)>) {
-                if (item._target == id) item._target = new_name;
-            }
-        }, r._rel_type);
-    }
-}
 
 
 
@@ -597,34 +709,26 @@ inline std::string thread_state_t::generate_label(unsigned int id) const {
 
 
 
-static std::string strip_path(std::string_view where) {
-    auto pos = where.find_last_of("\\/");
-    if (pos == where.npos) return std::string(where);
-    return std::string(where.substr(pos+1));
+static std::string_view strip_path(std::string_view where, unsigned int label_limit) {
+    while (where.length() > label_limit) {
+        auto pos = where.find_first_of("\\/");
+        if (pos == where.npos) return where;
+        where = where.substr(pos+1);
+    }
+    return where;
 }
 
-inline std::string coro_info_t::generate_label(bool nl) const {
-    if (name.empty() && file.empty()) {
-        return id;
-    }
-    std::string_view nlseq = nl?"\n":"\\n";
 
+template<bool multiline>
+inline std::string coro_info_t::generate_label(unsigned int label_limit) const {
     std::string n = id;
     if (!file.empty()) {
-        n.append(nlseq).append(strip_path(file));
+        n.append("\n").append(wordwrap(file, label_limit));
+        n.push_back(':');
+        n.append(std::to_string(line));
     }
-    if (!name.empty()) {
-        n.append(nlseq).append(name);
-    }
-    if (!user_data.empty()) {
-        n.append(nlseq).append(user_data);
-    }
-    for (char &c: n) {
-        if (c == '"') c = '`';
-        if (nl && c == '\n') continue;
-        if (c >=0 && c<32) c = '.';
-    }
-    return n;
+    if (multiline) return sanitise_for_multiline(n);
+    else return sanitise_for_line(n);
 }
 
 
@@ -637,7 +741,7 @@ void App::export_uml(std::ostream &out, unsigned int label_size) {
         out << "activate T" << id << "\n";
     }
 
-    std::unordered_set<std::string_view> created_actors;
+    std::set<coro_ident> created_actors;
 
 
     for (auto &r: _relations) {
@@ -649,57 +753,68 @@ void App::export_uml(std::ostream &out, unsigned int label_size) {
           },r._rel_type);
     }
 
-    for (const auto &[id,info]: _coro_map) {
-        if (created_actors.find(id) == created_actors.end()) {
-            out << "participant C" << id << "[\n"
-                    << info.generate_label(true) << "\n"
+    for (auto ident: _all_coro_idents) if (ident) {
+        if (created_actors.find(ident) == created_actors.end()) {
+            out << "participant C" << ident->slot_id << "[\n"
+                    << ident->generate_label<true>(20) << "\n"
                     << "----\n"
-                    << short_label_size_template(info.type, label_size) << "\n"
+                    << wordwrap(ident->type, label_size) << "\n"
                     << "]\n";
         }
     }
-    auto node_name = [](unsigned int thread, std::string_view coro) {
-        if (coro.empty()) return "T"+std::to_string(thread);
-        else return std::string("C").append(coro);
+    auto node_name = [](unsigned int thread, coro_ident coro) {
+        if (coro == nullptr) return "T"+std::to_string(thread);
+        else return "C"+std::to_string(coro->slot_id);
     };
 
 
-    std::unordered_map<std::string, std::string> _coro_suspend_notes;
-    std::unordered_map<std::string, std::string> _coro_suspend_links;
-    auto add_note = [&](const std::string &coro, const std::string &note) {
+    std::map<coro_ident, std::string> _coro_suspend_notes;
+    std::multimap<coro_ident, coro_ident> _coro_suspend_links;
+    auto add_note = [&](const coro_ident &coro, const std::string &note) {
         _coro_suspend_notes[coro] = note;
     };
-    auto add_link = [&](const std::string &coro, const std::string &link_coro) {
-        _coro_suspend_links[coro] = link_coro;
+    auto add_link = [&](const coro_ident &coro, const coro_ident &link_coro) {
+        _coro_suspend_links.insert({coro,link_coro});
     };
-    auto flush_note = [&](const std::string &coro) {
+    auto flush_note = [&](const coro_ident &coro) {
+        auto p = _coro_suspend_links.equal_range(coro);
+        bool join = false;
+        for (auto iter = p.first; iter != p.second; ++iter) {
+            if (join) {
+                out << "& ";
+            }
+            out << "C" << coro->slot_id << " <--o " << "C" << iter->second->slot_id << " : awaiting " << std::endl;
+            join = true;
+        }
+        _coro_suspend_links.erase(p.first, p.second);
         auto iter = _coro_suspend_notes.find(coro);
         if (iter != _coro_suspend_notes.end()) {
-            out << "hnote over C" << coro << ": " << iter->second << std::endl;
+            out << "rnote over C" << coro->slot_id << " #CDCDCD : " << iter->second << std::endl;
             _coro_suspend_notes.erase(iter);
-        }
-        iter = _coro_suspend_links.find(coro);
-        if (iter != _coro_suspend_links.end()) {
-            out << "C" << coro << " o<-- " << "C" << iter->second << " : awaiting " << std::endl;
-            _coro_suspend_links.erase(iter);
         }
     };
 
 
     for (auto &r: _relations) {
 
+        if (r.has_location()) {
+            add_note(r._coro, std::string(strip_path(r._file,label_size)) + ":" + std::to_string(r._line));
+        }
+
 
           std::visit([&](const auto &rel){
               using T = std::decay_t<decltype(rel)>;
               if constexpr(std::is_same_v<T, rel_create>) {
-                  const auto &info = _coro_map[rel._target];
-                  out << "create participant \"" << info.generate_label(false) << "\" as C" << rel._target << "\n";
+                  const auto &info = *rel._target;
+                  out << "create participant \"" << info.template generate_label<false>(20) << "\" as C" << rel._target->slot_id << "\n";
                   out << node_name(r._thread, r._coro) << "->" << node_name(r._thread, rel._target) << ": create\n";
                   if (!rel._suspended) {
                       out << "activate " << node_name(r._thread, rel._target) << "\n";
                   }
-                  if (!info.type.empty()) {
-                      out << "note right : " << short_label_size_template(info.type, label_size) << "\n";
+                  if (!info.fn_name.empty()) {
+                      out << "note right : " << sanitise_for_line(wordwrap(info.fn_name, label_size)) << "\n";
+                  } else if (!info.type.empty()) {
+                      out << "note right : " << sanitise_for_line(wordwrap(info.type, label_size)) << "\n";
                   }
               } else if constexpr(std::is_same_v<T, rel_destroy>) {
                   switch (rel._type) {
@@ -739,21 +854,23 @@ void App::export_uml(std::ostream &out, unsigned int label_size) {
                   out << "activate " << node_name(r._thread, rel._target) << "\n";
               } else if constexpr(std::is_same_v<T, rel_return>) {
                   out << node_name(r._thread, rel._target) << "<-" << node_name(r._thread, r._coro) << " : return\n";
-                  if (!r._coro.empty()) out << "deactivate " << node_name(r._thread, r._coro) << "\n";
-                  if (r._coro.empty() && rel._target.empty()) out << "deactivate " << node_name(r._thread, "") << "\n";
+                  if (r._coro!= nullptr) out << "deactivate " << node_name(r._thread, r._coro) << "\n";
                   flush_note(r._coro);
               } else if constexpr(std::is_same_v<T, rel_await>) {
-                  add_note(r._coro,"**co_await**\\n" + short_label_size_template(rel._type, label_size));
+                  out << "hnote over " << node_name(r._thread, r._coro) << ": **co_await**\\n" << sanitise_for_line(wordwrap(rel._type, label_size)) << "\n";
+                  //add_note(r._coro,"**co_await**\\n" + sanitise_for_line(wordwrap(rel._type, label_size)));
               } else if constexpr(std::is_same_v<T, rel_switch>) {
                   out << node_name(r._thread, r._coro) << "->" << node_name(r._thread, rel._target) << " --++ \n";
                   flush_note(r._coro);
               } else if constexpr(std::is_same_v<T, rel_link>) {
                   add_link(rel._target, r._coro);
+              } else if constexpr(std::is_same_v<T, rel_location>) {
+                  //empty
               } else if constexpr(std::is_same_v<T, rel_user_log>) {
                   out << "note over " << node_name(r._thread, r._coro) << ": **output**\\n " << rel.text << "\n";
               } else if constexpr(std::is_same_v<T, rel_unknown_switch>) {
                   out << node_name(r._thread, r._coro) << "->" << node_name(r._thread, rel._target);
-                  if (!r._coro.empty()) {
+                  if (r._coro != nullptr) {
                      out << " --++";
                   } else {
                      out << " ++";
@@ -773,7 +890,7 @@ void App::export_uml(std::ostream &out, unsigned int label_size) {
 
 
 bool App::filter_active() {
-    std::unordered_map<unsigned int, bool> not_relevant;
+    std::map<unsigned int, bool> not_relevant;
 
 
     _relations.erase(std::remove_if(_relations.begin(), _relations.end(),
@@ -783,21 +900,16 @@ bool App::filter_active() {
 
         int target_del = std::visit([&](const auto &item) {
             if constexpr(has_target<decltype(item)>) {
-                if (item._target.empty()) return 0;
-                auto iter = _coro_map.find(item._target);
-                if (iter == _coro_map.end()) return -1;
-                return iter->second._destroyed?1:0;
+                if (item._target == nullptr) return 0;
+                return item._target->_destroyed?1:0;
             } else {
                 return -1;
             }
         },  rel._rel_type);
 
         if (target_del != 1) {
-            if (!rel._coro.empty()) {
-                auto iter = _coro_map.find(rel._coro);
-                if (iter != _coro_map.end()) {
-                    remove = iter->second._destroyed;
-                }
+            if (rel._coro != nullptr) {
+                remove = rel._coro->_destroyed;
             } else if (target_del == 0){
                 remove = false;
             } else {
@@ -818,6 +930,74 @@ bool App::filter_active() {
     return true;
 }
 
+template<bool included>
+void App::filter_coro(std::vector<std::string> coros) {
+
+    std::map<unsigned int, bool> not_relevant;
+
+
+    _relations.erase(std::remove_if(_relations.begin(), _relations.end(),
+            [&](relation_t &rel)->bool{
+
+        bool remove = true;
+
+        int target_del = std::visit([&](const auto &item) {
+            if constexpr(has_target<decltype(item)>) {
+                if (item._target == nullptr) return 0;
+                return (std::find(coros.begin(), coros.end(), item._target->id) == coros.end()) == included?1:0;
+            } else {
+                return -1;
+            }
+        },  rel._rel_type);
+
+        if (target_del != 1) {
+            if (rel._coro != nullptr) {
+                remove = (std::find(coros.begin(), coros.end(), rel._coro->id) == coros.end()) == included;
+            } else if (target_del == 0){
+                remove = false;
+            } else {
+                remove = not_relevant[rel._thread];
+            }
+        } else {
+            remove = true;
+        }
+        not_relevant[rel._thread] = remove;
+        return remove;
+
+    }), _relations.end());
+
+
+    filter_actors();
+
+
+}
+
+bool App::filter_section(const std::string &section) {
+    auto st = std::find_if(_relations.begin(), _relations.end(),
+            [&](relation_t &rel)->bool{
+        return std::holds_alternative<rel_hline>(rel._rel_type)
+                && std::get<rel_hline>(rel._rel_type)._text ==section;
+    });
+
+    if (st == _relations.end()) return false;
+
+    auto nx = st;
+    std::advance(nx,1);
+    auto e = std::find_if(nx, _relations.end(),[&](relation_t &rel)->bool{
+        return std::holds_alternative<rel_hline>(rel._rel_type);
+    });
+
+    if (e == nx) return false;
+
+    relation_list_t lst(st,e);
+    std::swap(lst, _relations);
+
+    filter_actors();
+
+
+    return true;
+}
+
 void App::filter_nevents(unsigned int n) {
     if (n >= _relations.size()) return;
     auto beg = _relations.begin();
@@ -829,8 +1009,8 @@ void App::filter_nevents(unsigned int n) {
 
 void App::filter_actors() {
 
-    std::unordered_set<unsigned int> threads;
-    std::unordered_set<std::string_view> coros;
+    std::set<unsigned int> threads;
+    std::set<coro_ident> coros;
 
     for (const auto &rel: _relations) {
         threads.insert(rel._thread);
@@ -849,11 +1029,9 @@ void App::filter_actors() {
             ++iter;
         }
     }
-    for (auto iter = _coro_map.begin(); iter != _coro_map.end();) {
-        if (coros.find(iter->first) == coros.end()) {
-            iter = _coro_map.erase(iter);
-        } else {
-            ++iter;
+    for (auto &coro : _all_coro_idents) {
+        if (coros.find(coro) == coros.end()) {
+            coro = nullptr;
         }
     }
 
@@ -950,8 +1128,11 @@ void print_help() {
             << "  -a        all coroutines (include finished)\n"
             << "  -l        detect and collapse loops\n"
             << "  -L        detect and collapse loops ignore user data\n"
-            << "  -s count  short labels up to characters (default=50)\n"
+            << "  -b count  short labels up to characters (default=32)\n"
             << "  -n count  process only  last <count> events\n"
+            << "  -i id     include only coroutines <id> (can repeat) \n"
+            << "  -x id     exclude coroutines <id> (can repeat) \n"
+            << "  -s sect   process only given section \n"
             << "  -h        show help\n";
 }
 
@@ -965,9 +1146,13 @@ int main(int argc, char *argv[]) {
     std::string input_file;
     std::string output_file;
     int max_count = -1;
-    int label_size = 50;
+    int label_size = 32;
 
-    while ((opt = getopt(argc, argv, "ahlLf:n:o:s:")) != -1) {
+    std::vector<std::string> included;
+    std::vector<std::string> excluded;
+    std::string section;
+
+    while ((opt = getopt(argc, argv, "ahlLf:n:o:s:i:x:")) != -1) {
         switch (opt) {
             case 'a':
                 process_all = true;
@@ -990,8 +1175,17 @@ int main(int argc, char *argv[]) {
             case 'n':
                 max_count = std::atoi(getopt.optarg);
                 break;
-            case 's':
+            case 'b':
                 label_size = std::atoi(getopt.optarg);
+                break;
+            case 's':
+                section = getopt.optarg;
+                break;
+            case 'i':
+                included.push_back(getopt.optarg);
+                break;
+            case 'x':
+                excluded.push_back(getopt.optarg);
                 break;
             default:
                 std::cerr << getopt.errmsg << std::endl;
@@ -1014,17 +1208,29 @@ int main(int argc, char *argv[]) {
     } else {
         std::ifstream f(input_file);
         if (!f) {
-            std::cerr << "Failed to open: " << argv[1] << std::endl;
+            std::cerr << "Failed to open: " << input_file << std::endl;
             return 1;
         }
         app.parse(f);
     }
+
+    if (!section.empty()) {
+        if (!app.filter_section(section)) {
+            std::cerr << "Section not found or it is empty" << std::endl;
+            return 2;
+        }
+    }
+
     if (!process_all) {
         if (!app.filter_active()) {
             std::cerr << "No active coroutines. To process whole file, specify -a" << std::endl;
             return 2;
         }
     }
+
+    if (!included.empty()) app.filter_coro<true>(included);
+    if (!excluded.empty()) app.filter_coro<false>(excluded);
+
     if (max_count > 0) {
         app.filter_nevents(max_count);
     }

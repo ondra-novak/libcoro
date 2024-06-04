@@ -105,20 +105,28 @@ public:
     public:
 
         promise_type() {
-            LIBCORO_TRACE_SET_CORO_TYPE(std::coroutine_handle<promise_type>::from_promise(*this), typeid(generator).name());
+            trace::set_class(std::coroutine_handle<promise_type>::from_promise(*this), typeid(generator).name());
         }
 
-        constexpr suspend_always initial_suspend() const {return {};}
+        constexpr trace::suspend_always initial_suspend() const {return {};}
 
         struct switch_awaiter {
             static constexpr bool await_ready() noexcept {return false;}
             static constexpr void await_resume() noexcept {}
 
+            std::coroutine_handle<> await_suspend(std::coroutine_handle<promise_type> h, std::source_location loc = std::source_location::current()) noexcept {
+                promise_type &self = h.promise();
+                return trace::on_switch(h, self.set_resolved_switch(), &loc);
+            }
+        };
+
+        struct final_switch_awaiter {
+            static constexpr bool await_ready() noexcept {return false;}
+            static constexpr void await_resume() noexcept {}
+
             std::coroutine_handle<> await_suspend(std::coroutine_handle<promise_type> h) noexcept {
                 promise_type &self = h.promise();
-                std::coroutine_handle<> g = self.set_resolved_switch();
-                LIBCORO_TRACE_ON_SWITCH(h,g);
-                return g;
+                return trace::on_switch(h, self.set_resolved_switch(), {});
             }
         };
 
@@ -144,17 +152,17 @@ public:
         template<typename Arg>
         requires future_constructible<T, Arg>
         switch_awaiter yield_value(Arg && val) {
-            LIBCORO_TRACE_YIELD(std::coroutine_handle<const promise_type>::from_promise(*this),val);
+            trace::on_yield(std::coroutine_handle<const promise_type>::from_promise(*this), val);
             this->set_value(std::forward<Arg>(val));
             return {};
         }
         switch_awaiter yield_value(std::exception_ptr e) {
-            LIBCORO_TRACE_YIELD(std::coroutine_handle<const promise_type>::from_promise(*this), e);
+            trace::on_yield(std::coroutine_handle<const promise_type>::from_promise(*this), e);
             this->set_exception(std::move(e));
             return {};
         }
 
-        switch_awaiter final_suspend() noexcept {
+        final_switch_awaiter final_suspend() noexcept {
             return {};
         }
 
@@ -172,7 +180,7 @@ public:
                 if (done()) return {};
                 this->fut = promise.release();
                 auto h = std::coroutine_handle<promise_type>::from_promise(*this);
-                LIBCORO_TRACE_LINK(h.address(), this->fut);
+                trace::on_link(h, this->fut);
                 return h;
             };
         }
@@ -228,6 +236,7 @@ public:
         return generator_iterator<generator &>::end(*this);
     }
 
+    const void *get_id() const {return std::coroutine_handle<promise_type>::from_promise(*_prom).address();}
 
 protected:
 
@@ -307,11 +316,11 @@ public:
     public:
 
         promise_type() {
-            LIBCORO_TRACE_SET_CORO_TYPE(std::coroutine_handle<promise_type>::from_promise(*this), typeid(generator).name());
+            trace::set_class(std::coroutine_handle<promise_type>::from_promise(*this), typeid(generator).name());
         }
 
 
-        constexpr suspend_always initial_suspend() const {return {};}
+        constexpr trace::suspend_always initial_suspend() const {return {};}
 
         struct fetch_arg_awaiter {
             arg_type *arg;
@@ -325,18 +334,24 @@ public:
             static constexpr bool await_ready() noexcept {return false;}
             arg_type &await_resume() noexcept {return *self->arg;}
 
-            CORO_OPT_BARRIER std::coroutine_handle<> await_suspend(std::coroutine_handle<promise_type> h) noexcept {
+            CORO_OPT_BARRIER std::coroutine_handle<> await_suspend(std::coroutine_handle<promise_type> h, std::source_location loc = std::source_location::current()) noexcept {
                 self = &h.promise();
-                auto g = self->set_resolved().symmetric_transfer();
-                LIBCORO_TRACE_ON_SWITCH(h,g);
-                return g;
+                return trace::on_switch(h,self->set_resolved().symmetric_transfer(),&loc);
             }
         };
+
+        struct switch_final_awaiter: public switch_awaiter {
+            CORO_OPT_BARRIER std::coroutine_handle<> await_suspend(std::coroutine_handle<promise_type> h) noexcept {
+                this->self = &h.promise();
+                return trace::on_switch(h,this->self->set_resolved().symmetric_transfer(),{});
+            }
+        };
+
 
         template<typename Arg>
         requires future_constructible<R, Arg>
         switch_awaiter yield_value(Arg && val) {
-            LIBCORO_TRACE_YIELD(std::coroutine_handle<const promise_type>::from_promise(*this),val);
+            trace::on_yield(std::coroutine_handle<const promise_type>::from_promise(*this), val);
             this->set_value(std::forward<Arg>(val));
             return {};
         }
@@ -356,7 +371,7 @@ public:
             return {&(*arg)};
         }
 
-        switch_awaiter final_suspend() noexcept {
+        switch_final_awaiter final_suspend() noexcept {
             return {};
         }
 
@@ -374,9 +389,8 @@ public:
                 if (done()) return;
                 this->fut = promise.release();
                 auto h = std::coroutine_handle<promise_type>::from_promise(*this);
-                LIBCORO_TRACE_LINK(h.address(), this->fut);
-                LIBCORO_TRACE_ON_RESUME(h);
-                h.resume();
+                trace::on_link(h, this->fut);
+                trace::resume(h);
             };
         }
 

@@ -3,6 +3,8 @@
 
 #include "common.h"
 #include <mutex>
+#include <string_view>
+#include <source_location>
 #ifdef LIBCORO_ENABLE_TRACE
 #include <fstream>
 #include <filesystem>
@@ -12,9 +14,28 @@
 
 namespace coro {
 
+namespace trace {
+
+enum class record_type: char {
+    create = 'c',
+    destroy = 'x',
+    resume_enter = 'e',
+    resume_exit = 'r',
+    sym_switch = 's',
+    awaits_on = 'a',
+    yield = 'y',
+    user_report = 'U',
+    thread = 'T',
+    hr = 'H',
+    coroutine_type = 't',
+    link = 'l',
+    proxy = 'p',
+};
+
+inline constexpr char separator = '|';
 
 
-class trace {
+class impl {
 public:
 
 
@@ -26,26 +47,7 @@ public:
     }
 
 
-    static constexpr char separator = '|';
 
-    enum class record_type: char {
-        create = 'c',
-        destroy = 'x',
-        resume_enter = 'e',
-        resume_exit = 'r',
-        sym_switch = 's',
-        awaits_on = 'a',
-        yield = 'y',
-        name = 'N',
-        user_report = 'U',
-        thread = 'T',
-        hr = 'H',
-        coroutine_type = 't',
-        link = 'l',
-        proxy = 'p',
-
-
-    };
 
     std::ostream &stream() {
         if (_foutput.is_open()) return _foutput;
@@ -92,10 +94,13 @@ public:
         std::lock_guard _(_mx);
         header(record_type::resume_exit) << std::endl;
     }
-    void on_switch(const void *from, const void *to) {
+    void on_switch(const void *from, const void *to, const std::source_location *loc) {
         std::lock_guard _(_mx);
         if (to == std::noop_coroutine().address()) to = nullptr;
-        header(record_type::sym_switch) << from << separator << to << std::endl;
+        auto &f = header(record_type::sym_switch);
+        f << from << separator << to;
+        if (loc) f << separator << loc->file_name() << separator << loc->line() << separator << loc->function_name();
+        f << std::endl;
     }
     void on_await_on(const void *coro, const void *on, const char *awt_name) {
         std::lock_guard _(_mx);
@@ -112,24 +117,9 @@ public:
         header(record_type::coroutine_type) << ptr << separator << type << std::endl;
     }
 
-    void on_link(const void *from, const void *to) {
+    void on_link(const void *from, const void *to, std::size_t object_size) {
         std::lock_guard _(_mx);
-        header(record_type::link) << from << separator << to<< std::endl;
-    }
-    void set_proxy(void *ptr, std::size_t sz, bool destroyed) {
-        std::lock_guard _(_mx);
-        header(record_type::link) << ptr << separator << sz<< separator << destroyed <<std::endl;
-    }
-
-    template<typename ... Args>
-    void set_name(const void *ptr, const char *src, const char *fn, unsigned int line, const std::tuple<Args...> &args) {
-        std::lock_guard _(_mx);
-        auto &f = header(record_type::name);
-        f << ptr << separator << src << ":" << line << separator << fn << separator;
-        std::apply([&](const auto & ... args){
-            ((f << args),...);
-        }, args);
-        f << std::endl;
+        header(record_type::link) << from << separator << to << separator << object_size << std::endl;
     }
 
     void hline(std::string_view text) {
@@ -145,14 +135,8 @@ public:
         f << std::endl;
     }
 
-    class on_resume {
-    public:
-        on_resume (void *ptr) {_instance.on_resume_enter(ptr);}
-        ~on_resume () {_instance.on_resume_exit();}
-    };
 
-
-    static trace _instance;
+    static impl _instance;
     static thread_local thread_state _state;
 
 protected:
@@ -160,243 +144,231 @@ protected:
     std::mutex _mx;
 };
 
-template<typename X>
-class trace_awaiter {
-public:
-
-    template<std::invocable<> Fn>
-    trace_awaiter(Fn &&fn):_awt(fn()) {}
-    bool await_ready() {return _awt.await_ready();}
-    auto await_suspend(std::coroutine_handle<> h) {
-        using RetVal = decltype(_awt.await_suspend(h));
-        trace::_instance.on_await_on(h.address(), &_awt, typeid(X).name());
-        if constexpr(std::is_convertible_v<RetVal, std::coroutine_handle<> >) {
-            std::coroutine_handle<> r = _awt.await_suspend(h);
-            trace::_instance.on_switch(h.address(), r.address());
-            return r;
-        } else if constexpr(std::is_convertible_v<RetVal, bool>) {
-            bool b = _awt.await_suspend(h);
-            if (b) trace::_instance.on_switch(h.address(), nullptr);
-            return b;
-        } else {
-            trace::_instance.on_switch(h.address(), nullptr);
-            return _awt.await_suspend(h);
-        }
-    }
-    decltype(auto) await_resume() {
-        return _awt.await_resume();
-    }
-
-
-protected:
-    X _awt;
+template<typename T>
+concept await_suspend_with_location = requires(T awt, std::coroutine_handle<> h, std::source_location loc) {
+    {awt.await_suspend(h, loc)};
 };
 
-template<typename X>
-inline auto handle_await_transform(X &&awt) {
-    if constexpr(indirectly_awaitable<X>) {
-        using T = decltype(awt.operator co_await());
-        return trace_awaiter<T>([&]{return awt.operator co_await();});
-    } else {
-        return trace_awaiter<X &>([&]()->X &{return awt;});
+
+struct ident_awt : std::suspend_always{
+    static constexpr std::coroutine_handle<> await_suspend(std::coroutine_handle<> h) noexcept {
+        return h;
     }
+};
+
+inline constexpr ident_awt ident = {};
+
+
+class base_promise_type {
+public:
+
+
+    template<typename X>
+    class trace_awaiter {
+    public:
+
+        template<std::invocable<> Fn>
+        trace_awaiter(Fn &&fn):_awt(fn()) {}
+        bool await_ready() {return _awt.await_ready();}
+        auto await_suspend(std::coroutine_handle<> h, std::source_location loc = std::source_location::current()) {
+            using RetVal = decltype(_awt.await_suspend(h));
+            if constexpr(!std::is_same_v<std::decay_t<X>, ident_awt>) {
+                impl::_instance.on_await_on(h.address(), &_awt, typeid(X).name());
+            }
+            if constexpr(std::is_convertible_v<RetVal, std::coroutine_handle<> >) {
+                std::coroutine_handle<> r = proxy_await_suspend(_awt,h, loc);
+                impl::_instance.on_switch(h.address(), r.address(), &loc);
+                return r;
+            } else if constexpr(std::is_convertible_v<RetVal, bool>) {
+                bool b = proxy_await_suspend(_awt,h,loc);
+                if (b) impl::_instance.on_switch(h.address(), nullptr, &loc);
+                return b;
+            } else {
+                impl::_instance.on_switch(h.address(), nullptr, &loc);
+                return proxy_await_suspend(_awt,h,loc);
+            }
+        }
+        decltype(auto) await_resume() {
+            return _awt.await_resume();
+        }
+
+
+
+    protected:
+        X _awt;
+
+        static auto proxy_await_suspend(X &awt, std::coroutine_handle<> h, std::source_location loc) {
+            if constexpr(await_suspend_with_location<X>) {
+                return awt.await_suspend(h, loc);
+            } else {
+                return awt.await_suspend(h);
+            }
+        }
+    };
+
+    template<typename X>
+    inline auto await_transform(X &&awt) {
+        if constexpr(indirectly_awaitable<X>) {
+            using T = decltype(awt.operator co_await());
+            return trace_awaiter<T>([&]{return awt.operator co_await();});
+        } else {
+            return trace_awaiter<X &>([&]()->X &{return awt;});
+        }
+    }
+
+};
+
+
+inline impl impl::_instance;
+inline std::atomic<unsigned int> impl::thread_state::counter ={0};
+inline thread_local impl::thread_state impl::_state;
+
+inline void on_create(const void *ptr, std::size_t size) {impl::_instance.on_create(ptr, size);}
+inline void on_destroy(const void *ptr, std::size_t ) {impl::_instance.on_destroy(ptr);}
+inline void resume(std::coroutine_handle<> h) noexcept {
+    impl::_instance.on_resume_enter(h.address());
+    h.resume();
+    impl::_instance.on_resume_exit();
+}
+inline std::coroutine_handle<> on_switch(std::coroutine_handle<> from, std::coroutine_handle<> to, const std::source_location *loc) {
+    impl::_instance.on_switch(from.address(), to.address(), loc);
+    return to;
+}
+
+inline bool on_switch(std::coroutine_handle<> from, bool suspend, const std::source_location *loc) {
+    if (suspend) impl::_instance.on_switch(from.address(), nullptr, loc);
+    return suspend;
+}
+inline void on_suspend(std::coroutine_handle<> from, const std::source_location *loc) {
+    impl::_instance.on_switch(from.address(), nullptr,  loc);
+}
+
+
+
+template<typename Arg>
+inline void on_yield(std::coroutine_handle<> h, const Arg &arg) {
+    impl::_instance.on_yield(h.address(), arg);
+}
+
+inline void set_class(std::coroutine_handle<> h, const char *class_name) {
+    impl::_instance.set_coroutine_type(h.address(), class_name);
 }
 
 template<typename ... Args>
-struct trace_name: std::suspend_always {
-    const char *src_name;
-    const char *fn_name;
-    unsigned int line;
-    std::tuple<std::conditional_t<std::is_array_v<Args>,
-        std::add_pointer_t<std::add_const_t<std::remove_extent_t<Args> > >,
-        std::add_lvalue_reference_t<std::add_const_t<Args> > >...> args;
-    trace_name(const char *src, const char *fn, unsigned int line, const Args &...args):src_name(src),fn_name(fn),line(line),args(args...) {}
-    bool await_suspend(std::coroutine_handle<> h) {
-        trace::_instance.set_name(h.address(), src_name, fn_name,line,args);
-        return false;
-    }
-};
+inline void log(const Args & ... args) {impl::_instance.user_report(args...);}
 
 
+inline void on_link(const void *from, const void *to, std::size_t object_size = 0) {impl::_instance.on_link(from, to, object_size);}
+inline void on_link(std::coroutine_handle<> from, const void *to, std::size_t object_size = 0)  {impl::_instance.on_link(from.address(), to, object_size);}
+inline void on_link(const void *from, std::coroutine_handle<> to, std::size_t object_size = 0) {impl::_instance.on_link(from, to.address(), object_size);}
+inline void on_link(std::coroutine_handle<> from, std::coroutine_handle<> to, std::size_t object_size = 0) {impl::_instance.on_link(from.address(), to.address(), object_size);}
 
-inline trace trace::_instance;
-inline std::atomic<unsigned int> trace::thread_state::counter ={0};
-inline thread_local trace::thread_state trace::_state;
 
-#define LIBCORO_TRACE_ON_CREATE(ptr,size) ::coro::trace::_instance.on_create(ptr,size)
-#define LIBCORO_TRACE_ON_DESTROY(ptr) ::coro::trace::_instance.on_destroy(ptr)
-#define LIBCORO_TRACE_ON_RESUME(h) ::coro::trace::on_resume __trace__(h.address())
-#define LIBCORO_TRACE_ON_SWITCH(from, to) ::coro::trace::_instance.on_switch(from.address(), to.address())
-#define LIBCORO_TRACE_AWAIT template<typename X> auto await_transform(X &&awt) {return handle_await_transform(std::forward<X>(awt));}
-#define LIBCORO_TRACE_YIELD(h, arg) ::coro::trace::_instance.on_yield(h.address(), arg)
-#define LIBCORO_TRACE_SET_NAME(...) (co_await ::coro::trace_name(__FILE__, __FUNCTION__,__LINE__ __VA_OPT__(,) __VA_ARGS__))
-#define LIBCORO_TRACE_SET_CORO_TYPE(h,name) ::coro::trace::_instance.set_coroutine_type(h.address(), name);
-#define LIBCORO_TRACE_LOG(...) ::coro::trace::_instance.user_report(__VA_ARGS__)
-#define LIBCORO_TRACE_AWAIT_ON(h, awaiter, type) ::coro::trace::_instance.on_await_on(h.address(),awaiter,type)
-#define LIBCORO_TRACE_LINK(from_ptr, to_ptr) ::coro::trace::_instance.on_link(from_ptr, to_ptr);
-#define LIBCORO_TRACE_SEPARATOR(text) ::coro::trace::_instance.hline(text)
+inline void section(std::string_view text) {::coro::trace::impl::_instance.hline(text);}
 
 struct suspend_always : public std::suspend_always{
     static void await_suspend(std::coroutine_handle<> h) noexcept  {
-        LIBCORO_TRACE_ON_SWITCH(h, std::coroutine_handle<>());
+        on_suspend(h,  {});
     }
 };
 
 }
+}
 #else
 
-
-///Record creation of an coroutine
-/**
- * @param ptr pointer to coroutine (handle.address())
- * @param size size in bytes
- *
- * @note requires LIBCORO_ENABLE_TRACE
- *
- * @ingroup trace
- */
-#define LIBCORO_TRACE_ON_CREATE(ptr,size)
-///Record destruction of an coroutine
-/**
- * @param ptr pointer to coroutine (handle.address())
- *
- * @note requires LIBCORO_ENABLE_TRACE
- *
- * @ingroup trace
- */
-#define LIBCORO_TRACE_ON_DESTROY(ptr)
-///Record resumption of an coroutine
-/**
- * Use this macro before h.resume() is called
- * @param ptr pointer to coroutine (handle.address())
- *
- * @note requires LIBCORO_ENABLE_TRACE
- *
- * @ingroup trace
- */
-#define LIBCORO_TRACE_ON_RESUME(h)
-///Record switch (symmetric transfer) from one coroutine to other
-/**
- * Use this macro before returning from await_suspend.
- * @param from coroutine being suspended
- * @param to coroutine being resumed (nullptr for none)
- *
- * @note requires LIBCORO_ENABLE_TRACE
- *
- * @ingroup trace
- */
-
-#define LIBCORO_TRACE_ON_SWITCH(from, to)
-/// Macro declares await_transform function to capture all co_await events
-/**
- * Declare inside promise body
- * @note requires LIBCORO_ENABLE_TRACE
- *
- * @ingroup trace
- */
-#define LIBCORO_TRACE_AWAIT
-
-
-///Record co_yield
-/**
- * Use macro inside of yield_value() function
- *
- * @param h handle of coroutine
- * @param arg argument to yield
- *
- * @note requires LIBCORO_ENABLE_TRACE
- *
- * @ingroup trace
- */
-#define LIBCORO_TRACE_YIELD(h, arg)
-
-///Record custom user value
-/**
- * This macro can be used anywhere to put a custom data to trace log
- *
- * @param ... any count of arguments to report into the trace log. All argumnets
- * must support stream operator <<;
- *
- * @note requires LIBCORO_ENABLE_TRACE
- *
- * @ingroup trace
- */
-#define LIBCORO_TRACE_LOG(...)
-
-///Set coroutine name
-/**
- * Use macro at the beginning of coroutine to specify name and location of the coroutine
- *
- * @param ... any count of arguments to report into the trace log. All argumnets
- * must support stream operator <<. Useful to report coroutine's arguments
- *
- * @note requires LIBCORO_ENABLE_TRACE
- *
- * @ingroup trace
- */
-#define LIBCORO_TRACE_SET_NAME(...)
-///Record co_await operation (manually)
-/**
- * @param h handle
- * @param awaiter pointer to an awaiter
- * @param type string type of awaiter (typeid(awaiter).name())
- *
- * @note requires LIBCORO_ENABLE_TRACE
- *
- * @ingroup trace
- */
-#define LIBCORO_TRACE_AWAIT_ON(h, awaiter, type)
-
-///Insert separator to trace log with a title
-/**
- * @param text title of separator
- *
- * @code
- * LIBCORO_TRACE_SEPARATOR("server start");
- * ...
- * ...
- * LIBCORO_TRACE_SEPARATOR("server exit");
- * @endcode
- *
- * @note requires LIBCORO_ENABLE_TRACE
- *
- * @ingroup trace
- */
-
-#define LIBCORO_TRACE_SEPARATOR(text)
-///Sets coroutine type
-/**
- * @param h handle
- * @param name typeid(coroutine_type).name()
- *
- * @note requires LIBCORO_ENABLE_TRACE
- *
- * @ingroup trace
- */
-#define LIBCORO_TRACE_SET_CORO_TYPE(h,name)
-
-
-///Report link between coroutines (when one coroutine awaits to other)
-/**
- * @param from_ptr pointer to coroutine (must be pointer, not handle)
- * @param to_ptr pointer to object which should be inside of waiting coroutine (awaiter)
- *
- * Not every link can be visualised. The vistrace engine must be able to
- * detect both sides of the link
- *
- * @note requires LIBCORO_ENABLE_TRACE
- *
- * @ingroup trace
- */
-#define LIBCORO_TRACE_LINK(from_ptr, to_ptr)
-
 namespace coro {
+
+     namespace trace {
+     ///Record creation of an coroutine
+     /**
+      * @param ptr pointer to coroutine (handle.address())
+      * @param size size in bytes
+      *
+      * @note requires LIBCORO_ENABLE_TRACE
+      *
+      * @ingroup trace
+      */
+    inline void on_create(const void *, std::size_t ) {}
+    ///Record destruction of an coroutine
+    /**
+     * @param ptr pointer to coroutine (handle.address())
+     *
+     * @note requires LIBCORO_ENABLE_TRACE
+     *
+     * @ingroup trace
+     */
+    inline void on_destroy(const void *, std::size_t ) {}
+
+    ///Record resumption of an coroutine
+    /**
+     * You need to call this insteaded h.resume() to record resumption action
+     * @param h handle to resume
+     *
+     * @note requires LIBCORO_ENABLE_TRACE
+     *
+     * @ingroup trace
+     */
+    inline void resume(std::coroutine_handle<> h) noexcept {h.resume();}
+
+    ///Record switch (symmetric transfer) from one coroutine to other
+    /**
+     * @param from coroutine being suspended
+     * @param to coroutine being resumed
+     *
+     * @note requires LIBCORO_ENABLE_TRACE
+     *
+     * @ingroup trace
+     */
+    inline std::coroutine_handle<> on_switch(std::coroutine_handle<> , std::coroutine_handle<> to, const void *) {return to;}
+    ///Record switch (symmetric transfer) when boolean is returned from await_suspend
+    /**
+     * @param from coroutine being suspended
+     * @param suspend true if coroutine is suspended false if continues
+     *
+     * @note requires LIBCORO_ENABLE_TRACE
+     *
+     * @ingroup trace
+     */
+    inline bool on_switch(std::coroutine_handle<> , bool suspend, const void *) {return suspend;}
+
+    ///Record suspend for coroutine
+    inline void on_suspend(std::coroutine_handle<> , const void *) {}
+
+
+    template<typename Arg>
+    inline void on_yield(std::coroutine_handle<> , const Arg &) {}
+
+    inline void set_class(std::coroutine_handle<>, std::string_view ) {}
+
+    template<typename ... Args>
+    inline void log(const Args & ... ) {}
+
+    inline void on_link(const void *, const void *, std::size_t = 0) {}
+    inline void on_link(std::coroutine_handle<> , const void *, std::size_t = 0)  {}
+    inline void on_link(const void *, std::coroutine_handle<> , std::size_t = 0) {}
+    inline void on_link(std::coroutine_handle<> , std::coroutine_handle<> , std::size_t = 0) {}
+
+    inline void section(std::string_view) {}
 
     ///replaces std::suspend_always for purpose of tracing
     /** This correctly reports suspend_always awaiter
      * use only for purpose of initial or final suspend
      */
     using suspend_always = std::suspend_always;
+
+    class base_promise_type {};
+
+    struct ident_awt : std::suspend_always{
+        static constexpr std::coroutine_handle<> await_suspend(std::coroutine_handle<> h) noexcept {
+            return h;
+        }
+    };
+
+    inline constexpr ident_awt ident = {};
+
+
+}
+
 }
 
 

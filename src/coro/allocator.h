@@ -82,11 +82,11 @@ public:
 #ifdef LIBCORO_ENABLE_TRACE
     void *operator new(std::size_t sz) {
         void *ptr = ::operator new(sz);
-        LIBCORO_TRACE_ON_CREATE(ptr, sz);
+        trace::on_create(ptr, sz);
         return ptr;
     }
-    void operator delete(void *ptr, std::size_t) {
-        LIBCORO_TRACE_ON_DESTROY(ptr);
+    void operator delete(void *ptr, std::size_t sz) {
+        trace::on_destroy(ptr, sz);
         ::operator delete(ptr);
     }
 #endif
@@ -105,14 +105,14 @@ public:
 
 
     void operator delete(void *ptr, std::size_t sz) {
-        LIBCORO_TRACE_ON_DESTROY(ptr);
+        trace::on_destroy(ptr, sz);
         Alloc::dealloc(ptr, sz);
     }
 
     template<typename ... Args>
     void *operator new(std::size_t sz, Alloc &a, Args  && ...) {
         void *ptr = a.alloc(sz);
-        LIBCORO_TRACE_ON_CREATE(ptr, sz);
+        trace::on_create(ptr, sz);
         return ptr;
     }
 
@@ -125,7 +125,7 @@ public:
     template<typename This, typename ... Args>
     void *operator new(std::size_t sz, This &, Alloc &a, Args && ...) {
         void *ptr = a.alloc(sz);
-        LIBCORO_TRACE_ON_CREATE(ptr, sz);
+        trace::on_create(ptr, sz);
         return ptr;
     }
 
@@ -150,13 +150,13 @@ template<coro_allocator_global Alloc>
 class coro_allocator_helper<Alloc> {
 public:
     void operator delete(void *ptr, std::size_t sz) {
-        LIBCORO_TRACE_ON_DESTROY(ptr);
+        trace::on_destroy(ptr, sz);
         Alloc::dealloc(ptr, sz);
     }
 
     void *operator new(std::size_t sz) {
         void *ptr = Alloc::alloc(sz);;
-        LIBCORO_TRACE_ON_CREATE(ptr, sz);
+        trace::on_create(ptr, sz);
         return ptr;
     }
 };

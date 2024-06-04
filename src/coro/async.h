@@ -81,7 +81,7 @@ public:
 
         promise_type() {
             this->fut = invalid_value();
-            LIBCORO_TRACE_SET_CORO_TYPE(std::coroutine_handle<promise_type>::from_promise(*this), typeid(async).name());
+            trace::set_class(std::coroutine_handle<promise_type>::from_promise(*this), typeid(async).name());
         }
 
         struct initial_awaiter {
@@ -90,7 +90,7 @@ public:
             void await_suspend([[maybe_unused]] std::coroutine_handle<> h)  noexcept {
                 //initialization is finished, reset the pointer
                 me->fut = nullptr;
-                LIBCORO_TRACE_ON_SWITCH(h, std::coroutine_handle<>());
+                trace::on_suspend(h, {});
             }
             static constexpr void await_resume() noexcept {};
         };
@@ -103,14 +103,12 @@ public:
                 promise_type &self = h.promise();
                 std::coroutine_handle<> retval = self.set_resolved().symmetric_transfer();
                 h.destroy();
-                LIBCORO_TRACE_ON_RESUME(h);
-                return retval.resume();
+                return trace::resume(retval);
             }
             #else
             std::coroutine_handle<>  await_suspend(std::coroutine_handle<promise_type> h) const noexcept {
                 promise_type &self = h.promise();
-                std::coroutine_handle<> retval = self.set_resolved().symmetric_transfer();
-                LIBCORO_TRACE_ON_SWITCH(h,retval);
+                std::coroutine_handle<> retval = trace::on_switch(h,self.set_resolved().symmetric_transfer(),{});
                 h.destroy();
                 return retval;          //MSC RELEASE BUILD: Handle is passed by a register
             }
@@ -126,7 +124,7 @@ public:
         prepared_coro attach(promise<T> &prom) {
             auto fut = prom.release();
             auto h = std::coroutine_handle<promise_type>::from_promise(*this);
-            LIBCORO_TRACE_LINK(h.address(), fut);
+            trace::on_link(h, fut);
             if (std::exchange(this->fut, fut) == nullptr) {
                 return h;
             }

@@ -1316,7 +1316,7 @@ public:
 namespace _details {
 
 template<typename T>
-class coro_promise_base {
+class coro_promise_base: public trace::base_promise_type {
 protected:
 
     future<T> *fut = nullptr;
@@ -1349,7 +1349,6 @@ public:
     void unhandled_exception() {
         if (fut) fut->set_exception(std::current_exception());
     }
-    LIBCORO_TRACE_AWAIT
 
 };
 
