@@ -1,0 +1,8 @@
+<map id="coro::trace::resume" name="coro::trace::resume">
+<area shape="rect" id="node1" title="Record resumption of an coroutine." alt="" coords="409,107,557,134"/>
+<area shape="rect" id="node2" href="$classcoro_1_1suspend_a3fd73bbc139b4679d90d204bf2aa1865.html#a3fd73bbc139b4679d90d204bf2aa1865" title="this function is static." alt="" coords="200,5,356,47"/>
+<area shape="rect" id="node3" href="$classcoro_1_1prepared__coro_aed2b6e47cec8310a1750f14f2c07472c.html#aed2b6e47cec8310a1750f14f2c07472c" title="object can be used as callable (you can pass it to differen thread)" alt="" coords="203,71,353,112"/>
+<area shape="rect" id="node4" href="$classcoro_1_1frame_a891ec5f64080b81e84b587844235f56a.html#a891ec5f64080b81e84b587844235f56a" title="Emulates co_await (without await_resume) with no suspend when ready." alt="" coords="195,137,361,163"/>
+<area shape="rect" id="node6" href="$classcoro_1_1prepared__coro_ae40cf4f695d99e58305be58d94afb242.html#ae40cf4f695d99e58305be58d94afb242" title="destructor &#45; resumes coroutine if still in prepared state" alt="" coords="203,188,353,229"/>
+<area shape="rect" id="node5" href="$classcoro_1_1frame_ac97cd4ffd69181d206c21033bfce03c2.html#ac97cd4ffd69181d206c21033bfce03c2" title="Emulates co_await (without await_resume)" alt="" coords="5,137,147,163"/>
+</map>

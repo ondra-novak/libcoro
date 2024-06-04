@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['notify_274',['notify',['../classcoro_1_1promise_1_1notify.html',1,'coro::promise']]]
+  ['notify_265',['notify',['../classcoro_1_1promise_1_1notify.html',1,'coro::promise']]]
 ];

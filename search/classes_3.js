@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['deferred_5ffuture_240',['deferred_future',['../classcoro_1_1deferred__future.html',1,'coro']]],
-  ['distributor_241',['distributor',['../classcoro_1_1distributor.html',1,'coro']]],
-  ['distributor_3c_20t_2c_20lock_20_3e_242',['distributor&lt; T, Lock &gt;',['../classcoro_1_1distributor.html',1,'coro']]]
+  ['deferred_5ffuture_231',['deferred_future',['../classcoro_1_1deferred__future.html',1,'coro']]],
+  ['distributor_232',['distributor',['../classcoro_1_1distributor.html',1,'coro']]],
+  ['distributor_3c_20t_2c_20lock_20_3e_233',['distributor&lt; T, Lock &gt;',['../classcoro_1_1distributor.html',1,'coro']]]
 ];

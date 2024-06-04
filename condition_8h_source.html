@@ -143,7 +143,7 @@ $(function() {
 <div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160;<span class="keyword">public</span>:</div>
 <div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160; </div>
 <div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;    <span class="keywordtype">bool</span> reg_awaiter(<span class="keyword">const</span> <span class="keywordtype">void</span> *addr, abstract_condition_awaiter *awt) {</div>
-<div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160;        <a class="code" href="group__trace_ga9f601713b4a8752d659eae0dede9a8db.html#ga9f601713b4a8752d659eae0dede9a8db">LIBCORO_TRACE_LINK</a>(<span class="keyword">this</span>, awt);</div>
+<div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160;        trace::on_link(<span class="keyword">this</span>, awt);</div>
 <div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;        std::lock_guard _(_mx);</div>
 <div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160;        <span class="keywordflow">if</span> (awt-&gt;test(addr)) <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
 <div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;        insert_item(addr, awt);</div>
@@ -338,12 +338,11 @@ $(function() {
 <div class="ttc" id="aclasscoro_1_1scheduler__t_html"><div class="ttname"><a href="classcoro_1_1scheduler__t.html">coro::scheduler_t</a></div><div class="ttdoc">scheduler for coroutines</div><div class="ttdef"><b>Definition:</b> <a href="scheduler_8h_source.html#l00021">scheduler.h:21</a></div></div>
 <div class="ttc" id="agroup__condition_ga7462a3c7fabdbe8f5976c21c59124284_html_ga7462a3c7fabdbe8f5976c21c59124284"><div class="ttname"><a href="group__condition_ga7462a3c7fabdbe8f5976c21c59124284.html#ga7462a3c7fabdbe8f5976c21c59124284">coro::condition_sync_wait</a></div><div class="ttdeci">void condition_sync_wait(T &amp;var, Pred &amp;&amp;pred)</div><div class="ttdoc">Perform synchronous waiting with condition.</div><div class="ttdef"><b>Definition:</b> <a href="condition_8h_source.html#l00331">condition.h:331</a></div></div>
 <div class="ttc" id="agroup__condition_ga9f0555789cbd22148a9e7cc76ee95692_html_ga9f0555789cbd22148a9e7cc76ee95692"><div class="ttname"><a href="group__condition_ga9f0555789cbd22148a9e7cc76ee95692.html#ga9f0555789cbd22148a9e7cc76ee95692">coro::notify_condition</a></div><div class="ttdeci">void notify_condition(const T &amp;var) noexcept</div><div class="ttdoc">notifies variable about change in the condition.</div><div class="ttdef"><b>Definition:</b> <a href="condition_8h_source.html#l00293">condition.h:293</a></div></div>
-<div class="ttc" id="agroup__trace_ga9f601713b4a8752d659eae0dede9a8db_html_ga9f601713b4a8752d659eae0dede9a8db"><div class="ttname"><a href="group__trace_ga9f601713b4a8752d659eae0dede9a8db.html#ga9f601713b4a8752d659eae0dede9a8db">LIBCORO_TRACE_LINK</a></div><div class="ttdeci">#define LIBCORO_TRACE_LINK(from_ptr, to_ptr)</div><div class="ttdoc">Report link between coroutines (when one coroutine awaits to other)</div><div class="ttdef"><b>Definition:</b> <a href="trace_8h_source.html#l00391">trace.h:391</a></div></div>
 <div class="ttc" id="anamespacecoro_html"><div class="ttname"><a href="namespacecoro.html">coro</a></div><div class="ttdoc">main namespace</div><div class="ttdef"><b>Definition:</b> <a href="aggregator_8h_source.html#l00008">aggregator.h:8</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Jun 3 2024 15:50:11 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+Generated on Tue Jun 4 2024 18:17:49 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
 </small></address>
 </body>
 </html>

@@ -147,7 +147,7 @@ $(function() {
 <div class="line"><a name="l00112"></a><span class="lineno">  112</span>&#160;    }</div>
 <div class="line"><a name="l00113"></a><span class="lineno">  113</span>&#160; </div>
 <div class="line"><a name="l00114"></a><span class="lineno">  114</span>&#160;    <span class="keywordtype">void</span> <a class="code" href="classcoro_1_1distributor_a23e894bd7e86ac3e22d946d9ffc02dbf.html#a23e894bd7e86ac3e22d946d9ffc02dbf">subscribe</a>(promise_t &amp;&amp;prom, ID <span class="keywordtype">id</span> = { }) {</div>
-<div class="line"><a name="l00115"></a><span class="lineno">  115</span>&#160;        <a class="code" href="group__trace_ga9f601713b4a8752d659eae0dede9a8db.html#ga9f601713b4a8752d659eae0dede9a8db">LIBCORO_TRACE_LINK</a>(<span class="keyword">this</span>, prom.get_future());</div>
+<div class="line"><a name="l00115"></a><span class="lineno">  115</span>&#160;        trace::on_link(<span class="keyword">this</span>, prom.get_future());</div>
 <div class="line"><a name="l00116"></a><span class="lineno">  116</span>&#160;        std::lock_guard _(_mx);</div>
 <div class="line"><a name="l00117"></a><span class="lineno">  117</span>&#160;        _subscribers.push_back(std::pair&lt;promise_t, ID&gt;(std::move(prom), <span class="keywordtype">id</span>));</div>
 <div class="line"><a name="l00118"></a><span class="lineno">  118</span>&#160;    }</div>
@@ -344,12 +344,11 @@ $(function() {
 <div class="ttc" id="aclasscoro_1_1queue_a5402d3032685d967f869d4a42a6215ed_html_a5402d3032685d967f869d4a42a6215ed"><div class="ttname"><a href="classcoro_1_1queue_a5402d3032685d967f869d4a42a6215ed.html#a5402d3032685d967f869d4a42a6215ed">coro::queue&lt; T, QueueImpl &gt;::close</a></div><div class="ttdeci">void close(std::exception_ptr e=nullptr)</div><div class="ttdoc">close the queue</div><div class="ttdef"><b>Definition:</b> <a href="queue_8h_source.html#l00169">queue.h:169</a></div></div>
 <div class="ttc" id="aclasscoro_1_1queue_aaaa998133432260dedd5adaded8511a2_html_aaaa998133432260dedd5adaded8511a2"><div class="ttname"><a href="classcoro_1_1queue_aaaa998133432260dedd5adaded8511a2.html#aaaa998133432260dedd5adaded8511a2">coro::queue&lt; T, QueueImpl &gt;::push</a></div><div class="ttdeci">auto push(const T &amp;x)</div><div class="ttdoc">Push item to the queue.</div><div class="ttdef"><b>Definition:</b> <a href="queue_8h_source.html#l00081">queue.h:81</a></div></div>
 <div class="ttc" id="aclasscoro_1_1subscription_html"><div class="ttname"><a href="classcoro_1_1subscription.html">coro::subscription</a></div><div class="ttdoc">Awaiter for subscriptions.</div><div class="ttdef"><b>Definition:</b> <a href="subscription_8h_source.html#l00029">subscription.h:29</a></div></div>
-<div class="ttc" id="agroup__trace_ga9f601713b4a8752d659eae0dede9a8db_html_ga9f601713b4a8752d659eae0dede9a8db"><div class="ttname"><a href="group__trace_ga9f601713b4a8752d659eae0dede9a8db.html#ga9f601713b4a8752d659eae0dede9a8db">LIBCORO_TRACE_LINK</a></div><div class="ttdeci">#define LIBCORO_TRACE_LINK(from_ptr, to_ptr)</div><div class="ttdoc">Report link between coroutines (when one coroutine awaits to other)</div><div class="ttdef"><b>Definition:</b> <a href="trace_8h_source.html#l00391">trace.h:391</a></div></div>
 <div class="ttc" id="anamespacecoro_html"><div class="ttname"><a href="namespacecoro.html">coro</a></div><div class="ttdoc">main namespace</div><div class="ttdef"><b>Definition:</b> <a href="aggregator_8h_source.html#l00008">aggregator.h:8</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Jun 3 2024 15:50:11 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+Generated on Tue Jun 4 2024 18:17:49 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
 </small></address>
 </body>
 </html>

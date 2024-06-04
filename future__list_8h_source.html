@@ -283,190 +283,192 @@ $(function() {
 <div class="line"><a name="l00289"></a><span class="lineno">  289</span>&#160;            <span class="keywordflow">if</span> constexpr(is_pointer_like&lt;decltype(*from)&gt;) {</div>
 <div class="line"><a name="l00290"></a><span class="lineno">  290</span>&#160;                future_ptr ptr = &amp;(*(*from));</div>
 <div class="line"><a name="l00291"></a><span class="lineno">  291</span>&#160;                _awaiting.push_back(ptr);</div>
-<div class="line"><a name="l00292"></a><span class="lineno">  292</span>&#160;            } <span class="keywordflow">else</span> {</div>
-<div class="line"><a name="l00293"></a><span class="lineno">  293</span>&#160;                future_ptr ptr = &amp;(*from);</div>
-<div class="line"><a name="l00294"></a><span class="lineno">  294</span>&#160;                _awaiting.push_back(ptr);</div>
-<div class="line"><a name="l00295"></a><span class="lineno">  295</span>&#160;            }</div>
-<div class="line"><a name="l00296"></a><span class="lineno">  296</span>&#160;            ++from;</div>
-<div class="line"><a name="l00297"></a><span class="lineno">  297</span>&#160;        }</div>
-<div class="line"><a name="l00298"></a><span class="lineno">  298</span>&#160;        _sep = _awaiting.size();</div>
-<div class="line"><a name="l00299"></a><span class="lineno">  299</span>&#160;        <span class="keywordflow">for</span> (std::size_t i = 0; i &lt; _sep; ++i) {</div>
-<div class="line"><a name="l00300"></a><span class="lineno">  300</span>&#160;            future_ptr ptr = _awaiting[i];</div>
-<div class="line"><a name="l00301"></a><span class="lineno">  301</span>&#160;            <span class="keywordflow">if</span> (!ptr-&gt;set_callback([<span class="keyword">this</span>, ptr]{</div>
-<div class="line"><a name="l00302"></a><span class="lineno">  302</span>&#160;                return finish(ptr).symmetric_transfer();</div>
-<div class="line"><a name="l00303"></a><span class="lineno">  303</span>&#160;            })) {</div>
-<div class="line"><a name="l00304"></a><span class="lineno">  304</span>&#160;                _awaiting.push_back(ptr);</div>
-<div class="line"><a name="l00305"></a><span class="lineno">  305</span>&#160; </div>
-<div class="line"><a name="l00306"></a><span class="lineno">  306</span>&#160;            }</div>
-<div class="line"><a name="l00307"></a><span class="lineno">  307</span>&#160;        }</div>
-<div class="line"><a name="l00308"></a><span class="lineno">  308</span>&#160; </div>
-<div class="line"><a name="l00309"></a><span class="lineno">  309</span>&#160;    }</div>
+<div class="line"><a name="l00292"></a><span class="lineno">  292</span>&#160;                trace::on_link(ptr, <span class="keyword">this</span>, <span class="keyword">sizeof</span>(*ptr));</div>
+<div class="line"><a name="l00293"></a><span class="lineno">  293</span>&#160;            } <span class="keywordflow">else</span> {</div>
+<div class="line"><a name="l00294"></a><span class="lineno">  294</span>&#160;                future_ptr ptr = &amp;(*from);</div>
+<div class="line"><a name="l00295"></a><span class="lineno">  295</span>&#160;                _awaiting.push_back(ptr);</div>
+<div class="line"><a name="l00296"></a><span class="lineno">  296</span>&#160;                trace::on_link(ptr, <span class="keyword">this</span>, <span class="keyword">sizeof</span>(*ptr));</div>
+<div class="line"><a name="l00297"></a><span class="lineno">  297</span>&#160;            }</div>
+<div class="line"><a name="l00298"></a><span class="lineno">  298</span>&#160;            ++from;</div>
+<div class="line"><a name="l00299"></a><span class="lineno">  299</span>&#160;        }</div>
+<div class="line"><a name="l00300"></a><span class="lineno">  300</span>&#160;        _sep = _awaiting.size();</div>
+<div class="line"><a name="l00301"></a><span class="lineno">  301</span>&#160;        <span class="keywordflow">for</span> (std::size_t i = 0; i &lt; _sep; ++i) {</div>
+<div class="line"><a name="l00302"></a><span class="lineno">  302</span>&#160;            future_ptr ptr = _awaiting[i];</div>
+<div class="line"><a name="l00303"></a><span class="lineno">  303</span>&#160;            <span class="keywordflow">if</span> (!ptr-&gt;set_callback([<span class="keyword">this</span>, ptr]{</div>
+<div class="line"><a name="l00304"></a><span class="lineno">  304</span>&#160;                return finish(ptr).symmetric_transfer();</div>
+<div class="line"><a name="l00305"></a><span class="lineno">  305</span>&#160;            })) {</div>
+<div class="line"><a name="l00306"></a><span class="lineno">  306</span>&#160;                _awaiting.push_back(ptr);</div>
+<div class="line"><a name="l00307"></a><span class="lineno">  307</span>&#160; </div>
+<div class="line"><a name="l00308"></a><span class="lineno">  308</span>&#160;            }</div>
+<div class="line"><a name="l00309"></a><span class="lineno">  309</span>&#160;        }</div>
 <div class="line"><a name="l00310"></a><span class="lineno">  310</span>&#160; </div>
-<div class="line"><a name="l00311"></a><span class="lineno">  311</span>&#160;    ~<a class="code" href="classcoro_1_1when__each.html">when_each</a>() {</div>
-<div class="line"><a name="l00312"></a><span class="lineno">  312</span>&#160;        cleanup();</div>
-<div class="line"><a name="l00313"></a><span class="lineno">  313</span>&#160;    }</div>
-<div class="line"><a name="l00314"></a><span class="lineno">  314</span>&#160; </div>
-<div class="line"><a name="l00315"></a><span class="lineno">  315</span>&#160; </div>
-<div class="line"><a name="l00316"></a><span class="lineno">  316</span>&#160;<span class="keyword">protected</span>:</div>
-<div class="line"><a name="l00317"></a><span class="lineno">  317</span>&#160;    std::vector&lt;future_ptr&gt; _awaiting;</div>
-<div class="line"><a name="l00318"></a><span class="lineno">  318</span>&#160;    std::basic_string&lt;const iterator *&gt; _iters;</div>
-<div class="line"><a name="l00319"></a><span class="lineno">  319</span>&#160;    std::size_t _sep;</div>
-<div class="line"><a name="l00320"></a><span class="lineno">  320</span>&#160;    <span class="keyword">mutable</span> std::mutex _mx;</div>
-<div class="line"><a name="l00321"></a><span class="lineno">  321</span>&#160;    std::condition_variable *_cond = <span class="keyword">nullptr</span>;</div>
-<div class="line"><a name="l00322"></a><span class="lineno">  322</span>&#160; </div>
-<div class="line"><a name="l00323"></a><span class="lineno">  323</span>&#160;    <span class="keyword">auto</span> remain_pending() {</div>
-<div class="line"><a name="l00324"></a><span class="lineno">  324</span>&#160;        <span class="keywordflow">return</span> 2*_sep - _awaiting.size();</div>
-<div class="line"><a name="l00325"></a><span class="lineno">  325</span>&#160;    }</div>
-<div class="line"><a name="l00326"></a><span class="lineno">  326</span>&#160; </div>
-<div class="line"><a name="l00327"></a><span class="lineno">  327</span>&#160;    result_notify_type finish(future_ptr ptr) {</div>
-<div class="line"><a name="l00328"></a><span class="lineno">  328</span>&#160;        std::lock_guard _(_mx);</div>
-<div class="line"><a name="l00329"></a><span class="lineno">  329</span>&#160;        <span class="keyword">auto</span> idx = _awaiting.size() - _sep;</div>
-<div class="line"><a name="l00330"></a><span class="lineno">  330</span>&#160;        _awaiting.push_back(ptr);</div>
-<div class="line"><a name="l00331"></a><span class="lineno">  331</span>&#160;        result_promise_type proms;</div>
-<div class="line"><a name="l00332"></a><span class="lineno">  332</span>&#160;        _iters.erase( std::remove_if(_iters.begin(), _iters.end(), [&amp;](<span class="keyword">const</span> iterator *it){</div>
-<div class="line"><a name="l00333"></a><span class="lineno">  333</span>&#160;            if (it-&gt;_index == idx) {</div>
-<div class="line"><a name="l00334"></a><span class="lineno">  334</span>&#160;                proms += it-&gt;_tmp._prom;</div>
-<div class="line"><a name="l00335"></a><span class="lineno">  335</span>&#160;                return true;</div>
-<div class="line"><a name="l00336"></a><span class="lineno">  336</span>&#160;            }</div>
-<div class="line"><a name="l00337"></a><span class="lineno">  337</span>&#160;            <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
-<div class="line"><a name="l00338"></a><span class="lineno">  338</span>&#160;        }),_iters.end());</div>
-<div class="line"><a name="l00339"></a><span class="lineno">  339</span>&#160;        <span class="keywordflow">if</span> (_cond) _cond-&gt;notify_all();;</div>
-<div class="line"><a name="l00340"></a><span class="lineno">  340</span>&#160;        <span class="keywordflow">if</span> (proms) <span class="keywordflow">return</span> ptr-&gt;forward_to(proms);</div>
-<div class="line"><a name="l00341"></a><span class="lineno">  341</span>&#160;        <span class="keywordflow">return</span> {};</div>
-<div class="line"><a name="l00342"></a><span class="lineno">  342</span>&#160;    }</div>
-<div class="line"><a name="l00343"></a><span class="lineno">  343</span>&#160; </div>
-<div class="line"><a name="l00344"></a><span class="lineno">  344</span>&#160; </div>
-<div class="line"><a name="l00345"></a><span class="lineno">  345</span>&#160;    <span class="keywordtype">bool</span> charge(<span class="keyword">const</span> iterator *it) {</div>
-<div class="line"><a name="l00346"></a><span class="lineno">  346</span>&#160;        result_notify_type ntf;</div>
-<div class="line"><a name="l00347"></a><span class="lineno">  347</span>&#160;        std::lock_guard _(_mx);</div>
-<div class="line"><a name="l00348"></a><span class="lineno">  348</span>&#160;        <span class="keyword">auto</span> idx = it-&gt;_index+_sep;</div>
-<div class="line"><a name="l00349"></a><span class="lineno">  349</span>&#160;        <span class="keywordflow">if</span> (idx &lt; _awaiting.size()) {</div>
-<div class="line"><a name="l00350"></a><span class="lineno">  350</span>&#160;            ntf = _awaiting[idx]-&gt;forward_to(it-&gt;_tmp._prom);</div>
-<div class="line"><a name="l00351"></a><span class="lineno">  351</span>&#160;            <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
-<div class="line"><a name="l00352"></a><span class="lineno">  352</span>&#160;        }</div>
-<div class="line"><a name="l00353"></a><span class="lineno">  353</span>&#160;        _iters.push_back(it);</div>
-<div class="line"><a name="l00354"></a><span class="lineno">  354</span>&#160;        <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
-<div class="line"><a name="l00355"></a><span class="lineno">  355</span>&#160;    }</div>
-<div class="line"><a name="l00356"></a><span class="lineno">  356</span>&#160; </div>
-<div class="line"><a name="l00357"></a><span class="lineno">  357</span>&#160;    <span class="keywordtype">void</span> cleanup() {</div>
-<div class="line"><a name="l00358"></a><span class="lineno">  358</span>&#160;        <span class="keywordflow">if</span> (remain_pending()) {</div>
-<div class="line"><a name="l00359"></a><span class="lineno">  359</span>&#160;            std::unique_lock lk(_mx);</div>
-<div class="line"><a name="l00360"></a><span class="lineno">  360</span>&#160;            std::size_t found_remain = 0;</div>
-<div class="line"><a name="l00361"></a><span class="lineno">  361</span>&#160;            <span class="keywordflow">for</span> (std::size_t i = 0; i &lt; _sep; ++i) {</div>
-<div class="line"><a name="l00362"></a><span class="lineno">  362</span>&#160;                <span class="keywordflow">if</span> (_awaiting[i]-&gt;set_callback([]{})) ++found_remain;</div>
-<div class="line"><a name="l00363"></a><span class="lineno">  363</span>&#160;            }</div>
-<div class="line"><a name="l00364"></a><span class="lineno">  364</span>&#160;            <span class="keywordflow">if</span> (remain_pending() != found_remain) {</div>
-<div class="line"><a name="l00365"></a><span class="lineno">  365</span>&#160;                std::condition_variable cond;</div>
-<div class="line"><a name="l00366"></a><span class="lineno">  366</span>&#160;                _cond = &amp;cond;</div>
-<div class="line"><a name="l00367"></a><span class="lineno">  367</span>&#160;                cond.wait(lk, [&amp;]{</div>
-<div class="line"><a name="l00368"></a><span class="lineno">  368</span>&#160;                    <span class="keywordflow">return</span> remain_pending() == found_remain;</div>
-<div class="line"><a name="l00369"></a><span class="lineno">  369</span>&#160;                });</div>
-<div class="line"><a name="l00370"></a><span class="lineno">  370</span>&#160;            }</div>
-<div class="line"><a name="l00371"></a><span class="lineno">  371</span>&#160;        }</div>
-<div class="line"><a name="l00372"></a><span class="lineno">  372</span>&#160;    }</div>
-<div class="line"><a name="l00373"></a><span class="lineno">  373</span>&#160; </div>
-<div class="line"><a name="l00374"></a><span class="lineno">  374</span>&#160;};</div>
+<div class="line"><a name="l00311"></a><span class="lineno">  311</span>&#160;    }</div>
+<div class="line"><a name="l00312"></a><span class="lineno">  312</span>&#160; </div>
+<div class="line"><a name="l00313"></a><span class="lineno">  313</span>&#160;    ~<a class="code" href="classcoro_1_1when__each.html">when_each</a>() {</div>
+<div class="line"><a name="l00314"></a><span class="lineno">  314</span>&#160;        cleanup();</div>
+<div class="line"><a name="l00315"></a><span class="lineno">  315</span>&#160;    }</div>
+<div class="line"><a name="l00316"></a><span class="lineno">  316</span>&#160; </div>
+<div class="line"><a name="l00317"></a><span class="lineno">  317</span>&#160; </div>
+<div class="line"><a name="l00318"></a><span class="lineno">  318</span>&#160;<span class="keyword">protected</span>:</div>
+<div class="line"><a name="l00319"></a><span class="lineno">  319</span>&#160;    std::vector&lt;future_ptr&gt; _awaiting;</div>
+<div class="line"><a name="l00320"></a><span class="lineno">  320</span>&#160;    std::basic_string&lt;const iterator *&gt; _iters;</div>
+<div class="line"><a name="l00321"></a><span class="lineno">  321</span>&#160;    std::size_t _sep;</div>
+<div class="line"><a name="l00322"></a><span class="lineno">  322</span>&#160;    <span class="keyword">mutable</span> std::mutex _mx;</div>
+<div class="line"><a name="l00323"></a><span class="lineno">  323</span>&#160;    std::condition_variable *_cond = <span class="keyword">nullptr</span>;</div>
+<div class="line"><a name="l00324"></a><span class="lineno">  324</span>&#160; </div>
+<div class="line"><a name="l00325"></a><span class="lineno">  325</span>&#160;    <span class="keyword">auto</span> remain_pending() {</div>
+<div class="line"><a name="l00326"></a><span class="lineno">  326</span>&#160;        <span class="keywordflow">return</span> 2*_sep - _awaiting.size();</div>
+<div class="line"><a name="l00327"></a><span class="lineno">  327</span>&#160;    }</div>
+<div class="line"><a name="l00328"></a><span class="lineno">  328</span>&#160; </div>
+<div class="line"><a name="l00329"></a><span class="lineno">  329</span>&#160;    result_notify_type finish(future_ptr ptr) {</div>
+<div class="line"><a name="l00330"></a><span class="lineno">  330</span>&#160;        std::lock_guard _(_mx);</div>
+<div class="line"><a name="l00331"></a><span class="lineno">  331</span>&#160;        <span class="keyword">auto</span> idx = _awaiting.size() - _sep;</div>
+<div class="line"><a name="l00332"></a><span class="lineno">  332</span>&#160;        _awaiting.push_back(ptr);</div>
+<div class="line"><a name="l00333"></a><span class="lineno">  333</span>&#160;        result_promise_type proms;</div>
+<div class="line"><a name="l00334"></a><span class="lineno">  334</span>&#160;        _iters.erase( std::remove_if(_iters.begin(), _iters.end(), [&amp;](<span class="keyword">const</span> iterator *it){</div>
+<div class="line"><a name="l00335"></a><span class="lineno">  335</span>&#160;            if (it-&gt;_index == idx) {</div>
+<div class="line"><a name="l00336"></a><span class="lineno">  336</span>&#160;                proms += it-&gt;_tmp._prom;</div>
+<div class="line"><a name="l00337"></a><span class="lineno">  337</span>&#160;                return true;</div>
+<div class="line"><a name="l00338"></a><span class="lineno">  338</span>&#160;            }</div>
+<div class="line"><a name="l00339"></a><span class="lineno">  339</span>&#160;            <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
+<div class="line"><a name="l00340"></a><span class="lineno">  340</span>&#160;        }),_iters.end());</div>
+<div class="line"><a name="l00341"></a><span class="lineno">  341</span>&#160;        <span class="keywordflow">if</span> (_cond) _cond-&gt;notify_all();;</div>
+<div class="line"><a name="l00342"></a><span class="lineno">  342</span>&#160;        <span class="keywordflow">if</span> (proms) <span class="keywordflow">return</span> ptr-&gt;forward_to(proms);</div>
+<div class="line"><a name="l00343"></a><span class="lineno">  343</span>&#160;        <span class="keywordflow">return</span> {};</div>
+<div class="line"><a name="l00344"></a><span class="lineno">  344</span>&#160;    }</div>
+<div class="line"><a name="l00345"></a><span class="lineno">  345</span>&#160; </div>
+<div class="line"><a name="l00346"></a><span class="lineno">  346</span>&#160; </div>
+<div class="line"><a name="l00347"></a><span class="lineno">  347</span>&#160;    <span class="keywordtype">bool</span> charge(<span class="keyword">const</span> iterator *it) {</div>
+<div class="line"><a name="l00348"></a><span class="lineno">  348</span>&#160;        result_notify_type ntf;</div>
+<div class="line"><a name="l00349"></a><span class="lineno">  349</span>&#160;        std::lock_guard _(_mx);</div>
+<div class="line"><a name="l00350"></a><span class="lineno">  350</span>&#160;        <span class="keyword">auto</span> idx = it-&gt;_index+_sep;</div>
+<div class="line"><a name="l00351"></a><span class="lineno">  351</span>&#160;        <span class="keywordflow">if</span> (idx &lt; _awaiting.size()) {</div>
+<div class="line"><a name="l00352"></a><span class="lineno">  352</span>&#160;            ntf = _awaiting[idx]-&gt;forward_to(it-&gt;_tmp._prom);</div>
+<div class="line"><a name="l00353"></a><span class="lineno">  353</span>&#160;            <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
+<div class="line"><a name="l00354"></a><span class="lineno">  354</span>&#160;        }</div>
+<div class="line"><a name="l00355"></a><span class="lineno">  355</span>&#160;        _iters.push_back(it);</div>
+<div class="line"><a name="l00356"></a><span class="lineno">  356</span>&#160;        <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
+<div class="line"><a name="l00357"></a><span class="lineno">  357</span>&#160;    }</div>
+<div class="line"><a name="l00358"></a><span class="lineno">  358</span>&#160; </div>
+<div class="line"><a name="l00359"></a><span class="lineno">  359</span>&#160;    <span class="keywordtype">void</span> cleanup() {</div>
+<div class="line"><a name="l00360"></a><span class="lineno">  360</span>&#160;        <span class="keywordflow">if</span> (remain_pending()) {</div>
+<div class="line"><a name="l00361"></a><span class="lineno">  361</span>&#160;            std::unique_lock lk(_mx);</div>
+<div class="line"><a name="l00362"></a><span class="lineno">  362</span>&#160;            std::size_t found_remain = 0;</div>
+<div class="line"><a name="l00363"></a><span class="lineno">  363</span>&#160;            <span class="keywordflow">for</span> (std::size_t i = 0; i &lt; _sep; ++i) {</div>
+<div class="line"><a name="l00364"></a><span class="lineno">  364</span>&#160;                <span class="keywordflow">if</span> (_awaiting[i]-&gt;set_callback([]{})) ++found_remain;</div>
+<div class="line"><a name="l00365"></a><span class="lineno">  365</span>&#160;            }</div>
+<div class="line"><a name="l00366"></a><span class="lineno">  366</span>&#160;            <span class="keywordflow">if</span> (remain_pending() != found_remain) {</div>
+<div class="line"><a name="l00367"></a><span class="lineno">  367</span>&#160;                std::condition_variable cond;</div>
+<div class="line"><a name="l00368"></a><span class="lineno">  368</span>&#160;                _cond = &amp;cond;</div>
+<div class="line"><a name="l00369"></a><span class="lineno">  369</span>&#160;                cond.wait(lk, [&amp;]{</div>
+<div class="line"><a name="l00370"></a><span class="lineno">  370</span>&#160;                    <span class="keywordflow">return</span> remain_pending() == found_remain;</div>
+<div class="line"><a name="l00371"></a><span class="lineno">  371</span>&#160;                });</div>
+<div class="line"><a name="l00372"></a><span class="lineno">  372</span>&#160;            }</div>
+<div class="line"><a name="l00373"></a><span class="lineno">  373</span>&#160;        }</div>
+<div class="line"><a name="l00374"></a><span class="lineno">  374</span>&#160;    }</div>
 <div class="line"><a name="l00375"></a><span class="lineno">  375</span>&#160; </div>
-<div class="line"><a name="l00376"></a><span class="lineno">  376</span>&#160;<span class="keyword">template</span>&lt;<span class="keyword">typename</span> X&gt;</div>
-<div class="line"><a name="l00377"></a><span class="lineno">  377</span>&#160;when_each(std::initializer_list&lt;X&gt;) -&gt; when_each&lt;X&gt;;</div>
-<div class="line"><a name="l00378"></a><span class="lineno">  378</span>&#160;<span class="keyword">template</span>&lt;container_type T&gt;</div>
-<div class="line"><a name="l00379"></a><span class="lineno">  379</span>&#160;when_each(T) -&gt; when_each&lt;unwrap_pointer_like&lt;typename T::value_type&gt; &gt;;</div>
-<div class="line"><a name="l00380"></a><span class="lineno">  380</span>&#160; </div>
-<div class="line"><a name="l00381"></a><span class="lineno">  381</span>&#160; </div>
+<div class="line"><a name="l00376"></a><span class="lineno">  376</span>&#160;};</div>
+<div class="line"><a name="l00377"></a><span class="lineno">  377</span>&#160; </div>
+<div class="line"><a name="l00378"></a><span class="lineno">  378</span>&#160;<span class="keyword">template</span>&lt;<span class="keyword">typename</span> X&gt;</div>
+<div class="line"><a name="l00379"></a><span class="lineno">  379</span>&#160;when_each(std::initializer_list&lt;X&gt;) -&gt; when_each&lt;X&gt;;</div>
+<div class="line"><a name="l00380"></a><span class="lineno">  380</span>&#160;<span class="keyword">template</span>&lt;container_type T&gt;</div>
+<div class="line"><a name="l00381"></a><span class="lineno">  381</span>&#160;when_each(T) -&gt; when_each&lt;unwrap_pointer_like&lt;typename T::value_type&gt; &gt;;</div>
+<div class="line"><a name="l00382"></a><span class="lineno">  382</span>&#160; </div>
 <div class="line"><a name="l00383"></a><span class="lineno">  383</span>&#160; </div>
-<div class="line"><a name="l00393"></a><span class="lineno">  393</span>&#160;<span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</div>
-<div class="line"><a name="l00394"></a><span class="lineno"><a class="line" href="classcoro_1_1any__of.html">  394</a></span>&#160;<span class="keyword">class </span><a class="code" href="classcoro_1_1any__of.html">any_of</a> : <span class="keyword">public</span> <a class="code" href="classcoro_1_1when__each.html">when_each</a>&lt;T&gt;::result_future_type {</div>
-<div class="line"><a name="l00395"></a><span class="lineno">  395</span>&#160;<span class="keyword">public</span>:</div>
-<div class="line"><a name="l00396"></a><span class="lineno">  396</span>&#160; </div>
-<div class="line"><a name="l00397"></a><span class="lineno">  397</span>&#160;    <a class="code" href="classcoro_1_1any__of.html">any_of</a>(std::initializer_list&lt;<a class="code" href="classcoro_1_1pointer__wrapper.html">pointer_wrapper&lt;T&gt;</a> &gt; lst)</div>
-<div class="line"><a name="l00398"></a><span class="lineno">  398</span>&#160;        :<a class="code" href="classcoro_1_1any__of.html">any_of</a>(lst.begin(), lst.end()) {}</div>
-<div class="line"><a name="l00399"></a><span class="lineno">  399</span>&#160; </div>
-<div class="line"><a name="l00400"></a><span class="lineno">  400</span>&#160;    <span class="keyword">template</span>&lt;container_type Container&gt;</div>
-<div class="line"><a name="l00401"></a><span class="lineno">  401</span>&#160;    <a class="code" href="classcoro_1_1any__of.html">any_of</a>(Container &amp;&amp;cont)</div>
-<div class="line"><a name="l00402"></a><span class="lineno">  402</span>&#160;        :<a class="code" href="classcoro_1_1any__of.html">any_of</a>(cont.begin(), cont.end()) {}</div>
-<div class="line"><a name="l00403"></a><span class="lineno">  403</span>&#160; </div>
-<div class="line"><a name="l00404"></a><span class="lineno">  404</span>&#160;    <span class="keyword">template</span>&lt;iterator_type Iter&gt;</div>
-<div class="line"><a name="l00405"></a><span class="lineno">  405</span>&#160;    <a class="code" href="classcoro_1_1any__of.html">any_of</a>(Iter from, Iter to)</div>
-<div class="line"><a name="l00406"></a><span class="lineno">  406</span>&#160;        :_each_of(std::move(from), std::move(to)) {</div>
-<div class="line"><a name="l00407"></a><span class="lineno">  407</span>&#160; </div>
-<div class="line"><a name="l00408"></a><span class="lineno">  408</span>&#160;        _iter = _each_of.begin();</div>
-<div class="line"><a name="l00409"></a><span class="lineno">  409</span>&#160;        _iter(this-&gt;get_promise());</div>
-<div class="line"><a name="l00410"></a><span class="lineno">  410</span>&#160; </div>
-<div class="line"><a name="l00411"></a><span class="lineno">  411</span>&#160;    }</div>
+<div class="line"><a name="l00385"></a><span class="lineno">  385</span>&#160; </div>
+<div class="line"><a name="l00395"></a><span class="lineno">  395</span>&#160;<span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</div>
+<div class="line"><a name="l00396"></a><span class="lineno"><a class="line" href="classcoro_1_1any__of.html">  396</a></span>&#160;<span class="keyword">class </span><a class="code" href="classcoro_1_1any__of.html">any_of</a> : <span class="keyword">public</span> <a class="code" href="classcoro_1_1when__each.html">when_each</a>&lt;T&gt;::result_future_type {</div>
+<div class="line"><a name="l00397"></a><span class="lineno">  397</span>&#160;<span class="keyword">public</span>:</div>
+<div class="line"><a name="l00398"></a><span class="lineno">  398</span>&#160; </div>
+<div class="line"><a name="l00399"></a><span class="lineno">  399</span>&#160;    <a class="code" href="classcoro_1_1any__of.html">any_of</a>(std::initializer_list&lt;<a class="code" href="classcoro_1_1pointer__wrapper.html">pointer_wrapper&lt;T&gt;</a> &gt; lst)</div>
+<div class="line"><a name="l00400"></a><span class="lineno">  400</span>&#160;        :<a class="code" href="classcoro_1_1any__of.html">any_of</a>(lst.begin(), lst.end()) {}</div>
+<div class="line"><a name="l00401"></a><span class="lineno">  401</span>&#160; </div>
+<div class="line"><a name="l00402"></a><span class="lineno">  402</span>&#160;    <span class="keyword">template</span>&lt;container_type Container&gt;</div>
+<div class="line"><a name="l00403"></a><span class="lineno">  403</span>&#160;    <a class="code" href="classcoro_1_1any__of.html">any_of</a>(Container &amp;&amp;cont)</div>
+<div class="line"><a name="l00404"></a><span class="lineno">  404</span>&#160;        :<a class="code" href="classcoro_1_1any__of.html">any_of</a>(cont.begin(), cont.end()) {}</div>
+<div class="line"><a name="l00405"></a><span class="lineno">  405</span>&#160; </div>
+<div class="line"><a name="l00406"></a><span class="lineno">  406</span>&#160;    <span class="keyword">template</span>&lt;iterator_type Iter&gt;</div>
+<div class="line"><a name="l00407"></a><span class="lineno">  407</span>&#160;    <a class="code" href="classcoro_1_1any__of.html">any_of</a>(Iter from, Iter to)</div>
+<div class="line"><a name="l00408"></a><span class="lineno">  408</span>&#160;        :_each_of(std::move(from), std::move(to)) {</div>
+<div class="line"><a name="l00409"></a><span class="lineno">  409</span>&#160; </div>
+<div class="line"><a name="l00410"></a><span class="lineno">  410</span>&#160;        _iter = _each_of.begin();</div>
+<div class="line"><a name="l00411"></a><span class="lineno">  411</span>&#160;        _iter(this-&gt;get_promise());</div>
 <div class="line"><a name="l00412"></a><span class="lineno">  412</span>&#160; </div>
-<div class="line"><a name="l00413"></a><span class="lineno">  413</span>&#160; </div>
-<div class="line"><a name="l00414"></a><span class="lineno">  414</span>&#160;<span class="keyword">protected</span>:</div>
-<div class="line"><a name="l00415"></a><span class="lineno">  415</span>&#160;    <a class="code" href="classcoro_1_1when__each.html">when_each&lt;T&gt;</a> _each_of;</div>
-<div class="line"><a name="l00416"></a><span class="lineno">  416</span>&#160;    <span class="keyword">typename</span> <a class="code" href="classcoro_1_1when__each_1_1iterator.html">when_each&lt;T&gt;::iterator</a> _iter;</div>
-<div class="line"><a name="l00417"></a><span class="lineno">  417</span>&#160; </div>
-<div class="line"><a name="l00418"></a><span class="lineno">  418</span>&#160;};</div>
+<div class="line"><a name="l00413"></a><span class="lineno">  413</span>&#160;    }</div>
+<div class="line"><a name="l00414"></a><span class="lineno">  414</span>&#160; </div>
+<div class="line"><a name="l00415"></a><span class="lineno">  415</span>&#160; </div>
+<div class="line"><a name="l00416"></a><span class="lineno">  416</span>&#160;<span class="keyword">protected</span>:</div>
+<div class="line"><a name="l00417"></a><span class="lineno">  417</span>&#160;    <a class="code" href="classcoro_1_1when__each.html">when_each&lt;T&gt;</a> _each_of;</div>
+<div class="line"><a name="l00418"></a><span class="lineno">  418</span>&#160;    <span class="keyword">typename</span> <a class="code" href="classcoro_1_1when__each_1_1iterator.html">when_each&lt;T&gt;::iterator</a> _iter;</div>
 <div class="line"><a name="l00419"></a><span class="lineno">  419</span>&#160; </div>
-<div class="line"><a name="l00420"></a><span class="lineno">  420</span>&#160;<span class="keyword">template</span>&lt;<span class="keyword">typename</span> X&gt;</div>
-<div class="line"><a name="l00421"></a><span class="lineno">  421</span>&#160;<a class="code" href="classcoro_1_1any__of.html">any_of</a>(std::initializer_list&lt;X&gt;) -&gt; <a class="code" href="classcoro_1_1any__of.html">any_of&lt;X&gt;</a>;</div>
-<div class="line"><a name="l00422"></a><span class="lineno">  422</span>&#160;<span class="keyword">template</span>&lt;container_type T&gt;</div>
-<div class="line"><a name="l00423"></a><span class="lineno">  423</span>&#160;<a class="code" href="classcoro_1_1any__of.html">any_of</a>(T) -&gt; <a class="code" href="classcoro_1_1any__of.html">any_of&lt;unwrap_pointer_like&lt;typename T::value_type&gt;</a> &gt;;</div>
-<div class="line"><a name="l00424"></a><span class="lineno">  424</span>&#160; </div>
-<div class="line"><a name="l00425"></a><span class="lineno">  425</span>&#160; </div>
+<div class="line"><a name="l00420"></a><span class="lineno">  420</span>&#160;};</div>
+<div class="line"><a name="l00421"></a><span class="lineno">  421</span>&#160; </div>
+<div class="line"><a name="l00422"></a><span class="lineno">  422</span>&#160;<span class="keyword">template</span>&lt;<span class="keyword">typename</span> X&gt;</div>
+<div class="line"><a name="l00423"></a><span class="lineno">  423</span>&#160;<a class="code" href="classcoro_1_1any__of.html">any_of</a>(std::initializer_list&lt;X&gt;) -&gt; <a class="code" href="classcoro_1_1any__of.html">any_of&lt;X&gt;</a>;</div>
+<div class="line"><a name="l00424"></a><span class="lineno">  424</span>&#160;<span class="keyword">template</span>&lt;container_type T&gt;</div>
+<div class="line"><a name="l00425"></a><span class="lineno">  425</span>&#160;<a class="code" href="classcoro_1_1any__of.html">any_of</a>(T) -&gt; <a class="code" href="classcoro_1_1any__of.html">any_of&lt;unwrap_pointer_like&lt;typename T::value_type&gt;</a> &gt;;</div>
 <div class="line"><a name="l00426"></a><span class="lineno">  426</span>&#160; </div>
 <div class="line"><a name="l00427"></a><span class="lineno">  427</span>&#160; </div>
+<div class="line"><a name="l00428"></a><span class="lineno">  428</span>&#160; </div>
 <div class="line"><a name="l00429"></a><span class="lineno">  429</span>&#160; </div>
-<div class="line"><a name="l00435"></a><span class="lineno">  435</span>&#160;<span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</div>
-<div class="line"><a name="l00436"></a><span class="lineno"><a class="line" href="classcoro_1_1task__list.html">  436</a></span>&#160;<span class="keyword">class </span><a class="code" href="classcoro_1_1task__list.html">task_list</a>: <span class="keyword">public</span> std::deque&lt;T&gt; {</div>
-<div class="line"><a name="l00437"></a><span class="lineno">  437</span>&#160;<span class="keyword">public</span>:</div>
-<div class="line"><a name="l00438"></a><span class="lineno">  438</span>&#160; </div>
-<div class="line"><a name="l00439"></a><span class="lineno">  439</span>&#160;    <span class="keyword">using</span> std::deque&lt;T&gt;::deque;</div>
+<div class="line"><a name="l00431"></a><span class="lineno">  431</span>&#160; </div>
+<div class="line"><a name="l00437"></a><span class="lineno">  437</span>&#160;<span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</div>
+<div class="line"><a name="l00438"></a><span class="lineno"><a class="line" href="classcoro_1_1task__list.html">  438</a></span>&#160;<span class="keyword">class </span><a class="code" href="classcoro_1_1task__list.html">task_list</a>: <span class="keyword">public</span> std::deque&lt;T&gt; {</div>
+<div class="line"><a name="l00439"></a><span class="lineno">  439</span>&#160;<span class="keyword">public</span>:</div>
 <div class="line"><a name="l00440"></a><span class="lineno">  440</span>&#160; </div>
+<div class="line"><a name="l00441"></a><span class="lineno">  441</span>&#160;    <span class="keyword">using</span> std::deque&lt;T&gt;::deque;</div>
 <div class="line"><a name="l00442"></a><span class="lineno">  442</span>&#160; </div>
-<div class="line"><a name="l00449"></a><span class="lineno">  449</span>&#160;    <span class="keyword">template</span>&lt;std::invocable Fn&gt;</div>
-<div class="line"><a name="l00450"></a><span class="lineno"><a class="line" href="classcoro_1_1task__list_ac360de4f2e610c4b199255fbd533f464.html#ac360de4f2e610c4b199255fbd533f464">  450</a></span>&#160;    <span class="keywordtype">void</span> <a class="code" href="classcoro_1_1task__list_ac360de4f2e610c4b199255fbd533f464.html#ac360de4f2e610c4b199255fbd533f464">operator&lt;&lt;</a>(Fn &amp;&amp;fn) {</div>
-<div class="line"><a name="l00451"></a><span class="lineno">  451</span>&#160;        static_assert(std::is_same_v&lt;std::invoke_result_t&lt;Fn&gt;, T&gt;, <span class="stringliteral">&quot;Return value type mismatch&quot;</span>);</div>
-<div class="line"><a name="l00452"></a><span class="lineno">  452</span>&#160;        this-&gt;emplace_back(<a class="code" href="classcoro_1_1construct__using.html">construct_using&lt;Fn&gt;</a>(fn));</div>
-<div class="line"><a name="l00453"></a><span class="lineno">  453</span>&#160;    }</div>
-<div class="line"><a name="l00454"></a><span class="lineno">  454</span>&#160; </div>
-<div class="line"><a name="l00455"></a><span class="lineno">  455</span>&#160; </div>
+<div class="line"><a name="l00444"></a><span class="lineno">  444</span>&#160; </div>
+<div class="line"><a name="l00451"></a><span class="lineno">  451</span>&#160;    <span class="keyword">template</span>&lt;std::invocable Fn&gt;</div>
+<div class="line"><a name="l00452"></a><span class="lineno"><a class="line" href="classcoro_1_1task__list_ac360de4f2e610c4b199255fbd533f464.html#ac360de4f2e610c4b199255fbd533f464">  452</a></span>&#160;    <span class="keywordtype">void</span> <a class="code" href="classcoro_1_1task__list_ac360de4f2e610c4b199255fbd533f464.html#ac360de4f2e610c4b199255fbd533f464">operator&lt;&lt;</a>(Fn &amp;&amp;fn) {</div>
+<div class="line"><a name="l00453"></a><span class="lineno">  453</span>&#160;        static_assert(std::is_same_v&lt;std::invoke_result_t&lt;Fn&gt;, T&gt;, <span class="stringliteral">&quot;Return value type mismatch&quot;</span>);</div>
+<div class="line"><a name="l00454"></a><span class="lineno">  454</span>&#160;        this-&gt;emplace_back(<a class="code" href="classcoro_1_1construct__using.html">construct_using&lt;Fn&gt;</a>(fn));</div>
+<div class="line"><a name="l00455"></a><span class="lineno">  455</span>&#160;    }</div>
+<div class="line"><a name="l00456"></a><span class="lineno">  456</span>&#160; </div>
 <div class="line"><a name="l00457"></a><span class="lineno">  457</span>&#160; </div>
-<div class="line"><a name="l00464"></a><span class="lineno">  464</span>&#160;    <span class="keyword">template</span>&lt;std::invocable Fn&gt;</div>
-<div class="line"><a name="l00465"></a><span class="lineno"><a class="line" href="classcoro_1_1task__list_a8277eae634e07ef2b0b30b87e977a70c.html#a8277eae634e07ef2b0b30b87e977a70c">  465</a></span>&#160;    <span class="keyword">friend</span> <span class="keywordtype">void</span> <a class="code" href="classcoro_1_1task__list_a8277eae634e07ef2b0b30b87e977a70c.html#a8277eae634e07ef2b0b30b87e977a70c">operator&gt;&gt;</a>(Fn &amp;&amp;fn, <a class="code" href="classcoro_1_1task__list.html">task_list</a> &amp;lst) {</div>
-<div class="line"><a name="l00466"></a><span class="lineno">  466</span>&#160;        static_assert(std::is_same_v&lt;std::invoke_result_t&lt;Fn&gt;, T&gt;, <span class="stringliteral">&quot;Return value type mismatch&quot;</span>);</div>
-<div class="line"><a name="l00467"></a><span class="lineno">  467</span>&#160;        lst.emplace_front(<a class="code" href="classcoro_1_1construct__using.html">construct_using&lt;Fn &amp;&gt;</a>(fn));</div>
-<div class="line"><a name="l00468"></a><span class="lineno">  468</span>&#160;    }</div>
-<div class="line"><a name="l00469"></a><span class="lineno">  469</span>&#160; </div>
-<div class="line"><a name="l00470"></a><span class="lineno">  470</span>&#160;    <span class="keyword">using</span> std::deque&lt;T&gt;::push_back;</div>
-<div class="line"><a name="l00471"></a><span class="lineno">  471</span>&#160;    <span class="keyword">using</span> std::deque&lt;T&gt;::push_front;</div>
-<div class="line"><a name="l00472"></a><span class="lineno">  472</span>&#160; </div>
-<div class="line"><a name="l00474"></a><span class="lineno">  474</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> X, <span class="keyword">typename</span> Y&gt; requires std::constructible_from&lt;T, async&lt;X,Y&gt; &gt;</div>
-<div class="line"><a name="l00475"></a><span class="lineno"><a class="line" href="classcoro_1_1task__list_aa53faee7e3c7ca67443e65161886dec3.html#aa53faee7e3c7ca67443e65161886dec3">  475</a></span>&#160;    <span class="keywordtype">void</span> <a class="code" href="classcoro_1_1task__list_aa53faee7e3c7ca67443e65161886dec3.html#aa53faee7e3c7ca67443e65161886dec3">push_back</a>(<a class="code" href="classcoro_1_1async.html">async&lt;X,Y&gt;</a> x) {</div>
-<div class="line"><a name="l00476"></a><span class="lineno">  476</span>&#160;        (*this) &lt;&lt; [&amp;]()-&gt;T{<span class="keywordflow">return</span> x;};</div>
-<div class="line"><a name="l00477"></a><span class="lineno">  477</span>&#160;    }</div>
-<div class="line"><a name="l00479"></a><span class="lineno">  479</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> X, <span class="keyword">typename</span> Y&gt; requires std::constructible_from&lt;T, async&lt;X,Y&gt; &gt;</div>
-<div class="line"><a name="l00480"></a><span class="lineno"><a class="line" href="classcoro_1_1task__list_ab357fe830d1ce35483d4cdb792de6653.html#ab357fe830d1ce35483d4cdb792de6653">  480</a></span>&#160;    <span class="keywordtype">void</span> <a class="code" href="classcoro_1_1task__list_ab357fe830d1ce35483d4cdb792de6653.html#ab357fe830d1ce35483d4cdb792de6653">push_front</a>(<a class="code" href="classcoro_1_1async.html">async&lt;X,Y&gt;</a> x) {</div>
-<div class="line"><a name="l00481"></a><span class="lineno">  481</span>&#160;        [&amp;]()-&gt;T{<span class="keywordflow">return</span> x;} &gt;&gt; (*this);</div>
-<div class="line"><a name="l00482"></a><span class="lineno">  482</span>&#160;    }</div>
-<div class="line"><a name="l00483"></a><span class="lineno">  483</span>&#160; </div>
-<div class="line"><a name="l00484"></a><span class="lineno">  484</span>&#160;};</div>
+<div class="line"><a name="l00459"></a><span class="lineno">  459</span>&#160; </div>
+<div class="line"><a name="l00466"></a><span class="lineno">  466</span>&#160;    <span class="keyword">template</span>&lt;std::invocable Fn&gt;</div>
+<div class="line"><a name="l00467"></a><span class="lineno"><a class="line" href="classcoro_1_1task__list_a8277eae634e07ef2b0b30b87e977a70c.html#a8277eae634e07ef2b0b30b87e977a70c">  467</a></span>&#160;    <span class="keyword">friend</span> <span class="keywordtype">void</span> <a class="code" href="classcoro_1_1task__list_a8277eae634e07ef2b0b30b87e977a70c.html#a8277eae634e07ef2b0b30b87e977a70c">operator&gt;&gt;</a>(Fn &amp;&amp;fn, <a class="code" href="classcoro_1_1task__list.html">task_list</a> &amp;lst) {</div>
+<div class="line"><a name="l00468"></a><span class="lineno">  468</span>&#160;        static_assert(std::is_same_v&lt;std::invoke_result_t&lt;Fn&gt;, T&gt;, <span class="stringliteral">&quot;Return value type mismatch&quot;</span>);</div>
+<div class="line"><a name="l00469"></a><span class="lineno">  469</span>&#160;        lst.emplace_front(<a class="code" href="classcoro_1_1construct__using.html">construct_using&lt;Fn &amp;&gt;</a>(fn));</div>
+<div class="line"><a name="l00470"></a><span class="lineno">  470</span>&#160;    }</div>
+<div class="line"><a name="l00471"></a><span class="lineno">  471</span>&#160; </div>
+<div class="line"><a name="l00472"></a><span class="lineno">  472</span>&#160;    <span class="keyword">using</span> std::deque&lt;T&gt;::push_back;</div>
+<div class="line"><a name="l00473"></a><span class="lineno">  473</span>&#160;    <span class="keyword">using</span> std::deque&lt;T&gt;::push_front;</div>
+<div class="line"><a name="l00474"></a><span class="lineno">  474</span>&#160; </div>
+<div class="line"><a name="l00476"></a><span class="lineno">  476</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> X, <span class="keyword">typename</span> Y&gt; requires std::constructible_from&lt;T, async&lt;X,Y&gt; &gt;</div>
+<div class="line"><a name="l00477"></a><span class="lineno"><a class="line" href="classcoro_1_1task__list_aa53faee7e3c7ca67443e65161886dec3.html#aa53faee7e3c7ca67443e65161886dec3">  477</a></span>&#160;    <span class="keywordtype">void</span> <a class="code" href="classcoro_1_1task__list_aa53faee7e3c7ca67443e65161886dec3.html#aa53faee7e3c7ca67443e65161886dec3">push_back</a>(<a class="code" href="classcoro_1_1async.html">async&lt;X,Y&gt;</a> x) {</div>
+<div class="line"><a name="l00478"></a><span class="lineno">  478</span>&#160;        (*this) &lt;&lt; [&amp;]()-&gt;T{<span class="keywordflow">return</span> x;};</div>
+<div class="line"><a name="l00479"></a><span class="lineno">  479</span>&#160;    }</div>
+<div class="line"><a name="l00481"></a><span class="lineno">  481</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> X, <span class="keyword">typename</span> Y&gt; requires std::constructible_from&lt;T, async&lt;X,Y&gt; &gt;</div>
+<div class="line"><a name="l00482"></a><span class="lineno"><a class="line" href="classcoro_1_1task__list_ab357fe830d1ce35483d4cdb792de6653.html#ab357fe830d1ce35483d4cdb792de6653">  482</a></span>&#160;    <span class="keywordtype">void</span> <a class="code" href="classcoro_1_1task__list_ab357fe830d1ce35483d4cdb792de6653.html#ab357fe830d1ce35483d4cdb792de6653">push_front</a>(<a class="code" href="classcoro_1_1async.html">async&lt;X,Y&gt;</a> x) {</div>
+<div class="line"><a name="l00483"></a><span class="lineno">  483</span>&#160;        [&amp;]()-&gt;T{<span class="keywordflow">return</span> x;} &gt;&gt; (*this);</div>
+<div class="line"><a name="l00484"></a><span class="lineno">  484</span>&#160;    }</div>
 <div class="line"><a name="l00485"></a><span class="lineno">  485</span>&#160; </div>
-<div class="line"><a name="l00486"></a><span class="lineno">  486</span>&#160; </div>
-<div class="line"><a name="l00487"></a><span class="lineno">  487</span>&#160;}</div>
+<div class="line"><a name="l00486"></a><span class="lineno">  486</span>&#160;};</div>
+<div class="line"><a name="l00487"></a><span class="lineno">  487</span>&#160; </div>
 <div class="line"><a name="l00488"></a><span class="lineno">  488</span>&#160; </div>
-<div class="line"><a name="l00489"></a><span class="lineno">  489</span>&#160; </div>
+<div class="line"><a name="l00489"></a><span class="lineno">  489</span>&#160;}</div>
 <div class="line"><a name="l00490"></a><span class="lineno">  490</span>&#160; </div>
 <div class="line"><a name="l00491"></a><span class="lineno">  491</span>&#160; </div>
+<div class="line"><a name="l00492"></a><span class="lineno">  492</span>&#160; </div>
+<div class="line"><a name="l00493"></a><span class="lineno">  493</span>&#160; </div>
 <div class="ttc" id="aclasscoro_1_1all__of_a24c5188cc718e3c3bfe085950d34e252_html_a24c5188cc718e3c3bfe085950d34e252"><div class="ttname"><a href="classcoro_1_1all__of_a24c5188cc718e3c3bfe085950d34e252.html#a24c5188cc718e3c3bfe085950d34e252">coro::all_of::all_of</a></div><div class="ttdeci">all_of(std::initializer_list&lt; pointer_wrapper&lt; T &gt; &gt; lst)</div><div class="ttdoc">construct using initializer list</div><div class="ttdef"><b>Definition:</b> <a href="future__list_8h_source.html#l00113">future_list.h:113</a></div></div>
 <div class="ttc" id="aclasscoro_1_1all__of_a8090b2d9e40ade860cbb5b93ea25cecf_html_a8090b2d9e40ade860cbb5b93ea25cecf"><div class="ttname"><a href="classcoro_1_1all__of_a8090b2d9e40ade860cbb5b93ea25cecf.html#a8090b2d9e40ade860cbb5b93ea25cecf">coro::all_of::all_of</a></div><div class="ttdeci">all_of(Iter from, Iter to)</div><div class="ttdoc">construct using iterator pair</div><div class="ttdef"><b>Definition:</b> <a href="future__list_8h_source.html#l00131">future_list.h:131</a></div></div>
 <div class="ttc" id="aclasscoro_1_1all__of_a96cbbf7001920d152d8f39cffb8e5287_html_a96cbbf7001920d152d8f39cffb8e5287"><div class="ttname"><a href="classcoro_1_1all__of_a96cbbf7001920d152d8f39cffb8e5287.html#a96cbbf7001920d152d8f39cffb8e5287">coro::all_of::all_of</a></div><div class="ttdeci">all_of(Container &amp;&amp;cont)</div><div class="ttdoc">construct using a container</div><div class="ttdef"><b>Definition:</b> <a href="future__list_8h_source.html#l00121">future_list.h:121</a></div></div>
 <div class="ttc" id="aclasscoro_1_1all__of_html"><div class="ttname"><a href="classcoro_1_1all__of.html">coro::all_of</a></div><div class="ttdoc">this awaitable is resolved, when all objects specified by constructor are resolved</div><div class="ttdef"><b>Definition:</b> <a href="future__list_8h_source.html#l00106">future_list.h:106</a></div></div>
-<div class="ttc" id="aclasscoro_1_1any__of_html"><div class="ttname"><a href="classcoro_1_1any__of.html">coro::any_of</a></div><div class="ttdoc">Awaitable returns result of a first complete object.</div><div class="ttdef"><b>Definition:</b> <a href="future__list_8h_source.html#l00394">future_list.h:394</a></div></div>
+<div class="ttc" id="aclasscoro_1_1any__of_html"><div class="ttname"><a href="classcoro_1_1any__of.html">coro::any_of</a></div><div class="ttdoc">Awaitable returns result of a first complete object.</div><div class="ttdef"><b>Definition:</b> <a href="future__list_8h_source.html#l00396">future_list.h:396</a></div></div>
 <div class="ttc" id="aclasscoro_1_1async_html"><div class="ttname"><a href="classcoro_1_1async.html">coro::async</a></div><div class="ttdoc">COROUTINE: Coroutine for asynchronous operation.</div><div class="ttdef"><b>Definition:</b> <a href="async_8h_source.html#l00055">async.h:55</a></div></div>
 <div class="ttc" id="aclasscoro_1_1construct__using_html"><div class="ttname"><a href="classcoro_1_1construct__using.html">coro::construct_using</a></div><div class="ttdoc">Constructor for emplace.</div><div class="ttdef"><b>Definition:</b> <a href="construct_8h_source.html#l00020">construct.h:20</a></div></div>
 <div class="ttc" id="aclasscoro_1_1future_a1b648cf43f83b46ac3de0e4e868661e3_html_a1b648cf43f83b46ac3de0e4e868661e3"><div class="ttname"><a href="classcoro_1_1future_a1b648cf43f83b46ac3de0e4e868661e3.html#a1b648cf43f83b46ac3de0e4e868661e3">coro::future&lt; void &gt;::get_promise</a></div><div class="ttdeci">promise_t get_promise()</div><div class="ttdoc">Retrieve promise and begin evaluation.</div><div class="ttdef"><b>Definition:</b> <a href="future_8h_source.html#l00567">future.h:567</a></div></div>
 <div class="ttc" id="aclasscoro_1_1future_html"><div class="ttname"><a href="classcoro_1_1future.html">coro::future</a></div><div class="ttdoc">Contains future value of T, can be co_awaited in coroutine.</div><div class="ttdef"><b>Definition:</b> <a href="future_8h_source.html#l00417">future.h:417</a></div></div>
 <div class="ttc" id="aclasscoro_1_1pointer__wrapper_html"><div class="ttname"><a href="classcoro_1_1pointer__wrapper.html">coro::pointer_wrapper</a></div><div class="ttdoc">Wraps object into pointer.</div><div class="ttdef"><b>Definition:</b> <a href="future__list_8h_source.html#l00026">future_list.h:26</a></div></div>
 <div class="ttc" id="aclasscoro_1_1promise_html"><div class="ttname"><a href="classcoro_1_1promise.html">coro::promise&lt; void &gt;</a></div></div>
-<div class="ttc" id="aclasscoro_1_1task__list_a8277eae634e07ef2b0b30b87e977a70c_html_a8277eae634e07ef2b0b30b87e977a70c"><div class="ttname"><a href="classcoro_1_1task__list_a8277eae634e07ef2b0b30b87e977a70c.html#a8277eae634e07ef2b0b30b87e977a70c">coro::task_list::operator&gt;&gt;</a></div><div class="ttdeci">friend void operator&gt;&gt;(Fn &amp;&amp;fn, task_list &amp;lst)</div><div class="ttdoc">Redirect return value to the task list.</div><div class="ttdef"><b>Definition:</b> <a href="future__list_8h_source.html#l00465">future_list.h:465</a></div></div>
-<div class="ttc" id="aclasscoro_1_1task__list_aa53faee7e3c7ca67443e65161886dec3_html_aa53faee7e3c7ca67443e65161886dec3"><div class="ttname"><a href="classcoro_1_1task__list_aa53faee7e3c7ca67443e65161886dec3.html#aa53faee7e3c7ca67443e65161886dec3">coro::task_list::push_back</a></div><div class="ttdeci">requires std::constructible_from&lt; T, async&lt; X, Y &gt; &gt; void push_back(async&lt; X, Y &gt; x)</div><div class="ttdoc">Start async function and store result to the list (as last item)</div><div class="ttdef"><b>Definition:</b> <a href="future__list_8h_source.html#l00475">future_list.h:475</a></div></div>
-<div class="ttc" id="aclasscoro_1_1task__list_ab357fe830d1ce35483d4cdb792de6653_html_ab357fe830d1ce35483d4cdb792de6653"><div class="ttname"><a href="classcoro_1_1task__list_ab357fe830d1ce35483d4cdb792de6653.html#ab357fe830d1ce35483d4cdb792de6653">coro::task_list::push_front</a></div><div class="ttdeci">requires std::constructible_from&lt; T, async&lt; X, Y &gt; &gt; void push_front(async&lt; X, Y &gt; x)</div><div class="ttdoc">Start async function and store result to the list (as first item)</div><div class="ttdef"><b>Definition:</b> <a href="future__list_8h_source.html#l00480">future_list.h:480</a></div></div>
-<div class="ttc" id="aclasscoro_1_1task__list_ac360de4f2e610c4b199255fbd533f464_html_ac360de4f2e610c4b199255fbd533f464"><div class="ttname"><a href="classcoro_1_1task__list_ac360de4f2e610c4b199255fbd533f464.html#ac360de4f2e610c4b199255fbd533f464">coro::task_list::operator&lt;&lt;</a></div><div class="ttdeci">void operator&lt;&lt;(Fn &amp;&amp;fn)</div><div class="ttdoc">Redirect return value to the task list.</div><div class="ttdef"><b>Definition:</b> <a href="future__list_8h_source.html#l00450">future_list.h:450</a></div></div>
-<div class="ttc" id="aclasscoro_1_1task__list_html"><div class="ttname"><a href="classcoro_1_1task__list.html">coro::task_list</a></div><div class="ttdoc">helps to create task list: list of started task as list of futures</div><div class="ttdef"><b>Definition:</b> <a href="future__list_8h_source.html#l00436">future_list.h:436</a></div></div>
+<div class="ttc" id="aclasscoro_1_1task__list_a8277eae634e07ef2b0b30b87e977a70c_html_a8277eae634e07ef2b0b30b87e977a70c"><div class="ttname"><a href="classcoro_1_1task__list_a8277eae634e07ef2b0b30b87e977a70c.html#a8277eae634e07ef2b0b30b87e977a70c">coro::task_list::operator&gt;&gt;</a></div><div class="ttdeci">friend void operator&gt;&gt;(Fn &amp;&amp;fn, task_list &amp;lst)</div><div class="ttdoc">Redirect return value to the task list.</div><div class="ttdef"><b>Definition:</b> <a href="future__list_8h_source.html#l00467">future_list.h:467</a></div></div>
+<div class="ttc" id="aclasscoro_1_1task__list_aa53faee7e3c7ca67443e65161886dec3_html_aa53faee7e3c7ca67443e65161886dec3"><div class="ttname"><a href="classcoro_1_1task__list_aa53faee7e3c7ca67443e65161886dec3.html#aa53faee7e3c7ca67443e65161886dec3">coro::task_list::push_back</a></div><div class="ttdeci">requires std::constructible_from&lt; T, async&lt; X, Y &gt; &gt; void push_back(async&lt; X, Y &gt; x)</div><div class="ttdoc">Start async function and store result to the list (as last item)</div><div class="ttdef"><b>Definition:</b> <a href="future__list_8h_source.html#l00477">future_list.h:477</a></div></div>
+<div class="ttc" id="aclasscoro_1_1task__list_ab357fe830d1ce35483d4cdb792de6653_html_ab357fe830d1ce35483d4cdb792de6653"><div class="ttname"><a href="classcoro_1_1task__list_ab357fe830d1ce35483d4cdb792de6653.html#ab357fe830d1ce35483d4cdb792de6653">coro::task_list::push_front</a></div><div class="ttdeci">requires std::constructible_from&lt; T, async&lt; X, Y &gt; &gt; void push_front(async&lt; X, Y &gt; x)</div><div class="ttdoc">Start async function and store result to the list (as first item)</div><div class="ttdef"><b>Definition:</b> <a href="future__list_8h_source.html#l00482">future_list.h:482</a></div></div>
+<div class="ttc" id="aclasscoro_1_1task__list_ac360de4f2e610c4b199255fbd533f464_html_ac360de4f2e610c4b199255fbd533f464"><div class="ttname"><a href="classcoro_1_1task__list_ac360de4f2e610c4b199255fbd533f464.html#ac360de4f2e610c4b199255fbd533f464">coro::task_list::operator&lt;&lt;</a></div><div class="ttdeci">void operator&lt;&lt;(Fn &amp;&amp;fn)</div><div class="ttdoc">Redirect return value to the task list.</div><div class="ttdef"><b>Definition:</b> <a href="future__list_8h_source.html#l00452">future_list.h:452</a></div></div>
+<div class="ttc" id="aclasscoro_1_1task__list_html"><div class="ttname"><a href="classcoro_1_1task__list.html">coro::task_list</a></div><div class="ttdoc">helps to create task list: list of started task as list of futures</div><div class="ttdef"><b>Definition:</b> <a href="future__list_8h_source.html#l00438">future_list.h:438</a></div></div>
 <div class="ttc" id="aclasscoro_1_1when__each_1_1iterator_a033482dd36c10b2b81f6e0013598510f_html_a033482dd36c10b2b81f6e0013598510f"><div class="ttname"><a href="classcoro_1_1when__each_1_1iterator_a033482dd36c10b2b81f6e0013598510f.html#a033482dd36c10b2b81f6e0013598510f">coro::when_each::iterator::operator==</a></div><div class="ttdeci">bool operator==(const iterator &amp;other) const</div><div class="ttdoc">comparison</div><div class="ttdef"><b>Definition:</b> <a href="future__list_8h_source.html#l00233">future_list.h:233</a></div></div>
 <div class="ttc" id="aclasscoro_1_1when__each_1_1iterator_a09241159d2199e8a88d7e11f096be282_html_a09241159d2199e8a88d7e11f096be282"><div class="ttname"><a href="classcoro_1_1when__each_1_1iterator_a09241159d2199e8a88d7e11f096be282.html#a09241159d2199e8a88d7e11f096be282">coro::when_each::iterator::operator-</a></div><div class="ttdeci">std::ptrdiff_t operator-(const iterator &amp;other) const</div><div class="ttdoc">difference</div><div class="ttdef"><b>Definition:</b> <a href="future__list_8h_source.html#l00229">future_list.h:229</a></div></div>
 <div class="ttc" id="aclasscoro_1_1when__each_1_1iterator_a24279925d956fd99f7bd21e4bb963cdc_html_a24279925d956fd99f7bd21e4bb963cdc"><div class="ttname"><a href="classcoro_1_1when__each_1_1iterator_a24279925d956fd99f7bd21e4bb963cdc.html#a24279925d956fd99f7bd21e4bb963cdc">coro::when_each::iterator::operator++</a></div><div class="ttdeci">iterator operator++(int)</div><div class="ttdoc">go to next item</div><div class="ttdef"><b>Definition:</b> <a href="future__list_8h_source.html#l00219">future_list.h:219</a></div></div>
@@ -491,7 +493,7 @@ $(function() {
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Jun 3 2024 15:50:11 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+Generated on Tue Jun 4 2024 18:17:49 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
 </small></address>
 </body>
 </html>

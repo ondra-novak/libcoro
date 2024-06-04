@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.9.1"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>libcoro: LIBCORO_TRACE_SET_NAME</title>
+<title>libcoro: coro::trace::on_switch</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -72,49 +72,66 @@ $(function() {
    <td valign="top">
       <div class="navtab">
         <table>
-          <tr><td class="navtab"><a class="navtab" href="group__trace_ga7cdb318f19122dc16c7b91bddd67e22c.html#ga7cdb318f19122dc16c7b91bddd67e22c">LIBCORO_TRACE_AWAIT</a></td></tr>
-          <tr><td class="navtab"><a class="navtab" href="group__trace_gac8bd86c37cda46ea5964ab2af5105f5f.html#gac8bd86c37cda46ea5964ab2af5105f5f">LIBCORO_TRACE_AWAIT_ON</a></td></tr>
-          <tr><td class="navtab"><a class="navtab" href="group__trace_ga9f601713b4a8752d659eae0dede9a8db.html#ga9f601713b4a8752d659eae0dede9a8db">LIBCORO_TRACE_LINK</a></td></tr>
-          <tr><td class="navtab"><a class="navtab" href="group__trace_ga5103e03d2b10b6492155138cb059561e.html#ga5103e03d2b10b6492155138cb059561e">LIBCORO_TRACE_LOG</a></td></tr>
-          <tr><td class="navtab"><a class="navtab" href="group__trace_gaa42e32eed5df2bf38e3525cdcf9ab8c5.html#gaa42e32eed5df2bf38e3525cdcf9ab8c5">LIBCORO_TRACE_ON_CREATE</a></td></tr>
-          <tr><td class="navtab"><a class="navtab" href="group__trace_ga035c0b5f8fef2d2ee9d01da1cbf970f5.html#ga035c0b5f8fef2d2ee9d01da1cbf970f5">LIBCORO_TRACE_ON_DESTROY</a></td></tr>
-          <tr><td class="navtab"><a class="navtab" href="group__trace_gad10cffe48b8f29cd99addefdc8ea8e47.html#gad10cffe48b8f29cd99addefdc8ea8e47">LIBCORO_TRACE_ON_RESUME</a></td></tr>
-          <tr><td class="navtab"><a class="navtab" href="group__trace_ga662a8248e7420dcd2b63daa888a18cb2.html#ga662a8248e7420dcd2b63daa888a18cb2">LIBCORO_TRACE_ON_SWITCH</a></td></tr>
-          <tr><td class="navtab"><a class="navtab" href="group__trace_ga105649b9c7e4fad675ff72a5181ae392.html#ga105649b9c7e4fad675ff72a5181ae392">LIBCORO_TRACE_SEPARATOR</a></td></tr>
-          <tr><td class="navtab"><a class="navtab" href="group__trace_ga950534c33e564d427b61f384152a40a0.html#ga950534c33e564d427b61f384152a40a0">LIBCORO_TRACE_SET_CORO_TYPE</a></td></tr>
-          <tr><td class="navtabHL"><a class="navtab" href="group__trace_gaa8022d754fc7018646ba309ad3dbbce4.html#gaa8022d754fc7018646ba309ad3dbbce4">LIBCORO_TRACE_SET_NAME</a></td></tr>
-          <tr><td class="navtab"><a class="navtab" href="group__trace_gac738b2321b9e676fcd5dfae674bc2045.html#gac738b2321b9e676fcd5dfae674bc2045">LIBCORO_TRACE_YIELD</a></td></tr>
+          <tr><td class="navtab"><a class="navtab" href="group__trace_ga1cd9c5a04afbe61d2abd7caf0d0ee8e4.html#ga1cd9c5a04afbe61d2abd7caf0d0ee8e4">on_create</a></td></tr>
+          <tr><td class="navtab"><a class="navtab" href="group__trace_gaa751d93567856d7bd189f805eb15dc0a.html#gaa751d93567856d7bd189f805eb15dc0a">on_destroy</a></td></tr>
+          <tr><td class="navtabHL"><a class="navtab" href="group__trace_gaaba00d38afc2e8feed23b048e6e17d81.html#gaaba00d38afc2e8feed23b048e6e17d81">on_switch</a></td></tr>
+          <tr><td class="navtab"><a class="navtab" href="group__trace_gac117f650767add91a18777a4e7f41ceb.html#gac117f650767add91a18777a4e7f41ceb">on_switch</a></td></tr>
+          <tr><td class="navtab"><a class="navtab" href="group__trace_ga4a19ba3cf4502485e8f907e865eef940.html#ga4a19ba3cf4502485e8f907e865eef940">resume</a></td></tr>
         </table>
       </div>
    </td>
    <td valign="top" class="mempage">
-<a id="gaa8022d754fc7018646ba309ad3dbbce4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gaa8022d754fc7018646ba309ad3dbbce4">&#9670;&nbsp;</a></span>LIBCORO_TRACE_SET_NAME</h2>
+<a id="gaaba00d38afc2e8feed23b048e6e17d81"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaaba00d38afc2e8feed23b048e6e17d81">&#9670;&nbsp;</a></span>on_switch() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">#define LIBCORO_TRACE_SET_NAME</td>
+          <td class="memname">bool coro::trace::on_switch </td>
           <td>(</td>
-          <td class="paramtype">&#160;</td>
-          <td class="paramname"><em>...</em></td><td>)</td>
+          <td class="paramtype">std::coroutine_handle&lt;&gt;&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>suspend</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const void *&#160;</td>
+          <td class="paramname">&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 
-<p>Set coroutine name. </p>
-<p>Use macro at the beginning of coroutine to specify name and location of the coroutine</p>
+<p>Record switch (symmetric transfer) when boolean is returned from await_suspend. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">...</td><td>any count of arguments to report into the trace log. All argumnets must support stream operator &lt;&lt;. Useful to report coroutine's arguments</td></tr>
+    <tr><td class="paramname">from</td><td>coroutine being suspended </td></tr>
+    <tr><td class="paramname">suspend</td><td>true if coroutine is suspended false if continues</td></tr>
   </table>
   </dd>
 </dl>
 <dl class="section note"><dt>Note</dt><dd>requires LIBCORO_ENABLE_TRACE </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="trace_8h_source.html#l00337">337</a> of file <a class="el" href="trace_8h_source.html">trace.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="trace_8h_source.html#l00332">332</a> of file <a class="el" href="trace_8h_source.html">trace.h</a>.</p>
 
 </div>
 </div>
@@ -124,7 +141,7 @@ $(function() {
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Jun 3 2024 15:50:11 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+Generated on Tue Jun 4 2024 18:17:49 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
 </small></address>
 </body>
 </html>
