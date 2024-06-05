@@ -121,9 +121,9 @@ $(function() {
 <div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;<span class="preprocessor">            #ifdef LIBCORO_MSC_FAILED_SYMMETRIC_TRANSFER</span></div>
 <div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;            <span class="keywordtype">void</span> await_suspend(std::coroutine_handle&lt;promise_type&gt; h) <span class="keyword">const</span> noexcept {</div>
 <div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;                promise_type &amp;<span class="keyword">self</span> = h.promise();</div>
-<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;                std::coroutine_handle&lt;&gt; retval = <span class="keyword">self</span>.set_resolved().symmetric_transfer();</div>
+<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;                std::coroutine_handle&lt;&gt; retval = <a class="code" href="group__trace_gac117f650767add91a18777a4e7f41ceb.html#gac117f650767add91a18777a4e7f41ceb">trace::on_switch</a>(h,<span class="keyword">self</span>.set_resolved().symmetric_transfer(),{});</div>
 <div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160;                h.destroy();</div>
-<div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160;                <span class="keywordflow">return</span> <a class="code" href="group__trace_ga4a19ba3cf4502485e8f907e865eef940.html#ga4a19ba3cf4502485e8f907e865eef940">trace::resume</a>(retval);</div>
+<div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160;                retval.resume();</div>
 <div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160;            }</div>
 <div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160;<span class="preprocessor">            #else</span></div>
 <div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;            std::coroutine_handle&lt;&gt;  await_suspend(std::coroutine_handle&lt;promise_type&gt; h) <span class="keyword">const</span> noexcept {</div>
@@ -287,13 +287,12 @@ $(function() {
 <div class="ttc" id="aclasscoro_1_1promise_html"><div class="ttname"><a href="classcoro_1_1promise.html">coro::promise</a></div><div class="ttdoc">Carries reference to future&lt;T&gt;, callable, sets value of an associated future&lt;T&gt;</div><div class="ttdef"><b>Definition:</b> <a href="future_8h_source.html#l00073">future.h:73</a></div></div>
 <div class="ttc" id="aclasscoro_1_1shared__future_html"><div class="ttname"><a href="classcoro_1_1shared__future.html">coro::shared_future</a></div><div class="ttdoc">Future which can be shared (by copying - like shared_ptr)</div><div class="ttdef"><b>Definition:</b> <a href="future_8h_source.html#l01399">future.h:1399</a></div></div>
 <div class="ttc" id="acommon_8h_html"><div class="ttname"><a href="common_8h.html">common.h</a></div></div>
-<div class="ttc" id="agroup__trace_ga4a19ba3cf4502485e8f907e865eef940_html_ga4a19ba3cf4502485e8f907e865eef940"><div class="ttname"><a href="group__trace_ga4a19ba3cf4502485e8f907e865eef940.html#ga4a19ba3cf4502485e8f907e865eef940">coro::trace::resume</a></div><div class="ttdeci">void resume(std::coroutine_handle&lt;&gt; h) noexcept</div><div class="ttdoc">Record resumption of an coroutine.</div><div class="ttdef"><b>Definition:</b> <a href="trace_8h_source.html#l00311">trace.h:311</a></div></div>
-<div class="ttc" id="agroup__trace_gac117f650767add91a18777a4e7f41ceb_html_gac117f650767add91a18777a4e7f41ceb"><div class="ttname"><a href="group__trace_gac117f650767add91a18777a4e7f41ceb.html#gac117f650767add91a18777a4e7f41ceb">coro::trace::on_switch</a></div><div class="ttdeci">std::coroutine_handle on_switch(std::coroutine_handle&lt;&gt;, std::coroutine_handle&lt;&gt; to, const void *)</div><div class="ttdoc">Record switch (symmetric transfer) from one coroutine to other.</div><div class="ttdef"><b>Definition:</b> <a href="trace_8h_source.html#l00322">trace.h:322</a></div></div>
+<div class="ttc" id="agroup__trace_gac117f650767add91a18777a4e7f41ceb_html_gac117f650767add91a18777a4e7f41ceb"><div class="ttname"><a href="group__trace_gac117f650767add91a18777a4e7f41ceb.html#gac117f650767add91a18777a4e7f41ceb">coro::trace::on_switch</a></div><div class="ttdeci">std::coroutine_handle on_switch(std::coroutine_handle&lt;&gt;, std::coroutine_handle&lt;&gt; to, const void *)</div><div class="ttdoc">Record switch (symmetric transfer) from one coroutine to other.</div><div class="ttdef"><b>Definition:</b> <a href="trace_8h_source.html#l00361">trace.h:361</a></div></div>
 <div class="ttc" id="anamespacecoro_html"><div class="ttname"><a href="namespacecoro.html">coro</a></div><div class="ttdoc">main namespace</div><div class="ttdef"><b>Definition:</b> <a href="aggregator_8h_source.html#l00008">aggregator.h:8</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Jun 4 2024 18:17:49 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+Generated on Wed Jun 5 2024 19:35:49 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
 </small></address>
 </body>
 </html>
