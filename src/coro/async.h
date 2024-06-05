@@ -101,9 +101,9 @@ public:
             #ifdef LIBCORO_MSC_FAILED_SYMMETRIC_TRANSFER
             void await_suspend(std::coroutine_handle<promise_type> h) const noexcept {
                 promise_type &self = h.promise();
-                std::coroutine_handle<> retval = self.set_resolved().symmetric_transfer();
+                std::coroutine_handle<> retval = trace::on_switch(h,self.set_resolved().symmetric_transfer(),{});
                 h.destroy();
-                return trace::resume(retval);
+                retval.resume();
             }
             #else
             std::coroutine_handle<>  await_suspend(std::coroutine_handle<promise_type> h) const noexcept {

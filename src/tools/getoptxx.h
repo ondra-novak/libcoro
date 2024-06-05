@@ -53,7 +53,7 @@ int operator()(int nargc, char * const nargv[], const char *ostr)
         ++optind;
       if (opterr && *ostr != ':') {
           errmsg = "illegal option -- ";
-          errmsg.push_back(optopt);
+          errmsg.push_back(static_cast<char>(optopt));
       }
       return (BADCH);
   }
@@ -71,7 +71,7 @@ int operator()(int nargc, char * const nargv[], const char *ostr)
         return (BADARG);
       if (opterr) {
           errmsg = "option requires an argument --  ";
-          errmsg.push_back(optopt);
+          errmsg.push_back(static_cast<char>(optopt));
       }
       return (BADCH);
     }

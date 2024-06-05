@@ -21,7 +21,9 @@
 #include <numeric>
 #include <cstdlib>
 
+#ifndef _WIN32
 #include <cxxabi.h>
+#endif
 
 
 #include <algorithm>
@@ -311,6 +313,7 @@ std::string sanitise_for_line(std::string s) {
     std::string out;
     for (char c: s) {
         if (c == '\n') out.append("\\n");
+        else if (c == '\\') out.append("/");
         else if (c == '"') out.append("\"");
         else if (c >= 0 && c < 32) out.push_back('.');
         else out.push_back(c);
@@ -322,20 +325,47 @@ std::string sanitise_for_multiline(std::string s) {
     std::string out;
     for (char c: s) {
         if ((c >= 0 && c < 32) && c != '\n') out.push_back('.');
+        else if (c == '/') out.push_back('/');
         else out.push_back(c);
     }
     return out;
 }
 
+class parse_number {
+public:
+    parse_number(std::string_view txt, unsigned int base):_txt(txt),_base(base),_error(nullptr) {}
+    parse_number(std::string_view txt, unsigned int base, std::errc &err):_txt(txt),_base(base),_error(&err) {}
+
+    template<typename T>
+    operator T() {
+        T ret;
+        auto [ptr, erc] = std::from_chars(_txt.data(), _txt.data()+_txt.size(), ret, _base);
+        if (_error) *_error =  erc;
+        _txt = _txt.substr(ptr - _txt.data());
+        return ret;
+    }
+
+
+protected:
+    std::string_view _txt;
+    unsigned int _base;
+    std::errc *_error;
+};
 
 
 std::uintptr_t App::parse_address(std::string_view id) {
+#ifdef _WIN32
+        std::errc err;
+        std::uintptr_t n = parse_number(id, 16, err);
+        if (err == std::errc()) return n;
+#else
     if (id.substr(0,2) == "0x")  {
         id = id.substr(2);
-        std::uintptr_t n;
-        auto [ptr, err] = std::from_chars(id.begin(), id. end(), n, 16);
+        std::errc err;
+        std::uintptr_t n = parse_number(id, 16, err);
         if (err == std::errc()) return n;
     }
+#endif
     std::string errmsg = "Character sequence `";
     errmsg.append(id);
     errmsg.append("` is not a valid address");
@@ -353,8 +383,8 @@ const coro_ident App::find_coro_by_address(std::string_view id) {
 inline bool App::parse_line(std::istream &f, std::vector<std::string_view> &parts) {
     std::getline(f,b1);
     if (b1.empty()) return false;
-    auto sep = b1.find(coro::trace::separator);
-    auto psep = 0;
+    std::size_t sep = b1.find(coro::trace::separator);
+    std::size_t psep = 0;
 
     parts.clear();
     while (sep != b1.npos) {
@@ -393,8 +423,8 @@ inline void App::parse(std::istream &f) {
         while (parse_line(f, parts)) {
 
             relation_t rel;
-
-            auto [ptr, ec] = std::from_chars(parts[0].begin(), parts[1].end(), rel._thread, 10);
+            std::errc ec;
+            rel._thread = parse_number(parts[0], 10, ec);
             if (ec != std::errc()) {
                 throw 0;
             }
@@ -410,9 +440,8 @@ inline void App::parse(std::istream &f) {
                     continue;
                 case type::create:
                     rel._coro = get_active_coro(rel._thread);
-                    {
-                        std::size_t sz;
-                        auto [ptr, ec] = std::from_chars(parts[3].begin(), parts[3].end(), sz, 10);
+                    {                        
+                        std::size_t sz = parse_number(parts[3], 10, ec);
                         if (ec != std::errc()) {
                             throw 3;
                         }
@@ -492,15 +521,14 @@ inline void App::parse(std::istream &f) {
                 case type::sym_switch:
                     ensure_active_coro(rel._thread, introduce_coro(parts.at(2)));
                     if (parts.size() == 7) {
-                        unsigned int ln;
-                        auto [_, err] = std::from_chars(parts.at(5).begin(), parts.at(5).end(),ln,10);
-                        if (err != std::errc()) throw 6;
+                        unsigned int ln = parse_number(parts.at(5), 10, ec);
+                        if (ec != std::errc()) throw 6;
                         set_name(introduce_coro(parts.at(2)), parts.at(4), ln, parts.at(6));
                         rel._file = parts.at(4);
                         rel._line = ln;
                     }
                     rel._coro = get_active_coro(rel._thread);
-                    if (parts.at(3) == "0") {
+                    if (static_cast<std::uintptr_t>(parse_number(parts.at(3),16)) == 0) {
                         if (suspend_expected(rel._thread)) {
                             remove_stack_level(rel._thread, true);
                             if (!_relations.empty()
@@ -542,10 +570,9 @@ inline void App::parse(std::istream &f) {
                     rel._rel_type = rel_yield{demangle(std::string(parts.at(3)))};
                     break;
                 case type::link: {
-                    std::size_t proxy_size; {
-                        auto [_, ec] = std::from_chars(parts.at(4).begin(), parts.at(4).end(), proxy_size,10);
-                        if (ec != std::errc()) throw 4;
-                    }
+                    std::size_t proxy_size = parse_number(parts.at(4), 10, ec);
+                    if (ec != std::errc()) throw 4;
+
                     auto to_coro = find_coro_by_address(parts.at(3));
 
                     if (proxy_size) {
@@ -681,17 +708,21 @@ inline void App::mark_destroyed(coro_ident id) {
 }
 
 inline std::string App::demangle(const std::string &txt) {
-    std::string out;
-    std::size_t len = 0;
-    int status = 0;
-    char *c =  abi::__cxa_demangle(txt.data(), nullptr, &len, &status);
-    if (status == 0) {
-        out.append(c);
-        std::free(c);
-    } else {
-        out = txt;
-    }
-    return out;
+    #ifdef _WIN32
+        return txt; //no demangling is needed
+    #else
+        std::string out;
+        std::size_t len = 0;
+        int status = 0;
+        char *c =  abi::__cxa_demangle(txt.data(), nullptr, &len, &status);
+        if (status == 0) {
+            out.append(c);
+            std::free(c);
+        } else {
+            out = txt;
+        }
+        return out;
+    #endif
 }
 
 
@@ -798,7 +829,7 @@ void App::export_uml(std::ostream &out, unsigned int label_size) {
     for (auto &r: _relations) {
 
         if (r.has_location()) {
-            add_note(r._coro, std::string(strip_path(r._file,label_size)) + ":" + std::to_string(r._line));
+            add_note(r._coro, sanitise_for_line(std::string(strip_path(r._file,label_size)) + ":" + std::to_string(r._line)));
         }
 
 
@@ -844,7 +875,7 @@ void App::export_uml(std::ostream &out, unsigned int label_size) {
               } else if constexpr(std::is_same_v<T, rel_end_loop>) {
                   out << "end\n";
               } else if constexpr(std::is_same_v<T, rel_yield>) {
-                  out << "hnote over " << node_name(r._thread, r._coro) << ": **co_yield** " << short_label_size_template(rel._type, label_size) << "\n";
+                  out << "hnote over " << node_name(r._thread, r._coro) << ": **co_yield**\\n" << short_label_size_template(rel._type, label_size) << "\n";
               } else if constexpr(std::is_same_v<T, rel_suspend>) {
                   out << node_name(r._thread, rel._target) << "<-" << node_name(r._thread, r._coro) << ": suspend\n";
                   out << "deactivate " << node_name(r._thread, r._coro) << "\n";
@@ -860,7 +891,7 @@ void App::export_uml(std::ostream &out, unsigned int label_size) {
                   out << "hnote over " << node_name(r._thread, r._coro) << ": **co_await**\\n" << sanitise_for_line(wordwrap(rel._type, label_size)) << "\n";
                   //add_note(r._coro,"**co_await**\\n" + sanitise_for_line(wordwrap(rel._type, label_size)));
               } else if constexpr(std::is_same_v<T, rel_switch>) {
-                  out << node_name(r._thread, r._coro) << "->" << node_name(r._thread, rel._target) << " --++ \n";
+                  out << node_name(r._thread, r._coro) << "->" << node_name(r._thread, rel._target) << " --++ : switch \n";
                   flush_note(r._coro);
               } else if constexpr(std::is_same_v<T, rel_link>) {
                   add_link(rel._target, r._coro);
@@ -1108,7 +1139,7 @@ bool App::detect_loop_cycle() {
                 auto iter_end = iter;
                 std::advance(iter_end,(count-1)*len);
                 std::advance(iter,1);
-                _relations.erase(iter, iter_end);
+                iter = _relations.erase(iter, iter_end);
                 std::advance(iter,len);
                 _relations.insert(iter,relation_t{
                     0,{},rel_end_loop{count}
@@ -1122,7 +1153,7 @@ bool App::detect_loop_cycle() {
 }
 
 void print_help() {
-    std::cerr << "Usage: program [-ah] [-ss count] [-f <file>] [-n count] [-o <file>]\n"
+    std::cerr << "Usage: program [-ah][-b count][-n count][-f <file>][-o <file>][-s <sect>][-x <id>][-i <id>]\n"
             << "  -f <file> input file name (default stdin)\n"
             << "  -o <file> output file name (default stdout)\n"
             << "  -a        all coroutines (include finished)\n"
@@ -1247,7 +1278,7 @@ int main(int argc, char *argv[]) {
     } else {
         std::ofstream f(output_file, std::ios::trunc);
         if (!f) {
-            std::cerr << "Failed to open: " << argv[1] << std::endl;
+            std::cerr << "Failed to open: " << output_file << std::endl;
             return 1;
         }
         app.export_uml(f, label_size);

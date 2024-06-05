@@ -12,6 +12,13 @@
 #include <typeinfo>
 #include <thread>
 
+#ifdef _WIN32
+extern "C" {
+unsigned long __stdcall GetCurrentThreadId();
+unsigned long __stdcall GetModuleFileNameA(void *, char *, unsigned long);
+}
+#endif
+
 namespace coro {
 
 namespace trace {
@@ -40,10 +47,17 @@ public:
 
 
     static std::string get_file_name() {
-        std::filesystem::path exe_path = std::filesystem::read_symlink("/proc/self/exe");
-        std::string exe_name = exe_path.stem().string();
-        std::string trace_filename = exe_name + ".corotrace";
-        return trace_filename;
+        #ifdef _WIN32
+            char szFileName[1024];
+            GetModuleFileNameA(NULL, szFileName, sizeof(szFileName));        
+            std::filesystem::path exe_path = szFileName;
+
+        #else
+            std::filesystem::path exe_path = std::filesystem::read_symlink("/proc/self/exe");
+        #endif
+            std::string exe_name = exe_path.stem().string();
+            std::string trace_filename = exe_name + ".corotrace";
+            return trace_filename;
     }
 
 
@@ -68,8 +82,13 @@ public:
     std::ostream &header(record_type rt) {
         auto &f = stream();
         if (_state.is_new) {
+#ifdef _WIN32
+            auto tid = GetCurrentThreadId();
+#else
+            auto tid = gettid();
+#endif
             f << _state.id << separator << static_cast<char>(record_type::thread) << separator
-                        << gettid() << std::endl;
+                        << tid << std::endl;
             _state.is_new = false;
         }
         f  << _state.id << separator << static_cast<char>(rt) << separator;
@@ -77,18 +96,33 @@ public:
 
     }
 
+    struct pointer: std::string_view {
+        static constexpr std::string_view letters = "0123456789ABCDEF";
+        pointer(const void *p): std::string_view(_txt, sizeof(_txt)) {
+            std::uintptr_t val = std::bit_cast<std::uintptr_t>(p);
+            
+            for (unsigned int i = 0; i < sizeof(_txt);++i) {
+                _txt[sizeof(_txt)-i-1] = letters[val & 0xF];
+                val >>= 4;
+            }
+        }
+
+        char _txt[sizeof(std::uintptr_t)*2];
+
+    };
+
     void on_create(const void *ptr, std::size_t size) {
         std::lock_guard _(_mx);
-        header(record_type::create) << ptr << separator << size << std::endl;
+        header(record_type::create) << pointer(ptr) << separator << size << std::endl;
         _foutput.flush();
     }
     void on_destroy(const void *ptr) {
         std::lock_guard _(_mx);
-        header(record_type::destroy) << ptr << std::endl;
+        header(record_type::destroy) << pointer(ptr) << std::endl;
     }
     void on_resume_enter(const void *ptr) {
         std::lock_guard _(_mx);
-        header(record_type::resume_enter) << ptr << std::endl;
+        header(record_type::resume_enter) << pointer(ptr) << std::endl;
     }
     void on_resume_exit() {
         std::lock_guard _(_mx);
@@ -98,28 +132,28 @@ public:
         std::lock_guard _(_mx);
         if (to == std::noop_coroutine().address()) to = nullptr;
         auto &f = header(record_type::sym_switch);
-        f << from << separator << to;
+        f << pointer(from) << separator << pointer(to);
         if (loc) f << separator << loc->file_name() << separator << loc->line() << separator << loc->function_name();
         f << std::endl;
     }
     void on_await_on(const void *coro, const void *on, const char *awt_name) {
         std::lock_guard _(_mx);
-        header(record_type::awaits_on) << coro << separator << awt_name << separator << on << std::endl;
+        header(record_type::awaits_on) << pointer(coro) << separator << awt_name << separator << pointer(on) << std::endl;
     }
     template<typename Arg>
     void on_yield(const void *coro, Arg &) {
         std::lock_guard _(_mx);
-        header(record_type::yield) << coro << separator << typeid(Arg).name() << std::endl;
+        header(record_type::yield) << pointer(coro) << separator << typeid(Arg).name() << std::endl;
     }
 
     void set_coroutine_type(const void *ptr, const char *type) {
         std::lock_guard _(_mx);
-        header(record_type::coroutine_type) << ptr << separator << type << std::endl;
+        header(record_type::coroutine_type) << pointer(ptr) << separator << type << std::endl;
     }
 
     void on_link(const void *from, const void *to, std::size_t object_size) {
         std::lock_guard _(_mx);
-        header(record_type::link) << from << separator << to << separator << object_size << std::endl;
+        header(record_type::link) << pointer(from) << separator << pointer(to) << separator << object_size << std::endl;
     }
 
     void hline(std::string_view text) {
@@ -138,6 +172,11 @@ public:
 
     static impl _instance;
     static thread_local thread_state _state;
+
+    ~impl() {
+        _mx.lock(); 
+        _mx.unlock();       //Windows complains when race condition
+    }
 
 protected:
     std::ofstream _foutput;
