@@ -112,7 +112,7 @@ $(function() {
 <div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;    proxy = <span class="charliteral">&#39;p&#39;</span>,</div>
 <div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;};</div>
 <div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160; </div>
-<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;<span class="keyword">inline</span> constexpr <span class="keywordtype">char</span> separator = <span class="charliteral">&#39;|&#39;</span>;</div>
+<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;<span class="keyword">inline</span> constexpr <span class="keywordtype">char</span> separator = <span class="charliteral">&#39;\t&#39;</span>;</div>
 <div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160; </div>
 <div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160; </div>
 <div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;<span class="keyword">class </span>impl {</div>
@@ -122,7 +122,7 @@ $(function() {
 <div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;    <span class="keyword">static</span> std::string get_file_name() {</div>
 <div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;<span class="preprocessor">        #ifdef _WIN32</span></div>
 <div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;            <span class="keywordtype">char</span> szFileName[1024];</div>
-<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;            GetModuleFileNameA(NULL, szFileName, <span class="keyword">sizeof</span>(szFileName));        </div>
+<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;            GetModuleFileNameA(NULL, szFileName, <span class="keyword">sizeof</span>(szFileName));</div>
 <div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;            std::filesystem::path exe_path = szFileName;</div>
 <div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160; </div>
 <div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;<span class="preprocessor">        #else</span></div>
@@ -173,7 +173,7 @@ $(function() {
 <div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;        <span class="keyword">static</span> constexpr std::string_view letters = <span class="stringliteral">&quot;0123456789ABCDEF&quot;</span>;</div>
 <div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;        pointer(<span class="keyword">const</span> <span class="keywordtype">void</span> *p): std::string_view(_txt, sizeof(_txt)) {</div>
 <div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;            std::uintptr_t val = std::bit_cast&lt;std::uintptr_t&gt;(p);</div>
-<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;            </div>
+<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160; </div>
 <div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;            <span class="keywordflow">for</span> (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i = 0; i &lt; <span class="keyword">sizeof</span>(_txt);++i) {</div>
 <div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160;                _txt[<span class="keyword">sizeof</span>(_txt)-i-1] = letters[val &amp; 0xF];</div>
 <div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160;                val &gt;&gt;= 4;</div>
@@ -247,7 +247,7 @@ $(function() {
 <div class="line"><a name="l00174"></a><span class="lineno">  174</span>&#160;    <span class="keyword">static</span> thread_local thread_state _state;</div>
 <div class="line"><a name="l00175"></a><span class="lineno">  175</span>&#160; </div>
 <div class="line"><a name="l00176"></a><span class="lineno">  176</span>&#160;    ~impl() {</div>
-<div class="line"><a name="l00177"></a><span class="lineno">  177</span>&#160;        _mx.lock(); </div>
+<div class="line"><a name="l00177"></a><span class="lineno">  177</span>&#160;        _mx.lock();</div>
 <div class="line"><a name="l00178"></a><span class="lineno">  178</span>&#160;        _mx.unlock();       <span class="comment">//Windows complains when race condition</span></div>
 <div class="line"><a name="l00179"></a><span class="lineno">  179</span>&#160;    }</div>
 <div class="line"><a name="l00180"></a><span class="lineno">  180</span>&#160; </div>
@@ -342,16 +342,16 @@ $(function() {
 <div class="line"><a name="l00269"></a><span class="lineno">  269</span>&#160;    h.resume();</div>
 <div class="line"><a name="l00270"></a><span class="lineno">  270</span>&#160;    impl::_instance.on_resume_exit();</div>
 <div class="line"><a name="l00271"></a><span class="lineno">  271</span>&#160;}</div>
-<div class="line"><a name="l00272"></a><span class="lineno">  272</span>&#160;<span class="keyword">inline</span> std::coroutine_handle&lt;&gt; <a class="code" href="group__trace_gaaba00d38afc2e8feed23b048e6e17d81.html#gaaba00d38afc2e8feed23b048e6e17d81">on_switch</a>(std::coroutine_handle&lt;&gt; from, std::coroutine_handle&lt;&gt; to, <span class="keyword">const</span> std::source_location *loc) {</div>
+<div class="line"><a name="l00272"></a><span class="lineno">  272</span>&#160;<span class="keyword">inline</span> std::coroutine_handle&lt;&gt; <a class="code" href="group__trace_gaaba00d38afc2e8feed23b048e6e17d81.html#gaaba00d38afc2e8feed23b048e6e17d81">on_switch</a>(std::coroutine_handle&lt;&gt; from, std::coroutine_handle&lt;&gt; to, <span class="keyword">const</span> std::source_location *loc = <span class="keyword">nullptr</span>) {</div>
 <div class="line"><a name="l00273"></a><span class="lineno">  273</span>&#160;    impl::_instance.on_switch(from.address(), to.address(), loc);</div>
 <div class="line"><a name="l00274"></a><span class="lineno">  274</span>&#160;    <span class="keywordflow">return</span> to;</div>
 <div class="line"><a name="l00275"></a><span class="lineno">  275</span>&#160;}</div>
 <div class="line"><a name="l00276"></a><span class="lineno">  276</span>&#160; </div>
-<div class="line"><a name="l00277"></a><span class="lineno">  277</span>&#160;<span class="keyword">inline</span> <span class="keywordtype">bool</span> <a class="code" href="group__trace_gaaba00d38afc2e8feed23b048e6e17d81.html#gaaba00d38afc2e8feed23b048e6e17d81">on_switch</a>(std::coroutine_handle&lt;&gt; from, <span class="keywordtype">bool</span> suspend, <span class="keyword">const</span> std::source_location *loc) {</div>
+<div class="line"><a name="l00277"></a><span class="lineno">  277</span>&#160;<span class="keyword">inline</span> <span class="keywordtype">bool</span> <a class="code" href="group__trace_gaaba00d38afc2e8feed23b048e6e17d81.html#gaaba00d38afc2e8feed23b048e6e17d81">on_switch</a>(std::coroutine_handle&lt;&gt; from, <span class="keywordtype">bool</span> suspend, <span class="keyword">const</span> std::source_location *loc = <span class="keyword">nullptr</span>) {</div>
 <div class="line"><a name="l00278"></a><span class="lineno">  278</span>&#160;    <span class="keywordflow">if</span> (suspend) impl::_instance.on_switch(from.address(), <span class="keyword">nullptr</span>, loc);</div>
 <div class="line"><a name="l00279"></a><span class="lineno">  279</span>&#160;    <span class="keywordflow">return</span> suspend;</div>
 <div class="line"><a name="l00280"></a><span class="lineno">  280</span>&#160;}</div>
-<div class="line"><a name="l00281"></a><span class="lineno">  281</span>&#160;<span class="keyword">inline</span> <span class="keywordtype">void</span> on_suspend(std::coroutine_handle&lt;&gt; from, <span class="keyword">const</span> std::source_location *loc) {</div>
+<div class="line"><a name="l00281"></a><span class="lineno">  281</span>&#160;<span class="keyword">inline</span> <span class="keywordtype">void</span> on_suspend(std::coroutine_handle&lt;&gt; from, <span class="keyword">const</span> std::source_location *loc = <span class="keyword">nullptr</span>) {</div>
 <div class="line"><a name="l00282"></a><span class="lineno">  282</span>&#160;    impl::_instance.on_switch(from.address(), <span class="keyword">nullptr</span>,  loc);</div>
 <div class="line"><a name="l00283"></a><span class="lineno">  283</span>&#160;}</div>
 <div class="line"><a name="l00284"></a><span class="lineno">  284</span>&#160; </div>
@@ -370,10 +370,10 @@ $(function() {
 <div class="line"><a name="l00297"></a><span class="lineno">  297</span>&#160;<span class="keyword">inline</span> <span class="keywordtype">void</span> log(<span class="keyword">const</span> Args &amp; ... args) {impl::_instance.user_report(args...);}</div>
 <div class="line"><a name="l00298"></a><span class="lineno">  298</span>&#160; </div>
 <div class="line"><a name="l00299"></a><span class="lineno">  299</span>&#160; </div>
-<div class="line"><a name="l00300"></a><span class="lineno">  300</span>&#160;<span class="keyword">inline</span> <span class="keywordtype">void</span> on_link(<span class="keyword">const</span> <span class="keywordtype">void</span> *from, <span class="keyword">const</span> <span class="keywordtype">void</span> *to, std::size_t object_size = 0) {impl::_instance.on_link(from, to, object_size);}</div>
-<div class="line"><a name="l00301"></a><span class="lineno">  301</span>&#160;<span class="keyword">inline</span> <span class="keywordtype">void</span> on_link(std::coroutine_handle&lt;&gt; from, <span class="keyword">const</span> <span class="keywordtype">void</span> *to, std::size_t object_size = 0)  {impl::_instance.on_link(from.address(), to, object_size);}</div>
-<div class="line"><a name="l00302"></a><span class="lineno">  302</span>&#160;<span class="keyword">inline</span> <span class="keywordtype">void</span> on_link(<span class="keyword">const</span> <span class="keywordtype">void</span> *from, std::coroutine_handle&lt;&gt; to, std::size_t object_size = 0) {impl::_instance.on_link(from, to.address(), object_size);}</div>
-<div class="line"><a name="l00303"></a><span class="lineno">  303</span>&#160;<span class="keyword">inline</span> <span class="keywordtype">void</span> on_link(std::coroutine_handle&lt;&gt; from, std::coroutine_handle&lt;&gt; to, std::size_t object_size = 0) {impl::_instance.on_link(from.address(), to.address(), object_size);}</div>
+<div class="line"><a name="l00300"></a><span class="lineno">  300</span>&#160;<span class="keyword">inline</span> <span class="keywordtype">void</span> add_link(<span class="keyword">const</span> <span class="keywordtype">void</span> *from, <span class="keyword">const</span> <span class="keywordtype">void</span> *to, std::size_t object_size = 0) {impl::_instance.on_link(from, to, object_size);}</div>
+<div class="line"><a name="l00301"></a><span class="lineno">  301</span>&#160;<span class="keyword">inline</span> <span class="keywordtype">void</span> add_link(std::coroutine_handle&lt;&gt; from, <span class="keyword">const</span> <span class="keywordtype">void</span> *to, std::size_t object_size = 0)  {impl::_instance.on_link(from.address(), to, object_size);}</div>
+<div class="line"><a name="l00302"></a><span class="lineno">  302</span>&#160;<span class="keyword">inline</span> <span class="keywordtype">void</span> add_link(<span class="keyword">const</span> <span class="keywordtype">void</span> *from, std::coroutine_handle&lt;&gt; to, std::size_t object_size = 0) {impl::_instance.on_link(from, to.address(), object_size);}</div>
+<div class="line"><a name="l00303"></a><span class="lineno">  303</span>&#160;<span class="keyword">inline</span> <span class="keywordtype">void</span> add_link(std::coroutine_handle&lt;&gt; from, std::coroutine_handle&lt;&gt; to, std::size_t object_size = 0) {impl::_instance.on_link(from.address(), to.address(), object_size);}</div>
 <div class="line"><a name="l00304"></a><span class="lineno">  304</span>&#160; </div>
 <div class="line"><a name="l00305"></a><span class="lineno">  305</span>&#160; </div>
 <div class="line"><a name="l00306"></a><span class="lineno">  306</span>&#160;<span class="keyword">inline</span> <span class="keywordtype">void</span> section(std::string_view text) {::coro::trace::impl::_instance.hline(text);}</div>
@@ -415,10 +415,10 @@ $(function() {
 <div class="line"><a name="l00382"></a><span class="lineno">  382</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> ... Args&gt;</div>
 <div class="line"><a name="l00383"></a><span class="lineno">  383</span>&#160;    <span class="keyword">inline</span> <span class="keywordtype">void</span> log(<span class="keyword">const</span> Args &amp; ... ) {}</div>
 <div class="line"><a name="l00384"></a><span class="lineno">  384</span>&#160; </div>
-<div class="line"><a name="l00385"></a><span class="lineno">  385</span>&#160;    <span class="keyword">inline</span> <span class="keywordtype">void</span> on_link(<span class="keyword">const</span> <span class="keywordtype">void</span> *, <span class="keyword">const</span> <span class="keywordtype">void</span> *, std::size_t = 0) {}</div>
-<div class="line"><a name="l00386"></a><span class="lineno">  386</span>&#160;    <span class="keyword">inline</span> <span class="keywordtype">void</span> on_link(std::coroutine_handle&lt;&gt; , <span class="keyword">const</span> <span class="keywordtype">void</span> *, std::size_t = 0)  {}</div>
-<div class="line"><a name="l00387"></a><span class="lineno">  387</span>&#160;    <span class="keyword">inline</span> <span class="keywordtype">void</span> on_link(<span class="keyword">const</span> <span class="keywordtype">void</span> *, std::coroutine_handle&lt;&gt; , std::size_t = 0) {}</div>
-<div class="line"><a name="l00388"></a><span class="lineno">  388</span>&#160;    <span class="keyword">inline</span> <span class="keywordtype">void</span> on_link(std::coroutine_handle&lt;&gt; , std::coroutine_handle&lt;&gt; , std::size_t = 0) {}</div>
+<div class="line"><a name="l00385"></a><span class="lineno">  385</span>&#160;    <span class="keyword">inline</span> <span class="keywordtype">void</span> add_link(<span class="keyword">const</span> <span class="keywordtype">void</span> *, <span class="keyword">const</span> <span class="keywordtype">void</span> *, std::size_t = 0) {}</div>
+<div class="line"><a name="l00386"></a><span class="lineno">  386</span>&#160;    <span class="keyword">inline</span> <span class="keywordtype">void</span> add_link(std::coroutine_handle&lt;&gt; , <span class="keyword">const</span> <span class="keywordtype">void</span> *, std::size_t = 0)  {}</div>
+<div class="line"><a name="l00387"></a><span class="lineno">  387</span>&#160;    <span class="keyword">inline</span> <span class="keywordtype">void</span> add_link(<span class="keyword">const</span> <span class="keywordtype">void</span> *, std::coroutine_handle&lt;&gt; , std::size_t = 0) {}</div>
+<div class="line"><a name="l00388"></a><span class="lineno">  388</span>&#160;    <span class="keyword">inline</span> <span class="keywordtype">void</span> add_link(std::coroutine_handle&lt;&gt; , std::coroutine_handle&lt;&gt; , std::size_t = 0) {}</div>
 <div class="line"><a name="l00389"></a><span class="lineno">  389</span>&#160; </div>
 <div class="line"><a name="l00390"></a><span class="lineno">  390</span>&#160;    <span class="keyword">inline</span> <span class="keywordtype">void</span> section(std::string_view) {}</div>
 <div class="line"><a name="l00391"></a><span class="lineno">  391</span>&#160; </div>
@@ -453,7 +453,7 @@ $(function() {
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Jun 5 2024 19:35:49 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+Generated on Thu Jun 6 2024 13:25:40 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
 </small></address>
 </body>
 </html>

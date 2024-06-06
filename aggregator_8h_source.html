@@ -85,7 +85,7 @@ $(function() {
 <div class="line"><a name="l00012"></a><span class="lineno">   12</span>&#160;<a class="code" href="classcoro_1_1basic__coroutine.html">coroutine</a> aggregator_cleanup(std::vector&lt;<a class="code" href="classcoro_1_1generator.html">generator&lt;T&gt;</a> &gt; , std::vector&lt;<a class="code" href="classcoro_1_1deferred__future.html">deferred_future&lt;T&gt;</a> &gt; futures) {</div>
 <div class="line"><a name="l00013"></a><span class="lineno">   13</span>&#160;    <span class="comment">//cycle over all futures and @b co_await for just has_value - we don&#39;t need the value</span></div>
 <div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;    <span class="keywordflow">for</span> (<span class="keyword">auto</span> &amp;f: futures) {</div>
-<div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;        trace::on_link(&amp;f, &amp;futures, <span class="keyword">sizeof</span>(f));</div>
+<div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;        trace::add_link(&amp;f, &amp;futures, <span class="keyword">sizeof</span>(f));</div>
 <div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;        co_await f.wait();</div>
 <div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;    }</div>
 <div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160;}</div>
@@ -109,7 +109,7 @@ $(function() {
 <div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;            <span class="keywordflow">return</span> q.push(idx).symmetric_transfer();</div>
 <div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;<span class="comment">//            q.push(idx); return prepared_coro();</span></div>
 <div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;        };</div>
-<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;        trace::on_link(gens[idx].get_id(),&amp;q);</div>
+<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;        trace::add_link(gens[idx].get_id(),&amp;q);</div>
 <div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;    };</div>
 <div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160; </div>
 <div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;    <span class="comment">//prepare array of futures</span></div>
@@ -207,7 +207,7 @@ $(function() {
 <div class="line"><a name="l00154"></a><span class="lineno">  154</span>&#160; </div>
 <div class="line"><a name="l00155"></a><span class="lineno">  155</span>&#160; </div>
 <div class="ttc" id="aclasscoro_1_1basic__coroutine_html"><div class="ttname"><a href="classcoro_1_1basic__coroutine.html">coro::basic_coroutine</a></div><div class="ttdoc">COROUTINE: Basic coroutine.</div><div class="ttdef"><b>Definition:</b> <a href="coroutine_8h_source.html#l00028">coroutine.h:28</a></div></div>
-<div class="ttc" id="aclasscoro_1_1deferred__future_html"><div class="ttname"><a href="classcoro_1_1deferred__future.html">coro::deferred_future</a></div><div class="ttdoc">Contains future value of T, where evaluation is deferred until the value is needed.</div><div class="ttdef"><b>Definition:</b> <a href="future_8h_source.html#l01243">future.h:1243</a></div></div>
+<div class="ttc" id="aclasscoro_1_1deferred__future_html"><div class="ttname"><a href="classcoro_1_1deferred__future.html">coro::deferred_future</a></div><div class="ttdoc">Contains future value of T, where evaluation is deferred until the value is needed.</div><div class="ttdef"><b>Definition:</b> <a href="future_8h_source.html#l01244">future.h:1244</a></div></div>
 <div class="ttc" id="aclasscoro_1_1generator_html"><div class="ttname"><a href="classcoro_1_1generator.html">coro::generator</a></div><div class="ttdoc">COROUTINE: Generator.</div><div class="ttdef"><b>Definition:</b> <a href="generator_8h_source.html#l00094">generator.h:94</a></div></div>
 <div class="ttc" id="aclasscoro_1_1on__leave_html"><div class="ttname"><a href="classcoro_1_1on__leave.html">coro::on_leave</a></div><div class="ttdoc">Defines function, which is called when function is exited.</div><div class="ttdef"><b>Definition:</b> <a href="on__leave_8h_source.html#l00023">on_leave.h:23</a></div></div>
 <div class="ttc" id="aclasscoro_1_1queue_a4fb570f631db630eceff12b6b37050cd_html_a4fb570f631db630eceff12b6b37050cd"><div class="ttname"><a href="classcoro_1_1queue_a4fb570f631db630eceff12b6b37050cd.html#a4fb570f631db630eceff12b6b37050cd">coro::queue::size</a></div><div class="ttdeci">std::size_t size() const</div><div class="ttdoc">retrieve current size of the queue</div><div class="ttdef"><b>Definition:</b> <a href="queue_8h_source.html#l00149">queue.h:149</a></div></div>
@@ -219,7 +219,7 @@ $(function() {
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Jun 5 2024 19:35:49 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+Generated on Thu Jun 6 2024 13:25:40 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
 </small></address>
 </body>
 </html>

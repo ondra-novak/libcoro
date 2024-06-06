@@ -219,7 +219,7 @@ $(function() {
 <div class="line"><a name="l00180"></a><span class="lineno">  180</span>&#160;                <span class="keywordflow">if</span> (done()) <span class="keywordflow">return</span> {};</div>
 <div class="line"><a name="l00181"></a><span class="lineno">  181</span>&#160;                this-&gt;fut = <a class="code" href="classcoro_1_1promise.html">promise</a>.<a class="code" href="classcoro_1_1promise_a0717c02c0591d87591abe213b87fbcb2.html#a0717c02c0591d87591abe213b87fbcb2">release</a>();</div>
 <div class="line"><a name="l00182"></a><span class="lineno">  182</span>&#160;                <span class="keyword">auto</span> h = std::coroutine_handle&lt;promise_type&gt;::from_promise(*<span class="keyword">this</span>);</div>
-<div class="line"><a name="l00183"></a><span class="lineno">  183</span>&#160;                trace::on_link(h, this-&gt;fut);</div>
+<div class="line"><a name="l00183"></a><span class="lineno">  183</span>&#160;                trace::add_link(h, this-&gt;fut);</div>
 <div class="line"><a name="l00184"></a><span class="lineno">  184</span>&#160;                <span class="keywordflow">return</span> h;</div>
 <div class="line"><a name="l00185"></a><span class="lineno">  185</span>&#160;            };</div>
 <div class="line"><a name="l00186"></a><span class="lineno">  186</span>&#160;        }</div>
@@ -373,7 +373,7 @@ $(function() {
 <div class="line"><a name="l00389"></a><span class="lineno">  389</span>&#160;                <span class="keywordflow">if</span> (done()) <span class="keywordflow">return</span>;</div>
 <div class="line"><a name="l00390"></a><span class="lineno">  390</span>&#160;                this-&gt;fut = <a class="code" href="classcoro_1_1promise.html">promise</a>.<a class="code" href="classcoro_1_1promise_a0717c02c0591d87591abe213b87fbcb2.html#a0717c02c0591d87591abe213b87fbcb2">release</a>();</div>
 <div class="line"><a name="l00391"></a><span class="lineno">  391</span>&#160;                <span class="keyword">auto</span> h = std::coroutine_handle&lt;promise_type&gt;::from_promise(*<span class="keyword">this</span>);</div>
-<div class="line"><a name="l00392"></a><span class="lineno">  392</span>&#160;                trace::on_link(h, this-&gt;fut);</div>
+<div class="line"><a name="l00392"></a><span class="lineno">  392</span>&#160;                trace::add_link(h, this-&gt;fut);</div>
 <div class="line"><a name="l00393"></a><span class="lineno">  393</span>&#160;                <a class="code" href="group__trace_ga4a19ba3cf4502485e8f907e865eef940.html#ga4a19ba3cf4502485e8f907e865eef940">trace::resume</a>(h);</div>
 <div class="line"><a name="l00394"></a><span class="lineno">  394</span>&#160;            };</div>
 <div class="line"><a name="l00395"></a><span class="lineno">  395</span>&#160;        }</div>
@@ -435,7 +435,7 @@ $(function() {
 <div class="line"><a name="l00465"></a><span class="lineno">  465</span>&#160; </div>
 <div class="line"><a name="l00466"></a><span class="lineno">  466</span>&#160;}</div>
 <div class="ttc" id="aclasscoro_1_1coro__allocator__helper_html"><div class="ttname"><a href="classcoro_1_1coro__allocator__helper.html">coro::coro_allocator_helper</a></div><div class="ttdoc">inherit this class to include coro_allocator into your promise_type</div><div class="ttdef"><b>Definition:</b> <a href="allocator_8h_source.html#l00077">allocator.h:77</a></div></div>
-<div class="ttc" id="aclasscoro_1_1deferred__future_html"><div class="ttname"><a href="classcoro_1_1deferred__future.html">coro::deferred_future</a></div><div class="ttdoc">Contains future value of T, where evaluation is deferred until the value is needed.</div><div class="ttdef"><b>Definition:</b> <a href="future_8h_source.html#l01243">future.h:1243</a></div></div>
+<div class="ttc" id="aclasscoro_1_1deferred__future_html"><div class="ttname"><a href="classcoro_1_1deferred__future.html">coro::deferred_future</a></div><div class="ttdoc">Contains future value of T, where evaluation is deferred until the value is needed.</div><div class="ttdef"><b>Definition:</b> <a href="future_8h_source.html#l01244">future.h:1244</a></div></div>
 <div class="ttc" id="aclasscoro_1_1future_html"><div class="ttname"><a href="classcoro_1_1future.html">coro::future</a></div><div class="ttdoc">Contains future value of T, can be co_awaited in coroutine.</div><div class="ttdef"><b>Definition:</b> <a href="future_8h_source.html#l00417">future.h:417</a></div></div>
 <div class="ttc" id="aclasscoro_1_1generator_3_01_r_07_args_8_8_8_08_00_01_alloc_01_4_a94c7a29cbbcddac69d19c376346ae09c_html_a94c7a29cbbcddac69d19c376346ae09c"><div class="ttname"><a href="classcoro_1_1generator_3_01_r_07_args_8_8_8_08_00_01_alloc_01_4_a94c7a29cbbcddac69d19c376346ae09c.html#a94c7a29cbbcddac69d19c376346ae09c">coro::generator&lt; R(Args...), Alloc &gt;::generator</a></div><div class="ttdeci">generator(generator&lt; R(Args...), A &gt; &amp;&amp;other)</div><div class="ttdoc">convert from different allocator</div><div class="ttdef"><b>Definition:</b> <a href="generator_8h_source.html#l00421">generator.h:421</a></div></div>
 <div class="ttc" id="aclasscoro_1_1generator_3_01_r_07_args_8_8_8_08_00_01_alloc_01_4_acd722208918e4a3a0d004ac31c7d2d9b_html_acd722208918e4a3a0d004ac31c7d2d9b"><div class="ttname"><a href="classcoro_1_1generator_3_01_r_07_args_8_8_8_08_00_01_alloc_01_4_acd722208918e4a3a0d004ac31c7d2d9b.html#acd722208918e4a3a0d004ac31c7d2d9b">coro::generator&lt; R(Args...), Alloc &gt;::operator()</a></div><div class="ttdeci">future&lt; R &gt; operator()(XArgs &amp;&amp;... args)</div><div class="ttdoc">call the generator</div><div class="ttdef"><b>Definition:</b> <a href="generator_8h_source.html#l00432">generator.h:432</a></div></div>
@@ -463,7 +463,7 @@ $(function() {
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Jun 5 2024 19:35:49 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+Generated on Thu Jun 6 2024 13:25:40 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
 </small></address>
 </body>
 </html>

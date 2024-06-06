@@ -139,7 +139,7 @@ $(function() {
 <div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160;                <span class="keywordflow">if</span> (_exception) <span class="keywordflow">return</span> prom.<a class="code" href="classcoro_1_1promise_a54a9bdbbcdfc5473d35c641d2ee31fdf.html#a54a9bdbbcdfc5473d35c641d2ee31fdf">reject</a>(_exception);</div>
 <div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160;                <span class="keywordflow">else</span> <span class="keywordflow">return</span> prom.<a class="code" href="classcoro_1_1promise_a961e99f1d756f56f54d2a5ea9481403d.html#a961e99f1d756f56f54d2a5ea9481403d">cancel</a>(); <span class="comment">//breaks promise</span></div>
 <div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160;            }</div>
-<div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;            trace::on_link(<span class="keyword">this</span>, prom.<a class="code" href="classcoro_1_1promise_a6c7632edfd2c6edca53c02ab4e0a49ad.html#a6c7632edfd2c6edca53c02ab4e0a49ad">get_future</a>());</div>
+<div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;            trace::add_link(<span class="keyword">this</span>, prom.<a class="code" href="classcoro_1_1promise_a6c7632edfd2c6edca53c02ab4e0a49ad.html#a6c7632edfd2c6edca53c02ab4e0a49ad">get_future</a>());</div>
 <div class="line"><a name="l00110"></a><span class="lineno">  110</span>&#160;            _awaiters.push(std::move(prom)); <span class="comment">//remember promise</span></div>
 <div class="line"><a name="l00111"></a><span class="lineno">  111</span>&#160;            <span class="keywordflow">return</span> {};</div>
 <div class="line"><a name="l00112"></a><span class="lineno">  112</span>&#160;        }</div>
@@ -233,7 +233,7 @@ $(function() {
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Jun 5 2024 19:35:49 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+Generated on Thu Jun 6 2024 13:25:40 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
 </small></address>
 </body>
 </html>
