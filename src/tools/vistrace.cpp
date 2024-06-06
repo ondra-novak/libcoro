@@ -354,18 +354,9 @@ protected:
 
 
 std::uintptr_t App::parse_address(std::string_view id) {
-#ifdef _WIN32
-        std::errc err;
-        std::uintptr_t n = parse_number(id, 16, err);
-        if (err == std::errc()) return n;
-#else
-    if (id.substr(0,2) == "0x")  {
-        id = id.substr(2);
-        std::errc err;
-        std::uintptr_t n = parse_number(id, 16, err);
-        if (err == std::errc()) return n;
-    }
-#endif
+    std::errc err;
+    std::uintptr_t n = parse_number(id, 16, err);
+    if (err == std::errc()) return n;
     std::string errmsg = "Character sequence `";
     errmsg.append(id);
     errmsg.append("` is not a valid address");
@@ -440,7 +431,7 @@ inline void App::parse(std::istream &f) {
                     continue;
                 case type::create:
                     rel._coro = get_active_coro(rel._thread);
-                    {                        
+                    {
                         std::size_t sz = parse_number(parts[3], 10, ec);
                         if (ec != std::errc()) {
                             throw 3;
@@ -574,10 +565,13 @@ inline void App::parse(std::istream &f) {
                     if (ec != std::errc()) throw 4;
 
                     auto to_coro = find_coro_by_address(parts.at(3));
+                    bool is_sync = to_coro != nullptr || static_cast<std::uintptr_t>(parse_number(parts.at(3), 16)) == 0;
+                    if (is_sync) to_coro = get_active_coro(rel._thread);
+                    bool to_unknown = to_coro == nullptr && !is_sync;
 
                     if (proxy_size) {
                         auto trg = resolve_link(parts.at(2), proxy_size);
-                        if (to_coro) {
+                        if (!to_unknown) {
                             for (auto &t: trg) {
                                 _relations.push_back({rel._thread,t,rel_link{to_coro}});
                             }
@@ -589,11 +583,11 @@ inline void App::parse(std::istream &f) {
                     }
 
                     auto from_coro = find_coro_by_address(parts.at(2));
-                    if (from_coro != nullptr && to_coro == nullptr && proxy_size == 0) {
+                    if (from_coro != nullptr && to_unknown && proxy_size == 0) {
                         record_unresolved(from_coro, parts.at(3));
                         continue;
                     }
-                    if (from_coro == nullptr || to_coro == nullptr || from_coro == to_coro) {
+                    if (from_coro == nullptr || to_unknown || from_coro == to_coro) {
                         continue;
                     }
                     rel._coro = from_coro;
@@ -801,11 +795,14 @@ void App::export_uml(std::ostream &out, unsigned int label_size) {
 
     std::map<coro_ident, std::string> _coro_suspend_notes;
     std::multimap<coro_ident, coro_ident> _coro_suspend_links;
+    std::multimap<unsigned int, coro_ident> _coro_suspend_thread_links;
+
     auto add_note = [&](const coro_ident &coro, const std::string &note) {
         _coro_suspend_notes[coro] = note;
     };
-    auto add_link = [&](const coro_ident &coro, const coro_ident &link_coro) {
-        _coro_suspend_links.insert({coro,link_coro});
+    auto add_link = [&](unsigned int thread, const coro_ident &coro, const coro_ident &link_coro) {
+        if (coro == nullptr) _coro_suspend_thread_links.insert({thread, link_coro});
+        else _coro_suspend_links.insert({coro,link_coro});
     };
     auto flush_note = [&](const coro_ident &coro) {
         auto p = _coro_suspend_links.equal_range(coro);
@@ -814,7 +811,7 @@ void App::export_uml(std::ostream &out, unsigned int label_size) {
             if (join) {
                 out << "& ";
             }
-            out << "C" << coro->slot_id << " <--o " << "C" << iter->second->slot_id << " : awaiting " << std::endl;
+            out << "C" << coro->slot_id << " o<--o " << "C" << iter->second->slot_id << " : awaiting " << std::endl;
             join = true;
         }
         _coro_suspend_links.erase(p.first, p.second);
@@ -823,6 +820,19 @@ void App::export_uml(std::ostream &out, unsigned int label_size) {
             out << "rnote over C" << coro->slot_id << " #CDCDCD : " << iter->second << std::endl;
             _coro_suspend_notes.erase(iter);
         }
+    };
+
+    auto flush_thread_notes = [&](unsigned int thread){
+        auto p = _coro_suspend_thread_links.equal_range(thread);
+        bool join = false;
+        for (auto iter = p.first; iter != p.second; ++iter) {
+            if (join) {
+                out << "& ";
+            }
+            out << "T" << thread << " o<--o " << "C" << iter->second->slot_id << " : blocking " << std::endl;
+            join = true;
+        }
+        _coro_suspend_thread_links.erase(p.first, p.second);
     };
 
 
@@ -894,7 +904,7 @@ void App::export_uml(std::ostream &out, unsigned int label_size) {
                   out << node_name(r._thread, r._coro) << "->" << node_name(r._thread, rel._target) << " --++ : switch \n";
                   flush_note(r._coro);
               } else if constexpr(std::is_same_v<T, rel_link>) {
-                  add_link(rel._target, r._coro);
+                  add_link(r._thread, rel._target, r._coro);
               } else if constexpr(std::is_same_v<T, rel_location>) {
                   //empty
               } else if constexpr(std::is_same_v<T, rel_user_log>) {
@@ -913,6 +923,7 @@ void App::export_uml(std::ostream &out, unsigned int label_size) {
               }
 
           },r._rel_type);
+          flush_thread_notes(r._thread);
       }
 
 
@@ -1133,10 +1144,18 @@ bool App::detect_loop_cycle() {
 
                 auto iter = _relations.begin();
                 std::advance(iter, pos);
+                auto iter_end = iter;
+                std::advance(iter_end, len);
+                if (std::find_if(iter, iter_end, [](const relation_t &rel){
+                    return !std::holds_alternative<rel_link>(rel._rel_type);
+                }) == iter_end) {
+                    pos += len*count-1;
+                    break;
+                }
                 *iter = relation_t{
                     iter->_thread,{},rel_loop{count}
                 };
-                auto iter_end = iter;
+                iter_end = iter;
                 std::advance(iter_end,(count-1)*len);
                 std::advance(iter,1);
                 iter = _relations.erase(iter, iter_end);

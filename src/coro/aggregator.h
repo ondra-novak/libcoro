@@ -12,7 +12,7 @@ template<typename T>
 coroutine aggregator_cleanup(std::vector<generator<T> > , std::vector<deferred_future<T> > futures) {
     //cycle over all futures and @b co_await for just has_value - we don't need the value
     for (auto &f: futures) {
-        trace::on_link(&f, &futures, sizeof(f));
+        trace::add_link(&f, &futures, sizeof(f));
         co_await f.wait();
     }
 }
@@ -52,7 +52,7 @@ generator<T, Alloc> aggregator(Alloc &, std::vector<generator<T> > gens) {
             return q.push(idx).symmetric_transfer();
 //            q.push(idx); return prepared_coro();
         };
-        trace::on_link(gens[idx].get_id(),&q);
+        trace::add_link(gens[idx].get_id(),&q);
     };
 
     //prepare array of futures

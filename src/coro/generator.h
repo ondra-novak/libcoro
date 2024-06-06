@@ -180,7 +180,7 @@ public:
                 if (done()) return {};
                 this->fut = promise.release();
                 auto h = std::coroutine_handle<promise_type>::from_promise(*this);
-                trace::on_link(h, this->fut);
+                trace::add_link(h, this->fut);
                 return h;
             };
         }
@@ -389,7 +389,7 @@ public:
                 if (done()) return;
                 this->fut = promise.release();
                 auto h = std::coroutine_handle<promise_type>::from_promise(*this);
-                trace::on_link(h, this->fut);
+                trace::add_link(h, this->fut);
                 trace::resume(h);
             };
         }

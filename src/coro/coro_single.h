@@ -14,7 +14,6 @@
 #include "pool_alloc.h"
 #include "semaphore.h"
 #include "frame.h"
-#include "collector.h"
 #include "make_awaitable.h"
 #include "future_list.h"
 #include "future_variant.h"

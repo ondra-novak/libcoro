@@ -289,11 +289,11 @@ public:
             if constexpr(is_pointer_like<decltype(*from)>) {
                 future_ptr ptr = &(*(*from));
                 _awaiting.push_back(ptr);
-                trace::on_link(ptr, this, sizeof(*ptr));
+                trace::add_link(ptr, this, sizeof(*ptr));
             } else {
                 future_ptr ptr = &(*from);
                 _awaiting.push_back(ptr);
-                trace::on_link(ptr, this, sizeof(*ptr));
+                trace::add_link(ptr, this, sizeof(*ptr));
             }
             ++from;
         }

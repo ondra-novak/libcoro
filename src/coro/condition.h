@@ -75,7 +75,7 @@ class awaiter_map {
 public:
 
     bool reg_awaiter(const void *addr, abstract_condition_awaiter *awt) {
-        trace::on_link(this, awt);
+        trace::add_link(this, awt);
         std::lock_guard _(_mx);
         if (awt->test(addr)) return false;
         insert_item(addr, awt);

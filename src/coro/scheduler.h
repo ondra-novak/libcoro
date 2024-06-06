@@ -106,6 +106,7 @@ public:
             return fut.await_resume();
         }
         auto cur = _current;
+        trace::add_link(&fut, nullptr, sizeof(fut));
         worker(std::forward<ResumeCB>(cb), stopflag);
         _current = cur;
         return fut.await_resume();

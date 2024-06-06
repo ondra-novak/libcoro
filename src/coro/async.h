@@ -124,7 +124,7 @@ public:
         prepared_coro attach(promise<T> &prom) {
             auto fut = prom.release();
             auto h = std::coroutine_handle<promise_type>::from_promise(*this);
-            trace::on_link(h, fut);
+            trace::add_link(h, fut);
             if (std::exchange(this->fut, fut) == nullptr) {
                 return h;
             }

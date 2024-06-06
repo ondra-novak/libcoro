@@ -39,7 +39,7 @@ enum class record_type: char {
     proxy = 'p',
 };
 
-inline constexpr char separator = '|';
+inline constexpr char separator = '\t';
 
 
 class impl {
@@ -49,7 +49,7 @@ public:
     static std::string get_file_name() {
         #ifdef _WIN32
             char szFileName[1024];
-            GetModuleFileNameA(NULL, szFileName, sizeof(szFileName));        
+            GetModuleFileNameA(NULL, szFileName, sizeof(szFileName));
             std::filesystem::path exe_path = szFileName;
 
         #else
@@ -100,7 +100,7 @@ public:
         static constexpr std::string_view letters = "0123456789ABCDEF";
         pointer(const void *p): std::string_view(_txt, sizeof(_txt)) {
             std::uintptr_t val = std::bit_cast<std::uintptr_t>(p);
-            
+
             for (unsigned int i = 0; i < sizeof(_txt);++i) {
                 _txt[sizeof(_txt)-i-1] = letters[val & 0xF];
                 val >>= 4;
@@ -174,7 +174,7 @@ public:
     static thread_local thread_state _state;
 
     ~impl() {
-        _mx.lock(); 
+        _mx.lock();
         _mx.unlock();       //Windows complains when race condition
     }
 
@@ -269,16 +269,16 @@ inline void resume(std::coroutine_handle<> h) noexcept {
     h.resume();
     impl::_instance.on_resume_exit();
 }
-inline std::coroutine_handle<> on_switch(std::coroutine_handle<> from, std::coroutine_handle<> to, const std::source_location *loc) {
+inline std::coroutine_handle<> on_switch(std::coroutine_handle<> from, std::coroutine_handle<> to, const std::source_location *loc = nullptr) {
     impl::_instance.on_switch(from.address(), to.address(), loc);
     return to;
 }
 
-inline bool on_switch(std::coroutine_handle<> from, bool suspend, const std::source_location *loc) {
+inline bool on_switch(std::coroutine_handle<> from, bool suspend, const std::source_location *loc = nullptr) {
     if (suspend) impl::_instance.on_switch(from.address(), nullptr, loc);
     return suspend;
 }
-inline void on_suspend(std::coroutine_handle<> from, const std::source_location *loc) {
+inline void on_suspend(std::coroutine_handle<> from, const std::source_location *loc = nullptr) {
     impl::_instance.on_switch(from.address(), nullptr,  loc);
 }
 
@@ -297,10 +297,10 @@ template<typename ... Args>
 inline void log(const Args & ... args) {impl::_instance.user_report(args...);}
 
 
-inline void on_link(const void *from, const void *to, std::size_t object_size = 0) {impl::_instance.on_link(from, to, object_size);}
-inline void on_link(std::coroutine_handle<> from, const void *to, std::size_t object_size = 0)  {impl::_instance.on_link(from.address(), to, object_size);}
-inline void on_link(const void *from, std::coroutine_handle<> to, std::size_t object_size = 0) {impl::_instance.on_link(from, to.address(), object_size);}
-inline void on_link(std::coroutine_handle<> from, std::coroutine_handle<> to, std::size_t object_size = 0) {impl::_instance.on_link(from.address(), to.address(), object_size);}
+inline void add_link(const void *from, const void *to, std::size_t object_size = 0) {impl::_instance.on_link(from, to, object_size);}
+inline void add_link(std::coroutine_handle<> from, const void *to, std::size_t object_size = 0)  {impl::_instance.on_link(from.address(), to, object_size);}
+inline void add_link(const void *from, std::coroutine_handle<> to, std::size_t object_size = 0) {impl::_instance.on_link(from, to.address(), object_size);}
+inline void add_link(std::coroutine_handle<> from, std::coroutine_handle<> to, std::size_t object_size = 0) {impl::_instance.on_link(from.address(), to.address(), object_size);}
 
 
 inline void section(std::string_view text) {::coro::trace::impl::_instance.hline(text);}
@@ -382,10 +382,10 @@ namespace coro {
     template<typename ... Args>
     inline void log(const Args & ... ) {}
 
-    inline void on_link(const void *, const void *, std::size_t = 0) {}
-    inline void on_link(std::coroutine_handle<> , const void *, std::size_t = 0)  {}
-    inline void on_link(const void *, std::coroutine_handle<> , std::size_t = 0) {}
-    inline void on_link(std::coroutine_handle<> , std::coroutine_handle<> , std::size_t = 0) {}
+    inline void add_link(const void *, const void *, std::size_t = 0) {}
+    inline void add_link(std::coroutine_handle<> , const void *, std::size_t = 0)  {}
+    inline void add_link(const void *, std::coroutine_handle<> , std::size_t = 0) {}
+    inline void add_link(std::coroutine_handle<> , std::coroutine_handle<> , std::size_t = 0) {}
 
     inline void section(std::string_view) {}
 

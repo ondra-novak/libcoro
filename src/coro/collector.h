@@ -92,7 +92,7 @@ public:
 
         void resume() {
             auto h =std::coroutine_handle<promise_type>::from_promise(*this);
-            trace::on_link(h, _waiting.get_future());
+            trace::add_link(h, _waiting.get_future());
             trace::resume(h);
         }
         void destroy() {

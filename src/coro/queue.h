@@ -106,7 +106,7 @@ public:
                 if (_exception) return prom.reject(_exception);
                 else return prom.cancel(); //breaks promise
             }
-            trace::on_link(this, prom.get_future());
+            trace::add_link(this, prom.get_future());
             _awaiters.push(std::move(prom)); //remember promise
             return {};
         }

@@ -112,7 +112,7 @@ public:
     }
 
     void subscribe(promise_t &&prom, ID id = { }) {
-        trace::on_link(this, prom.get_future());
+        trace::add_link(this, prom.get_future());
         std::lock_guard _(_mx);
         _subscribers.push_back(std::pair<promise_t, ID>(std::move(prom), id));
     }
