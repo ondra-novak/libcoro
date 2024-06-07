@@ -11,6 +11,7 @@
 #include <atomic>
 #include <typeinfo>
 #include <thread>
+#include <bit>
 
 #ifdef _WIN32
 extern "C" {
