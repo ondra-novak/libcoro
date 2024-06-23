@@ -102,7 +102,11 @@ public:
     template<typename T, std::invocable<notify_t> ResumeCB>
     decltype(auto) run(future<T> &fut, ResumeCB &&cb) {
         bool stopflag = false;
-        if (fut.await_ready() || !fut.set_callback([&stopflag]{stopflag = true;})) {
+        if (fut.await_ready() || !fut.set_callback([this,&stopflag]{
+            std::lock_guard _(_mx);
+            stopflag = true;
+            notify();
+        })) {
             return fut.await_resume();
         }
         auto cur = _current;
