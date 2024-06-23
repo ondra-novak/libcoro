@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['state_447',['State',['../classcoro_1_1shared__future_a79066beae9e1976fab389c50bca491bc.html#a79066beae9e1976fab389c50bca491bc',1,'coro::shared_future']]]
+  ['state_448',['State',['../classcoro_1_1shared__future_a79066beae9e1976fab389c50bca491bc.html#a79066beae9e1976fab389c50bca491bc',1,'coro::shared_future']]]
 ];

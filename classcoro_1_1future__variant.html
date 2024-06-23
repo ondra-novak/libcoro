@@ -69,6 +69,7 @@ $(function() {
 <div class="header">
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#friends">Friends</a> &#124;
 <a href="classcoro_1_1future__variant-members.html">List of all members</a>  </div>
   <div class="headertitle">
 <div class="title">coro::future_variant&lt; Types &gt; Class Template Reference</div>  </div>
@@ -93,6 +94,31 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a4971e988c17ab4afe824515717dd0322"><td class="memTemplItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classcoro_1_1future__variant_a4971e988c17ab4afe824515717dd0322.html#a4971e988c17ab4afe824515717dd0322">get_promise</a> (promise_type &amp;p)</td></tr>
 <tr class="memdesc:a4971e988c17ab4afe824515717dd0322"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize underlying future and retrieves promise.  <a href="classcoro_1_1future__variant_a4971e988c17ab4afe824515717dd0322.html#a4971e988c17ab4afe824515717dd0322">More...</a><br /></td></tr>
 <tr class="separator:a4971e988c17ab4afe824515717dd0322"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa977e0247a09524ea3389a31c6903718"><td class="memTemplParams" colspan="2">template&lt;typename fut_type  = void&gt; </td></tr>
+<tr class="memitem:aa977e0247a09524ea3389a31c6903718"><td class="memTemplItemLeft" align="right" valign="top">_details::future_variant_getter&lt; fut_type, <a class="el" href="classcoro_1_1future__variant.html">future_variant</a> &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classcoro_1_1future__variant_aa977e0247a09524ea3389a31c6903718.html#aa977e0247a09524ea3389a31c6903718">get</a> ()</td></tr>
+<tr class="memdesc:aa977e0247a09524ea3389a31c6903718"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieve result of the future.  <a href="classcoro_1_1future__variant_aa977e0247a09524ea3389a31c6903718.html#aa977e0247a09524ea3389a31c6903718">More...</a><br /></td></tr>
+<tr class="separator:aa977e0247a09524ea3389a31c6903718"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acb1507974948ba2881dc2b286e62c8a4"><td class="memItemLeft" align="right" valign="top">awaiter&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1future__variant_acb1507974948ba2881dc2b286e62c8a4.html#acb1507974948ba2881dc2b286e62c8a4">operator co_await</a> ()</td></tr>
+<tr class="memdesc:acb1507974948ba2881dc2b286e62c8a4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Helps to co_wait on future regardless on which variant is active.  <a href="classcoro_1_1future__variant_acb1507974948ba2881dc2b286e62c8a4.html#acb1507974948ba2881dc2b286e62c8a4">More...</a><br /></td></tr>
+<tr class="separator:acb1507974948ba2881dc2b286e62c8a4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a55ae5109c503b3a2a8c170fa47842a8d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoro_1_1future__variant_a55ae5109c503b3a2a8c170fa47842a8d.html#a55ae5109c503b3a2a8c170fa47842a8d">wait</a> ()</td></tr>
+<tr class="memdesc:a55ae5109c503b3a2a8c170fa47842a8d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Helps to wait on future regardless on which variant is active.  <a href="classcoro_1_1future__variant_a55ae5109c503b3a2a8c170fa47842a8d.html#a55ae5109c503b3a2a8c170fa47842a8d">More...</a><br /></td></tr>
+<tr class="separator:a55ae5109c503b3a2a8c170fa47842a8d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="friends"></a>
+Friends</h2></td></tr>
+<tr class="memitem:a998f714274a885d0f048983c88dd8789"><td class="memTemplParams" colspan="2">template&lt;typename fut_type , typename ... X&gt; </td></tr>
+<tr class="memitem:a998f714274a885d0f048983c88dd8789"><td class="memTemplItemLeft" align="right" valign="top">fut_type &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classcoro_1_1future__variant_a998f714274a885d0f048983c88dd8789.html#a998f714274a885d0f048983c88dd8789">get</a> (<a class="el" href="classcoro_1_1future__variant.html">future_variant</a>&lt; X... &gt; &amp;me)</td></tr>
+<tr class="memdesc:a998f714274a885d0f048983c88dd8789"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieve reference to future - if it is current variant.  <a href="classcoro_1_1future__variant_a998f714274a885d0f048983c88dd8789.html#a998f714274a885d0f048983c88dd8789">More...</a><br /></td></tr>
+<tr class="separator:a998f714274a885d0f048983c88dd8789"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ada2e896f1ce471bf2d5c17b04092710a"><td class="memTemplParams" colspan="2">template&lt;typename fut_type , typename ... X&gt; </td></tr>
+<tr class="memitem:ada2e896f1ce471bf2d5c17b04092710a"><td class="memTemplItemLeft" align="right" valign="top">const fut_type &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classcoro_1_1future__variant_ada2e896f1ce471bf2d5c17b04092710a.html#ada2e896f1ce471bf2d5c17b04092710a">get</a> (const <a class="el" href="classcoro_1_1future__variant.html">future_variant</a>&lt; X... &gt; &amp;me)</td></tr>
+<tr class="memdesc:ada2e896f1ce471bf2d5c17b04092710a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieve reference to future - if it is current variant.  <a href="classcoro_1_1future__variant_ada2e896f1ce471bf2d5c17b04092710a.html#ada2e896f1ce471bf2d5c17b04092710a">More...</a><br /></td></tr>
+<tr class="separator:ada2e896f1ce471bf2d5c17b04092710a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa6e1730e11628f6751ff86e28ffff7c3"><td class="memTemplParams" colspan="2">template&lt;typename fut_type , typename ... X&gt; </td></tr>
+<tr class="memitem:aa6e1730e11628f6751ff86e28ffff7c3"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classcoro_1_1future__variant_aa6e1730e11628f6751ff86e28ffff7c3.html#aa6e1730e11628f6751ff86e28ffff7c3">holds_alternative</a> (<a class="el" href="classcoro_1_1future__variant.html">future_variant</a>&lt; X... &gt; &amp;me)</td></tr>
+<tr class="memdesc:aa6e1730e11628f6751ff86e28ffff7c3"><td class="mdescLeft">&#160;</td><td class="mdescRight">tests whether holds given variant  <a href="classcoro_1_1future__variant_aa6e1730e11628f6751ff86e28ffff7c3.html#aa6e1730e11628f6751ff86e28ffff7c3">More...</a><br /></td></tr>
+<tr class="separator:aa6e1730e11628f6751ff86e28ffff7c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><h3>template&lt;typename ... Types&gt;<br />
@@ -110,7 +136,7 @@ class coro::future_variant&lt; Types &gt;</h3>
 <div class="fragment"><div class="line">future_variant&lt;int, double&gt; fut;</div>
 <div class="line">fut &lt;&lt; [&amp;]{<span class="keywordflow">return</span> async_double();} &gt;&gt; [&amp;]{</div>
 <div class="line">     <span class="keyword">auto</span> res = fut.get();</div>
-<div class="line">} </div>
+<div class="line">}</div>
 </div><!-- fragment --><p>;</p>
 <p>You can use get_promise to initialize future and get promise at the same time</p>
 <div class="fragment"><div class="line">future_variant&lt;int, double&gt; fut;</div>
@@ -119,14 +145,14 @@ class coro::future_variant&lt; Types &gt;</h3>
 <div class="line"> <span class="comment">// f = future&lt;double&gt;;</span></div>
 </div><!-- fragment --><dl class="section note"><dt>Note</dt><dd>you can switch future type only when underlying future is resolved </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="future__variant_8h_source.html#l00042">42</a> of file <a class="el" href="future__variant_8h_source.html">future_variant.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="future__variant_8h_source.html#l00106">106</a> of file <a class="el" href="future__variant_8h_source.html">future_variant.h</a>.</p>
 </div><hr/>The documentation for this class was generated from the following file:<ul>
 <li>src/coro/<a class="el" href="future__variant_8h_source.html">future_variant.h</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Jun 8 2024 10:12:53 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+Generated on Sun Jun 23 2024 13:09:42 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
 </small></address>
 </body>
 </html>

@@ -78,100 +78,193 @@ $(function() {
 <div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;<span class="keyword">namespace </span><a class="code" href="namespacecoro.html">coro</a> {</div>
 <div class="line"><a name="l00006"></a><span class="lineno">    6</span>&#160; </div>
 <div class="line"><a name="l00007"></a><span class="lineno">    7</span>&#160;<span class="keyword">namespace </span>_details {</div>
-<div class="line"><a name="l00008"></a><span class="lineno">    8</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> X&gt;</div>
-<div class="line"><a name="l00009"></a><span class="lineno">    9</span>&#160;    <span class="keyword">static</span> <span class="keywordtype">void</span> future_variant_deleter(<span class="keywordtype">void</span> *ptr) {</div>
-<div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160;        std::destroy_at(<span class="keyword">reinterpret_cast&lt;</span>X *<span class="keyword">&gt;</span>(ptr));</div>
-<div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160;    }</div>
-<div class="line"><a name="l00012"></a><span class="lineno">   12</span>&#160;}</div>
-<div class="line"><a name="l00013"></a><span class="lineno">   13</span>&#160; </div>
-<div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160; </div>
-<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;<span class="keyword">template</span>&lt;<span class="keyword">typename</span> ... Types&gt;</div>
-<div class="line"><a name="l00042"></a><span class="lineno"><a class="line" href="classcoro_1_1future__variant.html">   42</a></span>&#160;<span class="keyword">class </span><a class="code" href="classcoro_1_1future__variant.html">future_variant</a> {</div>
-<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;<span class="keyword">public</span>:</div>
-<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160; </div>
-<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;    <a class="code" href="classcoro_1_1future__variant.html">future_variant</a>() = <span class="keywordflow">default</span>;</div>
-<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;    <a class="code" href="classcoro_1_1future__variant.html">future_variant</a>(<span class="keyword">const</span> <a class="code" href="classcoro_1_1future__variant.html">future_variant</a> &amp;) = <span class="keyword">delete</span>;</div>
-<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;    <a class="code" href="classcoro_1_1future__variant.html">future_variant</a> &amp;operator=(<span class="keyword">const</span> <a class="code" href="classcoro_1_1future__variant.html">future_variant</a> &amp;) = <span class="keyword">delete</span>;</div>
-<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;    ~<a class="code" href="classcoro_1_1future__variant.html">future_variant</a>() {</div>
-<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;        destroy_fn(buffer);</div>
-<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;    }</div>
-<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160; </div>
-<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160; </div>
-<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;    <span class="keyword">template</span>&lt;std::invocable&lt;&gt; Fn&gt; </div>
-<div class="line"><a name="l00060"></a><span class="lineno"><a class="line" href="classcoro_1_1future__variant_a14c0cf4c986f457908b049dfb7b58d18.html#a14c0cf4c986f457908b049dfb7b58d18">   60</a></span>&#160;    <span class="keyword">auto</span> &amp;<a class="code" href="classcoro_1_1future__variant_a14c0cf4c986f457908b049dfb7b58d18.html#a14c0cf4c986f457908b049dfb7b58d18">operator&lt;&lt;</a>(Fn &amp;&amp;fn) {</div>
-<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;        destroy_fn(buffer);</div>
-<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;        <span class="keyword">using</span> fut_type = std::invoke_result_t&lt;Fn&gt;;</div>
-<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;        static_assert(<span class="keyword">sizeof</span>(fut_type) &lt;= buffer_size, <span class="stringliteral">&quot;Returned future is not expected&quot;</span>);</div>
-<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;        fut_type *ptr = <span class="keyword">new</span>(buffer) fut_type(fn());</div>
-<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;        destroy_fn = &amp;_details::future_variant_deleter&lt;fut_type&gt;;</div>
-<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;        <span class="keywordflow">return</span> *ptr;</div>
-<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;    }</div>
-<div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160; </div>
-<div class="line"><a name="l00070"></a><span class="lineno"><a class="line" href="classcoro_1_1future__variant_aae81c4959dd6cbca332bf6ec5db390fc.html#aae81c4959dd6cbca332bf6ec5db390fc">   70</a></span>&#160;    <span class="keywordtype">void</span> <a class="code" href="classcoro_1_1future__variant_aae81c4959dd6cbca332bf6ec5db390fc.html#aae81c4959dd6cbca332bf6ec5db390fc">reset</a>() {</div>
-<div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160;        destroy_fn(buffer);</div>
-<div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160;        destroy_fn =&amp;_details::future_variant_deleter&lt;std::nullptr_t&gt;;</div>
-<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;    }</div>
-<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160; </div>
-<div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160; </div>
-<div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> promise_type&gt;</div>
-<div class="line"><a name="l00081"></a><span class="lineno"><a class="line" href="classcoro_1_1future__variant_a4971e988c17ab4afe824515717dd0322.html#a4971e988c17ab4afe824515717dd0322">   81</a></span>&#160;    <span class="keyword">auto</span> &amp;<a class="code" href="classcoro_1_1future__variant_a4971e988c17ab4afe824515717dd0322.html#a4971e988c17ab4afe824515717dd0322">get_promise</a>(promise_type &amp;p) {</div>
-<div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;        <span class="keyword">using</span> fut_type = <span class="keyword">typename</span> promise_type::FutureType;</div>
-<div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160;        static_assert(<span class="keyword">sizeof</span>(fut_type) &lt;= buffer_size, <span class="stringliteral">&quot;Future type is not expected&quot;</span>);</div>
-<div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160;        fut_type *ptr = <span class="keyword">new</span>(buffer) fut_type;</div>
-<div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160;        p = ptr-&gt;get_promise();</div>
-<div class="line"><a name="l00086"></a><span class="lineno">   86</span>&#160;        destroy_fn = &amp;_details::future_variant_deleter&lt;fut_type&gt;;</div>
-<div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160;      <span class="keywordflow">return</span> *ptr;</div>
-<div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;    }</div>
-<div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160; </div>
-<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> fut_type, <span class="keyword">typename</span> ... X&gt;</div>
-<div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;    <span class="keyword">friend</span> fut_type &amp;get(<a class="code" href="classcoro_1_1future__variant.html">future_variant&lt;X...&gt;</a> &amp;me);</div>
-<div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160; </div>
-<div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> fut_type, <span class="keyword">typename</span> ... X&gt;</div>
-<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;    <span class="keyword">friend</span> <span class="keyword">const</span> fut_type &amp;get(<span class="keyword">const</span> <a class="code" href="classcoro_1_1future__variant.html">future_variant&lt;X...&gt;</a> &amp;me);</div>
-<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160; </div>
-<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> fut_type, <span class="keyword">typename</span> ... X&gt;</div>
-<div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;    <span class="keyword">friend</span> <span class="keywordtype">bool</span> holds_alternative(<a class="code" href="classcoro_1_1future__variant.html">future_variant&lt;X...&gt;</a> &amp;me);</div>
-<div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160; </div>
-<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;<span class="keyword">protected</span>:</div>
-<div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;    <span class="keyword">static</span> constexpr <span class="keyword">auto</span> buffer_size = std::max({<span class="keyword">sizeof</span>(<a class="code" href="classcoro_1_1future.html">future&lt;Types&gt;</a>)...});</div>
-<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;    void (*destroy_fn)(<span class="keywordtype">void</span> *buffer) = &amp;_details::future_variant_deleter&lt;std::nullptr_t&gt;;</div>
-<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;    <span class="keywordtype">char</span> buffer[buffer_size];</div>
-<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;};</div>
-<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160; </div>
-<div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160;<span class="keyword">template</span>&lt;<span class="keyword">typename</span> fut_type, <span class="keyword">typename</span> ... Types&gt;</div>
-<div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160;<span class="keyword">const</span> fut_type &amp;get(<span class="keyword">const</span> future_variant&lt;Types...&gt; &amp;me) {</div>
-<div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160;    <span class="keywordflow">if</span> (me.destroy_fn != &amp;_details::future_variant_deleter&lt;fut_type&gt;) {</div>
-<div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160;        <span class="keywordflow">throw</span> std::bad_variant_access();</div>
-<div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;    }</div>
-<div class="line"><a name="l00110"></a><span class="lineno">  110</span>&#160;    <span class="keywordflow">return</span> *<span class="keyword">reinterpret_cast&lt;</span><span class="keyword">const </span>fut_type *<span class="keyword">&gt;</span>(me.buffer);</div>
-<div class="line"><a name="l00111"></a><span class="lineno">  111</span>&#160;}</div>
-<div class="line"><a name="l00112"></a><span class="lineno">  112</span>&#160; </div>
-<div class="line"><a name="l00113"></a><span class="lineno">  113</span>&#160;<span class="keyword">template</span>&lt;<span class="keyword">typename</span> fut_type, <span class="keyword">typename</span> ... Types&gt;</div>
-<div class="line"><a name="l00114"></a><span class="lineno">  114</span>&#160; fut_type &amp;get( future_variant&lt;Types...&gt; &amp;me) {</div>
-<div class="line"><a name="l00115"></a><span class="lineno">  115</span>&#160;    <span class="keywordflow">if</span> (me.destroy_fn != &amp;_details::future_variant_deleter&lt;fut_type&gt;) {</div>
-<div class="line"><a name="l00116"></a><span class="lineno">  116</span>&#160;        <span class="keywordflow">throw</span> std::bad_variant_access();</div>
-<div class="line"><a name="l00117"></a><span class="lineno">  117</span>&#160;    }</div>
-<div class="line"><a name="l00118"></a><span class="lineno">  118</span>&#160;    <span class="keywordflow">return</span> *<span class="keyword">reinterpret_cast&lt;</span>fut_type *<span class="keyword">&gt;</span>(me.buffer);</div>
-<div class="line"><a name="l00119"></a><span class="lineno">  119</span>&#160;}</div>
-<div class="line"><a name="l00120"></a><span class="lineno">  120</span>&#160; </div>
-<div class="line"><a name="l00121"></a><span class="lineno">  121</span>&#160;<span class="keyword">template</span>&lt;<span class="keyword">typename</span> fut_type, <span class="keyword">typename</span> ... Types&gt;</div>
-<div class="line"><a name="l00122"></a><span class="lineno">  122</span>&#160;<span class="keywordtype">bool</span> holds_alternative(future_variant&lt;Types...&gt; &amp;me) {</div>
-<div class="line"><a name="l00123"></a><span class="lineno">  123</span>&#160;    <span class="keywordflow">return</span> (me.destroy_fn == &amp;_details::future_variant_deleter&lt;fut_type&gt;);</div>
-<div class="line"><a name="l00124"></a><span class="lineno">  124</span>&#160;}</div>
-<div class="line"><a name="l00125"></a><span class="lineno">  125</span>&#160; </div>
-<div class="line"><a name="l00126"></a><span class="lineno">  126</span>&#160; </div>
-<div class="line"><a name="l00127"></a><span class="lineno">  127</span>&#160; </div>
-<div class="line"><a name="l00128"></a><span class="lineno">  128</span>&#160;}</div>
-<div class="ttc" id="aclasscoro_1_1future__variant_a14c0cf4c986f457908b049dfb7b58d18_html_a14c0cf4c986f457908b049dfb7b58d18"><div class="ttname"><a href="classcoro_1_1future__variant_a14c0cf4c986f457908b049dfb7b58d18.html#a14c0cf4c986f457908b049dfb7b58d18">coro::future_variant::operator&lt;&lt;</a></div><div class="ttdeci">auto &amp; operator&lt;&lt;(Fn &amp;&amp;fn)</div><div class="ttdoc">Redirect return value to future object.</div><div class="ttdef"><b>Definition:</b> <a href="future__variant_8h_source.html#l00060">future_variant.h:60</a></div></div>
-<div class="ttc" id="aclasscoro_1_1future__variant_a4971e988c17ab4afe824515717dd0322_html_a4971e988c17ab4afe824515717dd0322"><div class="ttname"><a href="classcoro_1_1future__variant_a4971e988c17ab4afe824515717dd0322.html#a4971e988c17ab4afe824515717dd0322">coro::future_variant::get_promise</a></div><div class="ttdeci">auto &amp; get_promise(promise_type &amp;p)</div><div class="ttdoc">Initialize underlying future and retrieves promise.</div><div class="ttdef"><b>Definition:</b> <a href="future__variant_8h_source.html#l00081">future_variant.h:81</a></div></div>
-<div class="ttc" id="aclasscoro_1_1future__variant_aae81c4959dd6cbca332bf6ec5db390fc_html_aae81c4959dd6cbca332bf6ec5db390fc"><div class="ttname"><a href="classcoro_1_1future__variant_aae81c4959dd6cbca332bf6ec5db390fc.html#aae81c4959dd6cbca332bf6ec5db390fc">coro::future_variant::reset</a></div><div class="ttdeci">void reset()</div><div class="ttdoc">Delete any underlying future and return object into uninitalized state.</div><div class="ttdef"><b>Definition:</b> <a href="future__variant_8h_source.html#l00070">future_variant.h:70</a></div></div>
-<div class="ttc" id="aclasscoro_1_1future__variant_html"><div class="ttname"><a href="classcoro_1_1future__variant.html">coro::future_variant</a></div><div class="ttdoc">makes a variant future - multiple futures shares single space</div><div class="ttdef"><b>Definition:</b> <a href="future__variant_8h_source.html#l00042">future_variant.h:42</a></div></div>
+<div class="line"><a name="l00008"></a><span class="lineno">    8</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> FutType, <span class="keyword">typename</span> FutVariant&gt;</div>
+<div class="line"><a name="l00009"></a><span class="lineno">    9</span>&#160;    <span class="keyword">struct </span>future_variant_getter {</div>
+<div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160;        FutVariant *owner;</div>
+<div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160;        <span class="keyword">using</span> RetVal = decltype(get&lt;FutType&gt;(*owner).get());</div>
+<div class="line"><a name="l00012"></a><span class="lineno">   12</span>&#160;        <span class="keyword">operator</span> RetVal() {</div>
+<div class="line"><a name="l00013"></a><span class="lineno">   13</span>&#160;            <span class="keyword">auto</span> &amp;ft = get&lt;FutType&gt;(*owner);</div>
+<div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;            <span class="keywordflow">return</span> ft.get();</div>
+<div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;        }</div>
+<div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;    };</div>
+<div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160; </div>
+<div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> FutVariant&gt;</div>
+<div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;    <span class="keyword">struct </span>future_variant_getter&lt;void, FutVariant&gt; {</div>
+<div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;        FutVariant *owner;</div>
+<div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160;        <span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</div>
+<div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;        <span class="keyword">operator</span> T &amp;&amp;() {</div>
+<div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160;            <span class="keywordflow">if</span> (holds_alternative&lt;deferred_future&lt;T&gt; &gt;(*owner)) {</div>
+<div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;                <span class="keywordflow">return</span> get&lt;deferred_future&lt;T&gt; &gt;(*owner).get();</div>
+<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;            } <span class="keywordflow">else</span> {</div>
+<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;                <span class="keywordflow">return</span> get&lt;future&lt;T&gt; &gt;(*owner).get();</div>
+<div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;            }</div>
+<div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;        }</div>
+<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;    };</div>
+<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160; </div>
+<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160; </div>
+<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;    <span class="keyword">class </span>future_variant_interface {</div>
+<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;    <span class="keyword">public</span>:</div>
+<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;        <span class="keyword">struct </span>awaiter {</div>
+<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;            <span class="keywordtype">void</span> *ptr;</div>
+<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;            std::coroutine_handle&lt;&gt; (*on_suspend)(<span class="keywordtype">void</span> *ptr, std::coroutine_handle&lt;&gt; h);</div>
+<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;            <span class="keywordtype">bool</span> await_ready()<span class="keyword"> const </span>{<span class="keywordflow">return</span> ptr == <span class="keyword">nullptr</span>;}</div>
+<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;            std::coroutine_handle&lt;&gt; await_suspend(std::coroutine_handle&lt;&gt; h) {</div>
+<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;                <span class="keywordflow">return</span> on_suspend(ptr, h);</div>
+<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;            }</div>
+<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;            <span class="keywordtype">void</span> await_resume() noexcept {}</div>
+<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;        };</div>
+<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160; </div>
+<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;        constexpr <span class="keyword">virtual</span> ~future_variant_interface() = <span class="keywordflow">default</span>;</div>
+<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;        <span class="keyword">virtual</span> <span class="keywordtype">void</span> destroy_at(<span class="keywordtype">void</span> *ptr) <span class="keyword">const</span> = 0;</div>
+<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;        <span class="keyword">virtual</span> awaiter on_await(<span class="keywordtype">void</span> *ptr) <span class="keyword">const</span> = 0;</div>
+<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;        <span class="keyword">virtual</span> <span class="keywordtype">void</span> on_wait(<span class="keywordtype">void</span> *ptr) <span class="keyword">const</span> = 0;</div>
+<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;    };</div>
+<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160; </div>
+<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> Fut&gt;</div>
+<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;    <span class="keyword">class </span>future_variant_impl : <span class="keyword">public</span> future_variant_interface{</div>
+<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;    <span class="keyword">public</span>:</div>
+<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;        <span class="keyword">virtual</span> <span class="keywordtype">void</span> destroy_at(<span class="keywordtype">void</span> *ptr)<span class="keyword"> const override </span>{</div>
+<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;            std::destroy_at(<span class="keyword">reinterpret_cast&lt;</span>Fut *<span class="keyword">&gt;</span>(ptr));</div>
+<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;        }</div>
+<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;        <span class="keyword">virtual</span> awaiter on_await(<span class="keywordtype">void</span> *ptr)<span class="keyword"> const override</span>{</div>
+<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;            <span class="keywordflow">return</span> {ptr, [](<span class="keywordtype">void</span> *ptr, std::coroutine_handle&lt;&gt; h){</div>
+<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;                <span class="keywordflow">return</span> <span class="keyword">reinterpret_cast&lt;</span>Fut *<span class="keyword">&gt;</span>(ptr)-&gt;await_suspend(h);</div>
+<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;            }};</div>
+<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;        }</div>
+<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;        <span class="keyword">virtual</span> <span class="keywordtype">void</span> on_wait(<span class="keywordtype">void</span> *ptr)<span class="keyword"> const override</span>{</div>
+<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;            <span class="keyword">reinterpret_cast&lt;</span>Fut *<span class="keyword">&gt;</span>(ptr)-&gt;wait();</div>
+<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;        }</div>
+<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;    };</div>
+<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160; </div>
+<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;    <span class="keyword">template</span>&lt;&gt;</div>
+<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;    <span class="keyword">class </span>future_variant_impl&lt;std::nullptr_t&gt; : <span class="keyword">public</span> future_variant_interface{</div>
+<div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160;    <span class="keyword">public</span>:</div>
+<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;        <span class="keyword">virtual</span> <span class="keywordtype">void</span> destroy_at(<span class="keywordtype">void</span> *)<span class="keyword"> const override</span>{}</div>
+<div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160;        <span class="keyword">virtual</span> awaiter on_await(<span class="keywordtype">void</span> *)<span class="keyword"> const override</span>{<span class="keywordflow">return</span> {}; }</div>
+<div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160;        <span class="keyword">virtual</span> <span class="keywordtype">void</span> on_wait(<span class="keywordtype">void</span> *)<span class="keyword"> const override</span>{}</div>
+<div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160;    };</div>
+<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160; </div>
+<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> Fut&gt;</div>
+<div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160;    <span class="keyword">inline</span> constexpr future_variant_impl&lt;Fut&gt; future_variant_control = {};</div>
+<div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160;}</div>
+<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160; </div>
+<div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160; </div>
+<div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160;<span class="keyword">template</span>&lt;<span class="keyword">typename</span> ... Types&gt;</div>
+<div class="line"><a name="l00106"></a><span class="lineno"><a class="line" href="classcoro_1_1future__variant.html">  106</a></span>&#160;<span class="keyword">class </span><a class="code" href="classcoro_1_1future__variant.html">future_variant</a> {</div>
+<div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160;<span class="keyword">public</span>:</div>
+<div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160; </div>
+<div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;    <a class="code" href="classcoro_1_1future__variant.html">future_variant</a>() = <span class="keywordflow">default</span>;</div>
+<div class="line"><a name="l00110"></a><span class="lineno">  110</span>&#160;    <a class="code" href="classcoro_1_1future__variant.html">future_variant</a>(<span class="keyword">const</span> <a class="code" href="classcoro_1_1future__variant.html">future_variant</a> &amp;) = <span class="keyword">delete</span>;</div>
+<div class="line"><a name="l00111"></a><span class="lineno">  111</span>&#160;    <a class="code" href="classcoro_1_1future__variant.html">future_variant</a> &amp;operator=(<span class="keyword">const</span> <a class="code" href="classcoro_1_1future__variant.html">future_variant</a> &amp;) = <span class="keyword">delete</span>;</div>
+<div class="line"><a name="l00112"></a><span class="lineno">  112</span>&#160;    ~<a class="code" href="classcoro_1_1future__variant.html">future_variant</a>() {</div>
+<div class="line"><a name="l00113"></a><span class="lineno">  113</span>&#160;        control-&gt;destroy_at(buffer);</div>
+<div class="line"><a name="l00114"></a><span class="lineno">  114</span>&#160;    }</div>
+<div class="line"><a name="l00115"></a><span class="lineno">  115</span>&#160; </div>
+<div class="line"><a name="l00117"></a><span class="lineno">  117</span>&#160; </div>
+<div class="line"><a name="l00123"></a><span class="lineno">  123</span>&#160;    <span class="keyword">template</span>&lt;std::invocable&lt;&gt; Fn&gt;</div>
+<div class="line"><a name="l00124"></a><span class="lineno"><a class="line" href="classcoro_1_1future__variant_a14c0cf4c986f457908b049dfb7b58d18.html#a14c0cf4c986f457908b049dfb7b58d18">  124</a></span>&#160;    <span class="keyword">auto</span> &amp;<a class="code" href="classcoro_1_1future__variant_a14c0cf4c986f457908b049dfb7b58d18.html#a14c0cf4c986f457908b049dfb7b58d18">operator&lt;&lt;</a>(Fn &amp;&amp;fn) {</div>
+<div class="line"><a name="l00125"></a><span class="lineno">  125</span>&#160;        control-&gt;destroy_at(buffer);</div>
+<div class="line"><a name="l00126"></a><span class="lineno">  126</span>&#160;        <span class="keyword">using</span> fut_type = std::invoke_result_t&lt;Fn&gt;;</div>
+<div class="line"><a name="l00127"></a><span class="lineno">  127</span>&#160;        static_assert(<span class="keyword">sizeof</span>(fut_type) &lt;= buffer_size, <span class="stringliteral">&quot;Returned future is not expected&quot;</span>);</div>
+<div class="line"><a name="l00128"></a><span class="lineno">  128</span>&#160;        fut_type *ptr = <span class="keyword">new</span>(buffer) fut_type(fn());</div>
+<div class="line"><a name="l00129"></a><span class="lineno">  129</span>&#160;        control = &amp;_details::future_variant_control&lt;fut_type&gt;;</div>
+<div class="line"><a name="l00130"></a><span class="lineno">  130</span>&#160;        <span class="keywordflow">return</span> *ptr;</div>
+<div class="line"><a name="l00131"></a><span class="lineno">  131</span>&#160;    }</div>
+<div class="line"><a name="l00132"></a><span class="lineno">  132</span>&#160; </div>
+<div class="line"><a name="l00134"></a><span class="lineno"><a class="line" href="classcoro_1_1future__variant_aae81c4959dd6cbca332bf6ec5db390fc.html#aae81c4959dd6cbca332bf6ec5db390fc">  134</a></span>&#160;    <span class="keywordtype">void</span> <a class="code" href="classcoro_1_1future__variant_aae81c4959dd6cbca332bf6ec5db390fc.html#aae81c4959dd6cbca332bf6ec5db390fc">reset</a>() {</div>
+<div class="line"><a name="l00135"></a><span class="lineno">  135</span>&#160;        control-&gt;destroy_at(buffer);</div>
+<div class="line"><a name="l00136"></a><span class="lineno">  136</span>&#160;        control = &amp;_details::future_variant_control&lt;std::nullptr_t&gt;;</div>
+<div class="line"><a name="l00137"></a><span class="lineno">  137</span>&#160;    }</div>
+<div class="line"><a name="l00138"></a><span class="lineno">  138</span>&#160; </div>
+<div class="line"><a name="l00140"></a><span class="lineno">  140</span>&#160; </div>
+<div class="line"><a name="l00144"></a><span class="lineno">  144</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> promise_type&gt;</div>
+<div class="line"><a name="l00145"></a><span class="lineno"><a class="line" href="classcoro_1_1future__variant_a4971e988c17ab4afe824515717dd0322.html#a4971e988c17ab4afe824515717dd0322">  145</a></span>&#160;    <span class="keyword">auto</span> &amp;<a class="code" href="classcoro_1_1future__variant_a4971e988c17ab4afe824515717dd0322.html#a4971e988c17ab4afe824515717dd0322">get_promise</a>(promise_type &amp;p) {</div>
+<div class="line"><a name="l00146"></a><span class="lineno">  146</span>&#160;        <span class="keyword">using</span> fut_type = <span class="keyword">typename</span> promise_type::FutureType;</div>
+<div class="line"><a name="l00147"></a><span class="lineno">  147</span>&#160;        static_assert(<span class="keyword">sizeof</span>(fut_type) &lt;= buffer_size, <span class="stringliteral">&quot;Future type is not expected&quot;</span>);</div>
+<div class="line"><a name="l00148"></a><span class="lineno">  148</span>&#160;        fut_type *ptr = <span class="keyword">new</span>(buffer) fut_type;</div>
+<div class="line"><a name="l00149"></a><span class="lineno">  149</span>&#160;        p = ptr-&gt;get_promise();</div>
+<div class="line"><a name="l00150"></a><span class="lineno">  150</span>&#160;        control = &amp;_details::future_variant_control&lt;fut_type&gt;;</div>
+<div class="line"><a name="l00151"></a><span class="lineno">  151</span>&#160;      <span class="keywordflow">return</span> *ptr;</div>
+<div class="line"><a name="l00152"></a><span class="lineno">  152</span>&#160;    }</div>
+<div class="line"><a name="l00153"></a><span class="lineno">  153</span>&#160; </div>
+<div class="line"><a name="l00155"></a><span class="lineno">  155</span>&#160; </div>
+<div class="line"><a name="l00160"></a><span class="lineno">  160</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> fut_type, <span class="keyword">typename</span> ... X&gt;</div>
+<div class="line"><a name="l00161"></a><span class="lineno"><a class="line" href="classcoro_1_1future__variant_a998f714274a885d0f048983c88dd8789.html#a998f714274a885d0f048983c88dd8789">  161</a></span>&#160;    <span class="keyword">friend</span> fut_type &amp;<a class="code" href="classcoro_1_1future__variant_a998f714274a885d0f048983c88dd8789.html#a998f714274a885d0f048983c88dd8789">get</a>(<a class="code" href="classcoro_1_1future__variant.html">future_variant&lt;X...&gt;</a> &amp;me);</div>
+<div class="line"><a name="l00162"></a><span class="lineno">  162</span>&#160; </div>
+<div class="line"><a name="l00164"></a><span class="lineno">  164</span>&#160; </div>
+<div class="line"><a name="l00169"></a><span class="lineno">  169</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> fut_type, <span class="keyword">typename</span> ... X&gt;</div>
+<div class="line"><a name="l00170"></a><span class="lineno"><a class="line" href="classcoro_1_1future__variant_ada2e896f1ce471bf2d5c17b04092710a.html#ada2e896f1ce471bf2d5c17b04092710a">  170</a></span>&#160;    <span class="keyword">friend</span> <span class="keyword">const</span> fut_type &amp;<a class="code" href="classcoro_1_1future__variant_ada2e896f1ce471bf2d5c17b04092710a.html#ada2e896f1ce471bf2d5c17b04092710a">get</a>(<span class="keyword">const</span> <a class="code" href="classcoro_1_1future__variant.html">future_variant&lt;X...&gt;</a> &amp;me);</div>
+<div class="line"><a name="l00171"></a><span class="lineno">  171</span>&#160; </div>
+<div class="line"><a name="l00172"></a><span class="lineno">  172</span>&#160; </div>
+<div class="line"><a name="l00174"></a><span class="lineno">  174</span>&#160; </div>
+<div class="line"><a name="l00181"></a><span class="lineno">  181</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> fut_type, <span class="keyword">typename</span> ... X&gt;</div>
+<div class="line"><a name="l00182"></a><span class="lineno"><a class="line" href="classcoro_1_1future__variant_aa6e1730e11628f6751ff86e28ffff7c3.html#aa6e1730e11628f6751ff86e28ffff7c3">  182</a></span>&#160;    <span class="keyword">friend</span> <span class="keywordtype">bool</span> <a class="code" href="classcoro_1_1future__variant_aa6e1730e11628f6751ff86e28ffff7c3.html#aa6e1730e11628f6751ff86e28ffff7c3">holds_alternative</a>(<a class="code" href="classcoro_1_1future__variant.html">future_variant&lt;X...&gt;</a> &amp;me);</div>
+<div class="line"><a name="l00183"></a><span class="lineno">  183</span>&#160; </div>
+<div class="line"><a name="l00184"></a><span class="lineno">  184</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> FutType, <span class="keyword">typename</span> FutVariant&gt;</div>
+<div class="line"><a name="l00185"></a><span class="lineno">  185</span>&#160;    <span class="keyword">friend</span> <span class="keyword">struct </span>future_variant_getter;</div>
+<div class="line"><a name="l00186"></a><span class="lineno">  186</span>&#160; </div>
+<div class="line"><a name="l00188"></a><span class="lineno">  188</span>&#160; </div>
+<div class="line"><a name="l00196"></a><span class="lineno">  196</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> fut_type = <span class="keywordtype">void</span>&gt;</div>
+<div class="line"><a name="l00197"></a><span class="lineno"><a class="line" href="classcoro_1_1future__variant_aa977e0247a09524ea3389a31c6903718.html#aa977e0247a09524ea3389a31c6903718">  197</a></span>&#160;    _details::future_variant_getter&lt;fut_type, future_variant&gt; <a class="code" href="classcoro_1_1future__variant_aa977e0247a09524ea3389a31c6903718.html#aa977e0247a09524ea3389a31c6903718">get</a>() {</div>
+<div class="line"><a name="l00198"></a><span class="lineno">  198</span>&#160;        <span class="keywordflow">return</span> {<span class="keyword">this</span>};</div>
+<div class="line"><a name="l00199"></a><span class="lineno">  199</span>&#160;    }</div>
+<div class="line"><a name="l00200"></a><span class="lineno">  200</span>&#160; </div>
+<div class="line"><a name="l00201"></a><span class="lineno">  201</span>&#160;    <span class="keyword">using</span> awaiter = _details::future_variant_interface::awaiter;</div>
+<div class="line"><a name="l00202"></a><span class="lineno">  202</span>&#160; </div>
+<div class="line"><a name="l00204"></a><span class="lineno">  204</span>&#160; </div>
+<div class="line"><a name="l00211"></a><span class="lineno"><a class="line" href="classcoro_1_1future__variant_acb1507974948ba2881dc2b286e62c8a4.html#acb1507974948ba2881dc2b286e62c8a4">  211</a></span>&#160;    awaiter <span class="keyword">operator</span> co_await() {</div>
+<div class="line"><a name="l00212"></a><span class="lineno">  212</span>&#160;        <span class="keywordflow">return</span> control-&gt;on_await(buffer);</div>
+<div class="line"><a name="l00213"></a><span class="lineno">  213</span>&#160;    }</div>
+<div class="line"><a name="l00214"></a><span class="lineno">  214</span>&#160; </div>
+<div class="line"><a name="l00216"></a><span class="lineno"><a class="line" href="classcoro_1_1future__variant_a55ae5109c503b3a2a8c170fa47842a8d.html#a55ae5109c503b3a2a8c170fa47842a8d">  216</a></span>&#160;    <span class="keywordtype">void</span> <a class="code" href="classcoro_1_1future__variant_a55ae5109c503b3a2a8c170fa47842a8d.html#a55ae5109c503b3a2a8c170fa47842a8d">wait</a>() {</div>
+<div class="line"><a name="l00217"></a><span class="lineno">  217</span>&#160;        <span class="keywordflow">return</span> control-&gt;on_wait(buffer);</div>
+<div class="line"><a name="l00218"></a><span class="lineno">  218</span>&#160;    }</div>
+<div class="line"><a name="l00219"></a><span class="lineno">  219</span>&#160; </div>
+<div class="line"><a name="l00220"></a><span class="lineno">  220</span>&#160; </div>
+<div class="line"><a name="l00221"></a><span class="lineno">  221</span>&#160;<span class="keyword">protected</span>:</div>
+<div class="line"><a name="l00222"></a><span class="lineno">  222</span>&#160;    <span class="keyword">static</span> constexpr <span class="keyword">auto</span> buffer_size = std::max({<span class="keyword">sizeof</span>(<a class="code" href="classcoro_1_1future.html">future&lt;Types&gt;</a>)...});</div>
+<div class="line"><a name="l00223"></a><span class="lineno">  223</span>&#160;    <span class="keyword">const</span> _details::future_variant_interface *control = &amp;_details::future_variant_control&lt;std::nullptr_t&gt;;</div>
+<div class="line"><a name="l00224"></a><span class="lineno">  224</span>&#160;    <span class="keywordtype">char</span> buffer[buffer_size];</div>
+<div class="line"><a name="l00225"></a><span class="lineno">  225</span>&#160;};</div>
+<div class="line"><a name="l00226"></a><span class="lineno">  226</span>&#160; </div>
+<div class="line"><a name="l00227"></a><span class="lineno">  227</span>&#160;<span class="keyword">template</span>&lt;<span class="keyword">typename</span> fut_type, <span class="keyword">typename</span> ... Types&gt;</div>
+<div class="line"><a name="l00228"></a><span class="lineno">  228</span>&#160;<span class="keyword">const</span> fut_type &amp;get(<span class="keyword">const</span> future_variant&lt;Types...&gt; &amp;me) {</div>
+<div class="line"><a name="l00229"></a><span class="lineno">  229</span>&#160;    <span class="keywordflow">if</span> (me.control != &amp;_details::future_variant_control&lt;fut_type&gt;) {</div>
+<div class="line"><a name="l00230"></a><span class="lineno">  230</span>&#160;        <span class="keywordflow">throw</span> std::bad_variant_access();</div>
+<div class="line"><a name="l00231"></a><span class="lineno">  231</span>&#160;    }</div>
+<div class="line"><a name="l00232"></a><span class="lineno">  232</span>&#160;    <span class="keywordflow">return</span> *<span class="keyword">reinterpret_cast&lt;</span><span class="keyword">const </span>fut_type *<span class="keyword">&gt;</span>(me.buffer);</div>
+<div class="line"><a name="l00233"></a><span class="lineno">  233</span>&#160;}</div>
+<div class="line"><a name="l00234"></a><span class="lineno">  234</span>&#160; </div>
+<div class="line"><a name="l00235"></a><span class="lineno">  235</span>&#160;<span class="keyword">template</span>&lt;<span class="keyword">typename</span> fut_type, <span class="keyword">typename</span> ... Types&gt;</div>
+<div class="line"><a name="l00236"></a><span class="lineno">  236</span>&#160; fut_type &amp;get( future_variant&lt;Types...&gt; &amp;me) {</div>
+<div class="line"><a name="l00237"></a><span class="lineno">  237</span>&#160;    <span class="keywordflow">if</span> (me.control != &amp;_details::future_variant_control&lt;fut_type&gt;) {</div>
+<div class="line"><a name="l00238"></a><span class="lineno">  238</span>&#160;        <span class="keywordflow">throw</span> std::bad_variant_access();</div>
+<div class="line"><a name="l00239"></a><span class="lineno">  239</span>&#160;    }</div>
+<div class="line"><a name="l00240"></a><span class="lineno">  240</span>&#160;    <span class="keywordflow">return</span> *<span class="keyword">reinterpret_cast&lt;</span>fut_type *<span class="keyword">&gt;</span>(me.buffer);</div>
+<div class="line"><a name="l00241"></a><span class="lineno">  241</span>&#160;}</div>
+<div class="line"><a name="l00242"></a><span class="lineno">  242</span>&#160; </div>
+<div class="line"><a name="l00243"></a><span class="lineno">  243</span>&#160;<span class="keyword">template</span>&lt;<span class="keyword">typename</span> fut_type, <span class="keyword">typename</span> ... Types&gt;</div>
+<div class="line"><a name="l00244"></a><span class="lineno">  244</span>&#160;<span class="keywordtype">bool</span> holds_alternative(future_variant&lt;Types...&gt; &amp;me) {</div>
+<div class="line"><a name="l00245"></a><span class="lineno">  245</span>&#160;    <span class="keywordflow">return</span> (me.control == &amp;_details::future_variant_control&lt;fut_type&gt;);</div>
+<div class="line"><a name="l00246"></a><span class="lineno">  246</span>&#160;}</div>
+<div class="line"><a name="l00247"></a><span class="lineno">  247</span>&#160; </div>
+<div class="line"><a name="l00248"></a><span class="lineno">  248</span>&#160; </div>
+<div class="line"><a name="l00249"></a><span class="lineno">  249</span>&#160;}</div>
+<div class="ttc" id="aclasscoro_1_1future__variant_a14c0cf4c986f457908b049dfb7b58d18_html_a14c0cf4c986f457908b049dfb7b58d18"><div class="ttname"><a href="classcoro_1_1future__variant_a14c0cf4c986f457908b049dfb7b58d18.html#a14c0cf4c986f457908b049dfb7b58d18">coro::future_variant::operator&lt;&lt;</a></div><div class="ttdeci">auto &amp; operator&lt;&lt;(Fn &amp;&amp;fn)</div><div class="ttdoc">Redirect return value to future object.</div><div class="ttdef"><b>Definition:</b> <a href="future__variant_8h_source.html#l00124">future_variant.h:124</a></div></div>
+<div class="ttc" id="aclasscoro_1_1future__variant_a4971e988c17ab4afe824515717dd0322_html_a4971e988c17ab4afe824515717dd0322"><div class="ttname"><a href="classcoro_1_1future__variant_a4971e988c17ab4afe824515717dd0322.html#a4971e988c17ab4afe824515717dd0322">coro::future_variant::get_promise</a></div><div class="ttdeci">auto &amp; get_promise(promise_type &amp;p)</div><div class="ttdoc">Initialize underlying future and retrieves promise.</div><div class="ttdef"><b>Definition:</b> <a href="future__variant_8h_source.html#l00145">future_variant.h:145</a></div></div>
+<div class="ttc" id="aclasscoro_1_1future__variant_a55ae5109c503b3a2a8c170fa47842a8d_html_a55ae5109c503b3a2a8c170fa47842a8d"><div class="ttname"><a href="classcoro_1_1future__variant_a55ae5109c503b3a2a8c170fa47842a8d.html#a55ae5109c503b3a2a8c170fa47842a8d">coro::future_variant::wait</a></div><div class="ttdeci">void wait()</div><div class="ttdoc">Helps to wait on future regardless on which variant is active.</div><div class="ttdef"><b>Definition:</b> <a href="future__variant_8h_source.html#l00216">future_variant.h:216</a></div></div>
+<div class="ttc" id="aclasscoro_1_1future__variant_a998f714274a885d0f048983c88dd8789_html_a998f714274a885d0f048983c88dd8789"><div class="ttname"><a href="classcoro_1_1future__variant_a998f714274a885d0f048983c88dd8789.html#a998f714274a885d0f048983c88dd8789">coro::future_variant::get</a></div><div class="ttdeci">friend fut_type &amp; get(future_variant&lt; X... &gt; &amp;me)</div><div class="ttdoc">Retrieve reference to future - if it is current variant.</div></div>
+<div class="ttc" id="aclasscoro_1_1future__variant_aa6e1730e11628f6751ff86e28ffff7c3_html_aa6e1730e11628f6751ff86e28ffff7c3"><div class="ttname"><a href="classcoro_1_1future__variant_aa6e1730e11628f6751ff86e28ffff7c3.html#aa6e1730e11628f6751ff86e28ffff7c3">coro::future_variant::holds_alternative</a></div><div class="ttdeci">friend bool holds_alternative(future_variant&lt; X... &gt; &amp;me)</div><div class="ttdoc">tests whether holds given variant</div></div>
+<div class="ttc" id="aclasscoro_1_1future__variant_aa977e0247a09524ea3389a31c6903718_html_aa977e0247a09524ea3389a31c6903718"><div class="ttname"><a href="classcoro_1_1future__variant_aa977e0247a09524ea3389a31c6903718.html#aa977e0247a09524ea3389a31c6903718">coro::future_variant::get</a></div><div class="ttdeci">_details::future_variant_getter&lt; fut_type, future_variant &gt; get()</div><div class="ttdoc">Retrieve result of the future.</div><div class="ttdef"><b>Definition:</b> <a href="future__variant_8h_source.html#l00197">future_variant.h:197</a></div></div>
+<div class="ttc" id="aclasscoro_1_1future__variant_aae81c4959dd6cbca332bf6ec5db390fc_html_aae81c4959dd6cbca332bf6ec5db390fc"><div class="ttname"><a href="classcoro_1_1future__variant_aae81c4959dd6cbca332bf6ec5db390fc.html#aae81c4959dd6cbca332bf6ec5db390fc">coro::future_variant::reset</a></div><div class="ttdeci">void reset()</div><div class="ttdoc">Delete any underlying future and return object into uninitalized state.</div><div class="ttdef"><b>Definition:</b> <a href="future__variant_8h_source.html#l00134">future_variant.h:134</a></div></div>
+<div class="ttc" id="aclasscoro_1_1future__variant_ada2e896f1ce471bf2d5c17b04092710a_html_ada2e896f1ce471bf2d5c17b04092710a"><div class="ttname"><a href="classcoro_1_1future__variant_ada2e896f1ce471bf2d5c17b04092710a.html#ada2e896f1ce471bf2d5c17b04092710a">coro::future_variant::get</a></div><div class="ttdeci">friend const fut_type &amp; get(const future_variant&lt; X... &gt; &amp;me)</div><div class="ttdoc">Retrieve reference to future - if it is current variant.</div></div>
+<div class="ttc" id="aclasscoro_1_1future__variant_html"><div class="ttname"><a href="classcoro_1_1future__variant.html">coro::future_variant</a></div><div class="ttdoc">makes a variant future - multiple futures shares single space</div><div class="ttdef"><b>Definition:</b> <a href="future__variant_8h_source.html#l00106">future_variant.h:106</a></div></div>
 <div class="ttc" id="aclasscoro_1_1future_html"><div class="ttname"><a href="classcoro_1_1future.html">coro::future</a></div><div class="ttdoc">Contains future value of T, can be co_awaited in coroutine.</div><div class="ttdef"><b>Definition:</b> <a href="future_8h_source.html#l00417">future.h:417</a></div></div>
 <div class="ttc" id="anamespacecoro_html"><div class="ttname"><a href="namespacecoro.html">coro</a></div><div class="ttdoc">main namespace</div><div class="ttdef"><b>Definition:</b> <a href="aggregator_8h_source.html#l00008">aggregator.h:8</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Jun 8 2024 10:12:53 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+Generated on Sun Jun 23 2024 13:09:42 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
 </small></address>
 </body>
 </html>
