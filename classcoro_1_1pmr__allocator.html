@@ -70,11 +70,11 @@ $(function() {
   <div class="summary">
 <a href="classcoro_1_1pmr__allocator-members.html">List of all members</a>  </div>
   <div class="headertitle">
-<div class="title">coro::pmr_allocator&lt; Res &gt; Class Template Reference</div>  </div>
+<div class="title">coro::pmr_allocator&lt; Res &gt; Class Template Reference<div class="ingroups"><a class="el" href="group__allocators.html">Allocators</a></div></div>  </div>
 </div><!--header-->
 <div class="contents">
 
-<p>Creates <code>libcoro</code> compatible allocator which can be used along with std::pmr::memory_resource.  
+<p>Creates <code>libcoro</code> compatible allocator which uses an instance of std::pmr::memory_resource for allocations.  
  <a href="classcoro_1_1pmr__allocator.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="allocator_8h_source.html">allocator.h</a>&gt;</code></p>
@@ -82,7 +82,7 @@ $(function() {
 <div class="textblock"><h3>template&lt;memory_resource_pointer Res&gt;<br />
 class coro::pmr_allocator&lt; Res &gt;</h3>
 
-<p>Creates <code>libcoro</code> compatible allocator which can be used along with std::pmr::memory_resource. </p>
+<p>Creates <code>libcoro</code> compatible allocator which uses an instance of std::pmr::memory_resource for allocations. </p>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname">Res</td><td>pointer to memory resource, it can be also any smart pointer which acts as pointer (defines -&gt;). You can use std::shared_ptr which causes that memory resource is automatically released when last coroutine is finished</td></tr>
@@ -95,16 +95,16 @@ class coro::pmr_allocator&lt; Res &gt;</h3>
 <div class="line"> </div>
 <div class="line">}</div>
 <div class="ttc" id="aclasscoro_1_1async_html"><div class="ttname"><a href="classcoro_1_1async.html">coro::async</a></div><div class="ttdoc">COROUTINE: Coroutine for asynchronous operation.</div><div class="ttdef"><b>Definition:</b> <a href="async_8h_source.html#l00055">async.h:55</a></div></div>
-<div class="ttc" id="aclasscoro_1_1pmr__allocator_html"><div class="ttname"><a href="classcoro_1_1pmr__allocator.html">coro::pmr_allocator</a></div><div class="ttdoc">Creates libcoro compatible allocator which can be used along with std::pmr::memory_resource.</div><div class="ttdef"><b>Definition:</b> <a href="allocator_8h_source.html#l00187">allocator.h:187</a></div></div>
+<div class="ttc" id="aclasscoro_1_1pmr__allocator_html"><div class="ttname"><a href="classcoro_1_1pmr__allocator.html">coro::pmr_allocator</a></div><div class="ttdoc">Creates libcoro compatible allocator which uses an instance of std::pmr::memory_resource for allocati...</div><div class="ttdef"><b>Definition:</b> <a href="allocator_8h_source.html#l00189">allocator.h:189</a></div></div>
 </div><!-- fragment --> 
-<p class="definition">Definition at line <a class="el" href="allocator_8h_source.html#l00187">187</a> of file <a class="el" href="allocator_8h_source.html">allocator.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="allocator_8h_source.html#l00189">189</a> of file <a class="el" href="allocator_8h_source.html">allocator.h</a>.</p>
 </div><hr/>The documentation for this class was generated from the following file:<ul>
 <li>src/coro/<a class="el" href="allocator_8h_source.html">allocator.h</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Jun 30 2024 13:54:45 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+Generated on Sun Jun 30 2024 13:59:21 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
 </small></address>
 </body>
 </html>
