@@ -168,7 +168,7 @@ concept memory_resource_pointer = requires(T x, std::size_t sz, void *ptr) {
 };
 
 
-///Creates `libcoro` compatible allocator which can be used along with std::pmr::memory_resource
+///Creates `libcoro` compatible allocator which uses an instance of std::pmr::memory_resource for allocations
 /**
  * @tparam Res pointer to memory resource, it can be also any smart pointer
  * which acts as pointer (defines ->).  You can use std::shared_ptr which causes
@@ -182,12 +182,14 @@ concept memory_resource_pointer = requires(T x, std::size_t sz, void *ptr) {
  *
  * }
  * @endcode
+ * @ingroup allocators
+ *
  */
 template<memory_resource_pointer Res>
 class pmr_allocator {
 public:
     template<std::convertible_to<Res> T>
-    pmr_allocator(T resource):_memory_resource(std::forward<Res>(resource)) {}
+    pmr_allocator(T &&resource):_memory_resource(std::forward<Res>(resource)) {}
 
     void *alloc(std::size_t sz) {
         auto needsz = sz + sizeof(Res);
