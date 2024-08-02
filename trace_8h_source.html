@@ -447,12 +447,12 @@ $(function() {
 <div class="line"><a name="l00414"></a><span class="lineno">  414</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> ... Args&gt;</div>
 <div class="line"><a name="l00415"></a><span class="lineno">  415</span>&#160;    <span class="keyword">inline</span> <span class="keywordtype">void</span> log(<span class="keyword">const</span> Args &amp; ... ) {}</div>
 <div class="line"><a name="l00416"></a><span class="lineno">  416</span>&#160; </div>
-<div class="line"><a name="l00417"></a><span class="lineno">  417</span>&#160;    <span class="keyword">inline</span> <span class="keywordtype">void</span> awaiting_ref(ident_t source, std::coroutine_handle&lt;&gt; awaiting) {}</div>
-<div class="line"><a name="l00418"></a><span class="lineno">  418</span>&#160;    <span class="keyword">inline</span> <span class="keywordtype">void</span> awaiting_ref(ident_t source, <span class="keyword">const</span> <span class="keywordtype">void</span> *awaiting_obj) {}</div>
+<div class="line"><a name="l00417"></a><span class="lineno">  417</span>&#160;    <span class="keyword">inline</span> <span class="keywordtype">void</span> awaiting_ref(ident_t , std::coroutine_handle&lt;&gt; ) {}</div>
+<div class="line"><a name="l00418"></a><span class="lineno">  418</span>&#160;    <span class="keyword">inline</span> <span class="keywordtype">void</span> awaiting_ref(ident_t , <span class="keyword">const</span> <span class="keywordtype">void</span> *) {}</div>
 <div class="line"><a name="l00419"></a><span class="lineno">  419</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</div>
-<div class="line"><a name="l00420"></a><span class="lineno">  420</span>&#160;    <span class="keyword">inline</span> <span class="keywordtype">void</span> awaiting_ref(<span class="keyword">const</span> T &amp;source, std::coroutine_handle&lt;&gt; awaiting) {}</div>
+<div class="line"><a name="l00420"></a><span class="lineno">  420</span>&#160;    <span class="keyword">inline</span> <span class="keywordtype">void</span> awaiting_ref(<span class="keyword">const</span> T &amp;, std::coroutine_handle&lt;&gt; ) {}</div>
 <div class="line"><a name="l00421"></a><span class="lineno">  421</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</div>
-<div class="line"><a name="l00422"></a><span class="lineno">  422</span>&#160;    <span class="keyword">inline</span> <span class="keywordtype">void</span> awaiting_ref(<span class="keyword">const</span> T &amp;source, <span class="keyword">const</span> <span class="keywordtype">void</span> *awaiting_obj) {}</div>
+<div class="line"><a name="l00422"></a><span class="lineno">  422</span>&#160;    <span class="keyword">inline</span> <span class="keywordtype">void</span> awaiting_ref(<span class="keyword">const</span> T &amp;, <span class="keyword">const</span> <span class="keywordtype">void</span> *) {}</div>
 <div class="line"><a name="l00423"></a><span class="lineno">  423</span>&#160; </div>
 <div class="line"><a name="l00424"></a><span class="lineno">  424</span>&#160;    <span class="keyword">inline</span> <span class="keywordtype">void</span> section(std::string_view) {}</div>
 <div class="line"><a name="l00425"></a><span class="lineno">  425</span>&#160; </div>
@@ -469,20 +469,21 @@ $(function() {
 <div class="line"><a name="l00439"></a><span class="lineno">  439</span>&#160; </div>
 <div class="line"><a name="l00440"></a><span class="lineno">  440</span>&#160;    <span class="keyword">inline</span> constexpr ident_awt ident = {};</div>
 <div class="line"><a name="l00441"></a><span class="lineno">  441</span>&#160; </div>
-<div class="line"><a name="l00442"></a><span class="lineno">  442</span>&#160; </div>
-<div class="line"><a name="l00443"></a><span class="lineno">  443</span>&#160;}</div>
-<div class="line"><a name="l00444"></a><span class="lineno">  444</span>&#160; </div>
-<div class="line"><a name="l00445"></a><span class="lineno">  445</span>&#160;<span class="keyword">template</span>&lt;std::invocable&lt;&gt; Fn, <span class="keyword">typename</span> Ref&gt;</div>
-<div class="line"><a name="l00446"></a><span class="lineno">  446</span>&#160;<span class="keyword">inline</span> <span class="keywordtype">void</span> on_block(Fn &amp;&amp;fn, Ref &amp;) {</div>
-<div class="line"><a name="l00447"></a><span class="lineno">  447</span>&#160;    std::forward&lt;Fn&gt;(fn)();</div>
+<div class="line"><a name="l00442"></a><span class="lineno">  442</span>&#160;    <span class="keyword">template</span>&lt;std::invocable&lt;&gt; Fn, <span class="keyword">typename</span> Ref&gt;</div>
+<div class="line"><a name="l00443"></a><span class="lineno">  443</span>&#160;    <span class="keyword">inline</span> <span class="keywordtype">void</span> on_block(Fn &amp;&amp;fn, Ref &amp;) {</div>
+<div class="line"><a name="l00444"></a><span class="lineno">  444</span>&#160;        std::forward&lt;Fn&gt;(fn)();</div>
+<div class="line"><a name="l00445"></a><span class="lineno">  445</span>&#160;    }</div>
+<div class="line"><a name="l00446"></a><span class="lineno">  446</span>&#160; </div>
+<div class="line"><a name="l00447"></a><span class="lineno">  447</span>&#160; </div>
 <div class="line"><a name="l00448"></a><span class="lineno">  448</span>&#160;}</div>
 <div class="line"><a name="l00449"></a><span class="lineno">  449</span>&#160; </div>
 <div class="line"><a name="l00450"></a><span class="lineno">  450</span>&#160; </div>
-<div class="line"><a name="l00451"></a><span class="lineno">  451</span>&#160;}</div>
-<div class="line"><a name="l00452"></a><span class="lineno">  452</span>&#160; </div>
+<div class="line"><a name="l00451"></a><span class="lineno">  451</span>&#160; </div>
+<div class="line"><a name="l00452"></a><span class="lineno">  452</span>&#160;}</div>
 <div class="line"><a name="l00453"></a><span class="lineno">  453</span>&#160; </div>
-<div class="line"><a name="l00454"></a><span class="lineno">  454</span>&#160;<span class="preprocessor">#endif</span></div>
-<div class="line"><a name="l00455"></a><span class="lineno">  455</span>&#160; </div>
+<div class="line"><a name="l00454"></a><span class="lineno">  454</span>&#160; </div>
+<div class="line"><a name="l00455"></a><span class="lineno">  455</span>&#160;<span class="preprocessor">#endif</span></div>
+<div class="line"><a name="l00456"></a><span class="lineno">  456</span>&#160; </div>
 <div class="ttc" id="aclasscoro_1_1suspend_html"><div class="ttname"><a href="classcoro_1_1suspend.html">coro::suspend</a></div><div class="ttdoc">Suspend current coroutine and switch to another coroutine ready to run.</div><div class="ttdef"><b>Definition:</b> <a href="cooperative_8h_source.html#l00044">cooperative.h:44</a></div></div>
 <div class="ttc" id="acommon_8h_html"><div class="ttname"><a href="common_8h.html">common.h</a></div></div>
 <div class="ttc" id="agroup__trace_ga1cd9c5a04afbe61d2abd7caf0d0ee8e4_html_ga1cd9c5a04afbe61d2abd7caf0d0ee8e4"><div class="ttname"><a href="group__trace_ga1cd9c5a04afbe61d2abd7caf0d0ee8e4.html#ga1cd9c5a04afbe61d2abd7caf0d0ee8e4">coro::trace::on_create</a></div><div class="ttdeci">void on_create(const void *, std::size_t)</div><div class="ttdoc">Record creation of an coroutine.</div><div class="ttdef"><b>Definition:</b> <a href="trace_8h_source.html#l00362">trace.h:362</a></div></div>
@@ -493,7 +494,7 @@ $(function() {
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Aug 2 2024 15:42:38 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+Generated on Fri Aug 2 2024 15:51:49 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
 </small></address>
 </body>
 </html>
