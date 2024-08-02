@@ -92,7 +92,7 @@ public:
 
         void resume() {
             auto h =std::coroutine_handle<promise_type>::from_promise(*this);
-            trace::add_link(h, _waiting.get_future());
+            trace::awaiting_ref(h, _waiting.get_future());
             trace::resume(h);
         }
         void destroy() {
@@ -161,6 +161,7 @@ public:
         };
     }
 
+    operator ident_t() const {return std::coroutine_handle<promise_type>::from_promise(*_prom);}
 
 protected:
 

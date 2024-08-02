@@ -124,7 +124,7 @@ public:
         prepared_coro attach(promise<T> &prom) {
             auto fut = prom.release();
             auto h = std::coroutine_handle<promise_type>::from_promise(*this);
-            trace::add_link(h, fut);
+            trace::awaiting_ref(h, fut);
             if (std::exchange(this->fut, fut) == nullptr) {
                 return h;
             }
@@ -223,6 +223,8 @@ public:
     auto run() {
         return start().get();
     }
+
+    operator ident_t() const {return std::coroutine_handle<promise_type>::from_promise(*_promise_ptr);}
 
 protected:
 

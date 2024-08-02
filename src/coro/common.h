@@ -5,6 +5,7 @@
 #include <coroutine>
 #include <atomic>
 #include <concepts>
+#include <bit>
 
 /**
  * @defgroup Coroutines Coroutines
@@ -123,6 +124,27 @@ using awaitable_result = typename awaitable_result_impl<T>::type;
  */
 #define CORO_OPT_BARRIER
 #endif
+
+class ident_t {
+public:
+    ident_t() = default;
+    template<typename X>
+    ident_t(std::coroutine_handle<X> h):_addr(h.address()) {}
+    bool operator==(const ident_t &other) const = default;
+    bool operator<=>(const ident_t &other) const = default;
+
+    friend std::size_t hash(const ident_t &other) {
+        return std::bit_cast<std::size_t>(other._addr);
+    }
+    
+    const void *address() const {return _addr;}
+
+protected:
+    const void *_addr = 0;
+};
+
+
+
 
 }
 

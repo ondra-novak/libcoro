@@ -1010,8 +1010,9 @@ protected:
             if (st == State::deferred) {
                 startDeferredEvaluation([](auto c){c();});
             } else {
-                trace::add_link(this, nullptr, sizeof(*this));
-                _state.wait(st);
+                trace::on_block([&]{
+                    _state.wait(st);
+                },*this);
             }
             st = _state.load(std::memory_order_acquire);
         }

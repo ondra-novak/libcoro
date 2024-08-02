@@ -145,10 +145,22 @@ struct rel_link {
     bool operator==(const rel_link &) const = default;
 };
 
+struct rel_block {
+    coro_ident _target;    
+    bool operator==(const rel_block &) const = default;
+};
+
+struct rel_unblock {
+    coro_ident _target;    
+    bool operator==(const rel_unblock &) const = default;
+};
+
+
 template<typename T>
 concept has_target = requires(T t) {
     {t._target};
 };
+
 
 using relation_type_t = std::variant<std::monostate,
                                      rel_create,
@@ -165,7 +177,9 @@ using relation_type_t = std::variant<std::monostate,
                                      rel_loop,
                                      rel_end_loop,
                                      rel_link,
-                                     rel_location
+                                     rel_location,
+                                     rel_block,
+                                     rel_unblock
                                      >;
 
 
@@ -594,7 +608,22 @@ inline void App::parse(std::istream &f) {
                     rel._rel_type = rel_link{to_coro};
                 }
                 break;
-
+                case type::block:{
+                    auto trg = resolve_link(parts.at(2), parse_number(parts.at(3),10));
+                    for (auto &t: trg) {
+                        _relations.push_back({rel._thread,t,rel_block(get_active_coro(rel._thread))});
+                    }
+                    continue;
+                }
+                break;
+                case type::unblock:{
+                    auto trg = resolve_link(parts.at(2), parse_number(parts.at(3),10));
+                    for (auto &t: trg) {
+                        _relations.push_back({rel._thread,t,rel_unblock(get_active_coro(rel._thread))});
+                    }
+                    continue;
+                }
+                break;
                 default:
                     throw 1;
             }
@@ -905,6 +934,12 @@ void App::export_uml(std::ostream &out, unsigned int label_size) {
                   flush_note(r._coro);
               } else if constexpr(std::is_same_v<T, rel_link>) {
                   add_link(r._thread, rel._target, r._coro);
+              } else if constexpr(std::is_same_v<T, rel_block>) {
+                  out << node_name(r._thread, r._coro) << "-->o" << node_name(r._thread, rel._target) << " : blocking\n";
+                  out << "activate " << node_name(r._thread, rel._target) << "#444444\n"; 
+              } else if constexpr(std::is_same_v<T, rel_unblock>) {
+                  out << node_name(r._thread, r._coro) << "-->o" << node_name(r._thread, rel._target) << " : unblock\n";
+                  out << "deactivate " << node_name(r._thread, rel._target)<< "\n";                   
               } else if constexpr(std::is_same_v<T, rel_location>) {
                   //empty
               } else if constexpr(std::is_same_v<T, rel_user_log>) {

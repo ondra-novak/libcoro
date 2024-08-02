@@ -38,6 +38,8 @@ enum class record_type: char {
     coroutine_type = 't',
     link = 'l',
     proxy = 'p',
+    block = 'b',
+    unblock = 'u'
 };
 
 inline constexpr char separator = '\t';
@@ -162,6 +164,17 @@ public:
         header(record_type::hr) << text << std::endl;
     }
 
+    void on_block(void *ptr, std::size_t sz) {
+        std::lock_guard _(_mx);
+        header(record_type::block) << pointer(ptr) << separator << sz << std::endl;
+    }
+
+    void on_unblock(void *ptr, std::size_t sz) {
+        std::lock_guard _(_mx);
+        header(record_type::unblock) << pointer(ptr) << separator << sz << std::endl;
+    }
+
+
     template<typename ... Args>
     void user_report(Args && ... args) {
         std::lock_guard _(_mx);
@@ -283,6 +296,14 @@ inline void on_suspend(std::coroutine_handle<> from, const std::source_location 
     impl::_instance.on_switch(from.address(), nullptr,  loc);
 }
 
+template<std::invocable<> Fn, typename Ref>
+inline void on_block(Fn &&fn, Ref &r) {
+    impl::_instance.on_block(&r, sizeof(r));
+    std::forward<Fn>(fn)();
+    impl::_instance.on_unblock(&r, sizeof(r));
+}
+
+
 
 
 template<typename Arg>
@@ -298,10 +319,20 @@ template<typename ... Args>
 inline void log(const Args & ... args) {impl::_instance.user_report(args...);}
 
 
-inline void add_link(const void *from, const void *to, std::size_t object_size = 0) {impl::_instance.on_link(from, to, object_size);}
-inline void add_link(std::coroutine_handle<> from, const void *to, std::size_t object_size = 0)  {impl::_instance.on_link(from.address(), to, object_size);}
-inline void add_link(const void *from, std::coroutine_handle<> to, std::size_t object_size = 0) {impl::_instance.on_link(from, to.address(), object_size);}
-inline void add_link(std::coroutine_handle<> from, std::coroutine_handle<> to, std::size_t object_size = 0) {impl::_instance.on_link(from.address(), to.address(), object_size);}
+inline void awaiting_ref(ident_t source, std::coroutine_handle<> awaiting) {
+    impl::_instance.on_link(source.address(), awaiting.address(), 0);
+}
+inline void awaiting_ref(ident_t source, const void *awaiting_obj) {
+    impl::_instance.on_link(source.address(), awaiting_obj, 0);
+}
+template<typename T>
+inline void awaiting_ref(const T &source, std::coroutine_handle<> awaiting) {
+    impl::_instance.on_link(&source, awaiting.address(), sizeof(source));
+}
+template<typename T>
+inline void awaiting_ref(const T &source, const void *awaiting_obj) {
+    impl::_instance.on_link(&source, awaiting_obj, sizeof(source));
+}
 
 
 inline void section(std::string_view text) {::coro::trace::impl::_instance.hline(text);}
@@ -383,10 +414,12 @@ namespace coro {
     template<typename ... Args>
     inline void log(const Args & ... ) {}
 
-    inline void add_link(const void *, const void *, std::size_t = 0) {}
-    inline void add_link(std::coroutine_handle<> , const void *, std::size_t = 0)  {}
-    inline void add_link(const void *, std::coroutine_handle<> , std::size_t = 0) {}
-    inline void add_link(std::coroutine_handle<> , std::coroutine_handle<> , std::size_t = 0) {}
+    inline void awaiting_ref(ident_t source, std::coroutine_handle<> awaiting) {}
+    inline void awaiting_ref(ident_t source, const void *awaiting_obj) {}
+    template<typename T>
+    inline void awaiting_ref(const T &source, std::coroutine_handle<> awaiting) {}
+    template<typename T>
+    inline void awaiting_ref(const T &source, const void *awaiting_obj) {}
 
     inline void section(std::string_view) {}
 
@@ -408,6 +441,12 @@ namespace coro {
 
 
 }
+
+template<std::invocable<> Fn, typename Ref>
+inline void on_block(Fn &&fn, Ref &) {
+    std::forward<Fn>(fn)();
+}
+
 
 }
 

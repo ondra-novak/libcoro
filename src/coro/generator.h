@@ -180,7 +180,7 @@ public:
                 if (done()) return {};
                 this->fut = promise.release();
                 auto h = std::coroutine_handle<promise_type>::from_promise(*this);
-                trace::add_link(h, this->fut);
+                trace::awaiting_ref(h, this->fut);
                 return h;
             };
         }
@@ -236,7 +236,7 @@ public:
         return generator_iterator<generator &>::end(*this);
     }
 
-    const void *get_id() const {return std::coroutine_handle<promise_type>::from_promise(*_prom).address();}
+    operator ident_t() const {return std::coroutine_handle<promise_type>::from_promise(*_prom);}
 
 protected:
 
@@ -389,7 +389,7 @@ public:
                 if (done()) return;
                 this->fut = promise.release();
                 auto h = std::coroutine_handle<promise_type>::from_promise(*this);
-                trace::add_link(h, this->fut);
+                trace::awaiting_ref(h, this->fut);
                 trace::resume(h);
             };
         }
