@@ -27,6 +27,7 @@ set(testFiles all_compile.cpp
                generator_args.cpp
                make_awaitable.cpp
                future_variant.cpp
+               memory_resource.cpp
                 )
                 
 if (ENABLE_FIBER) 

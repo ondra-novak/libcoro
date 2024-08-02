@@ -145,7 +145,6 @@ private:
 
 };
 
-
 template<coro_allocator_global Alloc>
 class coro_allocator_helper<Alloc> {
 public:
@@ -161,6 +160,56 @@ public:
     }
 };
 
+template<typename T>
+concept memory_resource_pointer = requires(T x, std::size_t sz, void *ptr) {
+    {x->allocate(sz)} ->std::same_as<void *>;
+    {x->deallocate(ptr,sz)} ->std::same_as<void>;
+    requires std::copy_constructible<T>;
+};
+
+
+///Creates `libcoro` compatible allocator which uses an instance of std::pmr::memory_resource for allocations
+/**
+ * @tparam Res pointer to memory resource, it can be also any smart pointer
+ * which acts as pointer (defines ->).  You can use std::shared_ptr which causes
+ * that memory resource is automatically released when last coroutine is
+ * finished
+ *
+ * @code
+ * coro::async<int, coro::pmr_allocator<std::pmr::memory_resource *> >
+ *          my_coro(coro::pmr_allocator<std::pmr::memory_resource *>, int arg) {
+ *
+ *
+ * }
+ * @endcode
+ * @ingroup allocators
+ *
+ */
+template<memory_resource_pointer Res>
+class pmr_allocator {
+public:
+    template<std::convertible_to<Res> T>
+    pmr_allocator(T &&resource):_memory_resource(std::forward<Res>(resource)) {}
+
+    void *alloc(std::size_t sz) {
+        auto needsz = sz + sizeof(Res);
+        void *ptr = _memory_resource->allocate(needsz);
+        Res *resptr = reinterpret_cast<Res *>(reinterpret_cast<char *>(ptr)+sz);
+        std::construct_at(resptr, _memory_resource);
+        return ptr;
+    }
+
+    static void dealloc(void *ptr, std::size_t sz) {
+        auto needsz = sz + sizeof(Res);
+        Res *resptr = reinterpret_cast<Res *>(reinterpret_cast<char *>(ptr)+sz);
+        Res memory_res ( std::move(*resptr));
+        std::destroy_at(resptr);
+        memory_res->deallocate(ptr, needsz);
+    }
+
+protected:
+    Res _memory_resource;
+};
 
 }
 

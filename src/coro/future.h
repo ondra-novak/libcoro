@@ -1332,6 +1332,11 @@ protected:
     template<typename ... Args>
     void set_value(Args && ... args) const {
         if (fut) fut->set_value(std::forward<Args>(args)...);
+        else {
+            if constexpr ((std::invocable<Args> && ...)) {
+                (args(), ...);
+            }
+        }
     }
 
     coro_promise_base() = default;
