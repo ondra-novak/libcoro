@@ -147,7 +147,7 @@ $(function() {
 <div class="line"><a name="l00112"></a><span class="lineno">  112</span>&#160;    }</div>
 <div class="line"><a name="l00113"></a><span class="lineno">  113</span>&#160; </div>
 <div class="line"><a name="l00114"></a><span class="lineno">  114</span>&#160;    <span class="keywordtype">void</span> <a class="code" href="classcoro_1_1distributor_a23e894bd7e86ac3e22d946d9ffc02dbf.html#a23e894bd7e86ac3e22d946d9ffc02dbf">subscribe</a>(promise_t &amp;&amp;prom, ID <span class="keywordtype">id</span> = { }) {</div>
-<div class="line"><a name="l00115"></a><span class="lineno">  115</span>&#160;        trace::add_link(<span class="keyword">this</span>, prom.get_future());</div>
+<div class="line"><a name="l00115"></a><span class="lineno">  115</span>&#160;        trace::awaiting_ref(*<span class="keyword">this</span>, prom.get_future());</div>
 <div class="line"><a name="l00116"></a><span class="lineno">  116</span>&#160;        std::lock_guard _(_mx);</div>
 <div class="line"><a name="l00117"></a><span class="lineno">  117</span>&#160;        _subscribers.push_back(std::pair&lt;promise_t, ID&gt;(std::move(prom), <span class="keywordtype">id</span>));</div>
 <div class="line"><a name="l00118"></a><span class="lineno">  118</span>&#160;    }</div>
@@ -348,7 +348,7 @@ $(function() {
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Jun 30 2024 13:59:21 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+Generated on Fri Aug 2 2024 15:42:38 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
 </small></address>
 </body>
 </html>

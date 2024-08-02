@@ -157,7 +157,7 @@ $(function() {
 <div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160; </div>
 <div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160;        <span class="keywordtype">void</span> <a class="code" href="group__trace_ga4a19ba3cf4502485e8f907e865eef940.html#ga4a19ba3cf4502485e8f907e865eef940">resume</a>() {</div>
 <div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;            <span class="keyword">auto</span> h =std::coroutine_handle&lt;promise_type&gt;::from_promise(*<span class="keyword">this</span>);</div>
-<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;            trace::add_link(h, _waiting.get_future());</div>
+<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;            trace::awaiting_ref(h, _waiting.get_future());</div>
 <div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;            <a class="code" href="group__trace_ga4a19ba3cf4502485e8f907e865eef940.html#ga4a19ba3cf4502485e8f907e865eef940">trace::resume</a>(h);</div>
 <div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;        }</div>
 <div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;        <span class="keywordtype">void</span> destroy() {</div>
@@ -215,42 +215,43 @@ $(function() {
 <div class="line"><a name="l00161"></a><span class="lineno">  161</span>&#160;        };</div>
 <div class="line"><a name="l00162"></a><span class="lineno">  162</span>&#160;    }</div>
 <div class="line"><a name="l00163"></a><span class="lineno">  163</span>&#160; </div>
-<div class="line"><a name="l00164"></a><span class="lineno">  164</span>&#160; </div>
-<div class="line"><a name="l00165"></a><span class="lineno">  165</span>&#160;<span class="keyword">protected</span>:</div>
-<div class="line"><a name="l00166"></a><span class="lineno">  166</span>&#160; </div>
-<div class="line"><a name="l00167"></a><span class="lineno">  167</span>&#160;    <a class="code" href="classcoro_1_1collector.html">collector</a>(promise_type *p):_prom(p) {</div>
-<div class="line"><a name="l00168"></a><span class="lineno">  168</span>&#160;        _prom-&gt;connect(<span class="keyword">this</span>);</div>
-<div class="line"><a name="l00169"></a><span class="lineno">  169</span>&#160;    }</div>
-<div class="line"><a name="l00170"></a><span class="lineno">  170</span>&#160; </div>
-<div class="line"><a name="l00171"></a><span class="lineno">  171</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> X&gt;</div>
-<div class="line"><a name="l00172"></a><span class="lineno">  172</span>&#160;    <span class="keyword">static</span> promise_type *cast_promise(X *other) {</div>
-<div class="line"><a name="l00173"></a><span class="lineno">  173</span>&#160;        <span class="keywordflow">return</span> <span class="keyword">static_cast&lt;</span>promise_type *<span class="keyword">&gt;</span>(<span class="keyword">static_cast&lt;</span>_details::coro_promise_base&lt;Result&gt; *<span class="keyword">&gt;</span>(other));</div>
-<div class="line"><a name="l00174"></a><span class="lineno">  174</span>&#160;    }</div>
-<div class="line"><a name="l00175"></a><span class="lineno">  175</span>&#160; </div>
+<div class="line"><a name="l00164"></a><span class="lineno">  164</span>&#160;    <span class="keyword">operator</span> ident_t()<span class="keyword"> const </span>{<span class="keywordflow">return</span> std::coroutine_handle&lt;promise_type&gt;::from_promise(*_prom);}</div>
+<div class="line"><a name="l00165"></a><span class="lineno">  165</span>&#160; </div>
+<div class="line"><a name="l00166"></a><span class="lineno">  166</span>&#160;<span class="keyword">protected</span>:</div>
+<div class="line"><a name="l00167"></a><span class="lineno">  167</span>&#160; </div>
+<div class="line"><a name="l00168"></a><span class="lineno">  168</span>&#160;    collector(promise_type *p):_prom(p) {</div>
+<div class="line"><a name="l00169"></a><span class="lineno">  169</span>&#160;        _prom-&gt;connect(<span class="keyword">this</span>);</div>
+<div class="line"><a name="l00170"></a><span class="lineno">  170</span>&#160;    }</div>
+<div class="line"><a name="l00171"></a><span class="lineno">  171</span>&#160; </div>
+<div class="line"><a name="l00172"></a><span class="lineno">  172</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> X&gt;</div>
+<div class="line"><a name="l00173"></a><span class="lineno">  173</span>&#160;    <span class="keyword">static</span> promise_type *cast_promise(X *other) {</div>
+<div class="line"><a name="l00174"></a><span class="lineno">  174</span>&#160;        <span class="keywordflow">return</span> <span class="keyword">static_cast&lt;</span>promise_type *<span class="keyword">&gt;</span>(<span class="keyword">static_cast&lt;</span>_details::coro_promise_base&lt;Result&gt; *<span class="keyword">&gt;</span>(other));</div>
+<div class="line"><a name="l00175"></a><span class="lineno">  175</span>&#160;    }</div>
 <div class="line"><a name="l00176"></a><span class="lineno">  176</span>&#160; </div>
-<div class="line"><a name="l00177"></a><span class="lineno">  177</span>&#160;    <span class="keyword">struct </span>Deleter {</div>
-<div class="line"><a name="l00178"></a><span class="lineno">  178</span>&#160;        <span class="keywordtype">void</span> <a class="code" href="classcoro_1_1collector_a6e712f74a38d80a12d9814978d314f1f.html#a6e712f74a38d80a12d9814978d314f1f">operator()</a>(promise_type *x) {</div>
-<div class="line"><a name="l00179"></a><span class="lineno">  179</span>&#160;            x-&gt;destroy();</div>
-<div class="line"><a name="l00180"></a><span class="lineno">  180</span>&#160;        }</div>
-<div class="line"><a name="l00181"></a><span class="lineno">  181</span>&#160;    };</div>
-<div class="line"><a name="l00182"></a><span class="lineno">  182</span>&#160; </div>
-<div class="line"><a name="l00183"></a><span class="lineno">  183</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> A, <span class="keyword">typename</span> B, coro_allocator C&gt; <span class="keyword">friend</span> <span class="keyword">class </span>collector;</div>
-<div class="line"><a name="l00184"></a><span class="lineno">  184</span>&#160; </div>
-<div class="line"><a name="l00185"></a><span class="lineno">  185</span>&#160;    std::unique_ptr&lt;promise_type,Deleter&gt; _prom;</div>
-<div class="line"><a name="l00186"></a><span class="lineno">  186</span>&#160; </div>
-<div class="line"><a name="l00187"></a><span class="lineno">  187</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> Fn&gt;</div>
-<div class="line"><a name="l00188"></a><span class="lineno">  188</span>&#160;    <span class="keywordtype">void</span> set_factory_resume(Fn &amp;&amp;fn) {</div>
-<div class="line"><a name="l00189"></a><span class="lineno">  189</span>&#160;        _details::collectible_factory_fn&lt;Collectible, Fn&gt; f(std::forward&lt;Fn&gt;(fn));</div>
-<div class="line"><a name="l00190"></a><span class="lineno">  190</span>&#160;        _prom-&gt;_factory = &amp;f;</div>
-<div class="line"><a name="l00191"></a><span class="lineno">  191</span>&#160;        _prom-&gt;resume();</div>
-<div class="line"><a name="l00192"></a><span class="lineno">  192</span>&#160;    }</div>
-<div class="line"><a name="l00193"></a><span class="lineno">  193</span>&#160; </div>
+<div class="line"><a name="l00177"></a><span class="lineno">  177</span>&#160; </div>
+<div class="line"><a name="l00178"></a><span class="lineno">  178</span>&#160;    <span class="keyword">struct </span>Deleter {</div>
+<div class="line"><a name="l00179"></a><span class="lineno">  179</span>&#160;        <span class="keywordtype">void</span> <a class="code" href="classcoro_1_1collector_a6e712f74a38d80a12d9814978d314f1f.html#a6e712f74a38d80a12d9814978d314f1f">operator()</a>(promise_type *x) {</div>
+<div class="line"><a name="l00180"></a><span class="lineno">  180</span>&#160;            x-&gt;destroy();</div>
+<div class="line"><a name="l00181"></a><span class="lineno">  181</span>&#160;        }</div>
+<div class="line"><a name="l00182"></a><span class="lineno">  182</span>&#160;    };</div>
+<div class="line"><a name="l00183"></a><span class="lineno">  183</span>&#160; </div>
+<div class="line"><a name="l00184"></a><span class="lineno">  184</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> A, <span class="keyword">typename</span> B, coro_allocator C&gt; <span class="keyword">friend</span> <span class="keyword">class </span>collector;</div>
+<div class="line"><a name="l00185"></a><span class="lineno">  185</span>&#160; </div>
+<div class="line"><a name="l00186"></a><span class="lineno">  186</span>&#160;    std::unique_ptr&lt;promise_type,Deleter&gt; _prom;</div>
+<div class="line"><a name="l00187"></a><span class="lineno">  187</span>&#160; </div>
+<div class="line"><a name="l00188"></a><span class="lineno">  188</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> Fn&gt;</div>
+<div class="line"><a name="l00189"></a><span class="lineno">  189</span>&#160;    <span class="keywordtype">void</span> set_factory_resume(Fn &amp;&amp;fn) {</div>
+<div class="line"><a name="l00190"></a><span class="lineno">  190</span>&#160;        _details::collectible_factory_fn&lt;Collectible, Fn&gt; f(std::forward&lt;Fn&gt;(fn));</div>
+<div class="line"><a name="l00191"></a><span class="lineno">  191</span>&#160;        _prom-&gt;_factory = &amp;f;</div>
+<div class="line"><a name="l00192"></a><span class="lineno">  192</span>&#160;        _prom-&gt;resume();</div>
+<div class="line"><a name="l00193"></a><span class="lineno">  193</span>&#160;    }</div>
 <div class="line"><a name="l00194"></a><span class="lineno">  194</span>&#160; </div>
-<div class="line"><a name="l00195"></a><span class="lineno">  195</span>&#160;};</div>
-<div class="line"><a name="l00196"></a><span class="lineno">  196</span>&#160; </div>
+<div class="line"><a name="l00195"></a><span class="lineno">  195</span>&#160; </div>
+<div class="line"><a name="l00196"></a><span class="lineno">  196</span>&#160;};</div>
 <div class="line"><a name="l00197"></a><span class="lineno">  197</span>&#160; </div>
 <div class="line"><a name="l00198"></a><span class="lineno">  198</span>&#160; </div>
-<div class="line"><a name="l00199"></a><span class="lineno">  199</span>&#160;}</div>
+<div class="line"><a name="l00199"></a><span class="lineno">  199</span>&#160; </div>
+<div class="line"><a name="l00200"></a><span class="lineno">  200</span>&#160;}</div>
 <div class="ttc" id="aclasscoro_1_1collector_a3cf4dce2ed8ad3ded451941016652327_html_a3cf4dce2ed8ad3ded451941016652327"><div class="ttname"><a href="classcoro_1_1collector_a3cf4dce2ed8ad3ded451941016652327.html#a3cf4dce2ed8ad3ded451941016652327">coro::collector::operator=</a></div><div class="ttdeci">collector &amp; operator=(collector &amp;&amp;other)</div><div class="ttdoc">assign by move</div><div class="ttdef"><b>Definition:</b> <a href="collector_8h_source.html#l00124">collector.h:124</a></div></div>
 <div class="ttc" id="aclasscoro_1_1collector_a6e712f74a38d80a12d9814978d314f1f_html_a6e712f74a38d80a12d9814978d314f1f"><div class="ttname"><a href="classcoro_1_1collector_a6e712f74a38d80a12d9814978d314f1f.html#a6e712f74a38d80a12d9814978d314f1f">coro::collector::operator()</a></div><div class="ttdeci">future&lt; bool &gt; operator()(Args &amp;&amp;... args)</div><div class="ttdoc">call collected and push next collectible item</div><div class="ttdef"><b>Definition:</b> <a href="collector_8h_source.html#l00141">collector.h:141</a></div></div>
 <div class="ttc" id="aclasscoro_1_1collector_a7846d891e0525e697b50ac08b07b2060_html_a7846d891e0525e697b50ac08b07b2060"><div class="ttname"><a href="classcoro_1_1collector_a7846d891e0525e697b50ac08b07b2060.html#a7846d891e0525e697b50ac08b07b2060">coro::collector::collector</a></div><div class="ttdeci">collector(collector &amp;&amp;other)</div><div class="ttdoc">move</div><div class="ttdef"><b>Definition:</b> <a href="collector_8h_source.html#l00113">collector.h:113</a></div></div>
@@ -264,13 +265,13 @@ $(function() {
 <div class="ttc" id="aclasscoro_1_1prepared__coro_html"><div class="ttname"><a href="classcoro_1_1prepared__coro.html">coro::prepared_coro</a></div><div class="ttdoc">contains prepared coroutine (prepared to run)</div><div class="ttdef"><b>Definition:</b> <a href="prepared__coro_8h_source.html#l00015">prepared_coro.h:15</a></div></div>
 <div class="ttc" id="aclasscoro_1_1promise_a0717c02c0591d87591abe213b87fbcb2_html_a0717c02c0591d87591abe213b87fbcb2"><div class="ttname"><a href="classcoro_1_1promise_a0717c02c0591d87591abe213b87fbcb2.html#a0717c02c0591d87591abe213b87fbcb2">coro::promise::release</a></div><div class="ttdeci">FutureType * release()</div><div class="ttdoc">Release the future pointer from the promise object.</div><div class="ttdef"><b>Definition:</b> <a href="future_8h_source.html#l00273">future.h:273</a></div></div>
 <div class="ttc" id="aclasscoro_1_1promise_html"><div class="ttname"><a href="classcoro_1_1promise.html">coro::promise</a></div><div class="ttdoc">Carries reference to future&lt;T&gt;, callable, sets value of an associated future&lt;T&gt;</div><div class="ttdef"><b>Definition:</b> <a href="future_8h_source.html#l00073">future.h:73</a></div></div>
-<div class="ttc" id="agroup__trace_ga4a19ba3cf4502485e8f907e865eef940_html_ga4a19ba3cf4502485e8f907e865eef940"><div class="ttname"><a href="group__trace_ga4a19ba3cf4502485e8f907e865eef940.html#ga4a19ba3cf4502485e8f907e865eef940">coro::trace::resume</a></div><div class="ttdeci">void resume(std::coroutine_handle&lt;&gt; h) noexcept</div><div class="ttdoc">Record resumption of an coroutine.</div><div class="ttdef"><b>Definition:</b> <a href="trace_8h_source.html#l00351">trace.h:351</a></div></div>
-<div class="ttc" id="agroup__trace_gac117f650767add91a18777a4e7f41ceb_html_gac117f650767add91a18777a4e7f41ceb"><div class="ttname"><a href="group__trace_gac117f650767add91a18777a4e7f41ceb.html#gac117f650767add91a18777a4e7f41ceb">coro::trace::on_switch</a></div><div class="ttdeci">std::coroutine_handle on_switch(std::coroutine_handle&lt;&gt;, std::coroutine_handle&lt;&gt; to, const void *)</div><div class="ttdoc">Record switch (symmetric transfer) from one coroutine to other.</div><div class="ttdef"><b>Definition:</b> <a href="trace_8h_source.html#l00362">trace.h:362</a></div></div>
+<div class="ttc" id="agroup__trace_ga4a19ba3cf4502485e8f907e865eef940_html_ga4a19ba3cf4502485e8f907e865eef940"><div class="ttname"><a href="group__trace_ga4a19ba3cf4502485e8f907e865eef940.html#ga4a19ba3cf4502485e8f907e865eef940">coro::trace::resume</a></div><div class="ttdeci">void resume(std::coroutine_handle&lt;&gt; h) noexcept</div><div class="ttdoc">Record resumption of an coroutine.</div><div class="ttdef"><b>Definition:</b> <a href="trace_8h_source.html#l00382">trace.h:382</a></div></div>
+<div class="ttc" id="agroup__trace_gac117f650767add91a18777a4e7f41ceb_html_gac117f650767add91a18777a4e7f41ceb"><div class="ttname"><a href="group__trace_gac117f650767add91a18777a4e7f41ceb.html#gac117f650767add91a18777a4e7f41ceb">coro::trace::on_switch</a></div><div class="ttdeci">std::coroutine_handle on_switch(std::coroutine_handle&lt;&gt;, std::coroutine_handle&lt;&gt; to, const void *)</div><div class="ttdoc">Record switch (symmetric transfer) from one coroutine to other.</div><div class="ttdef"><b>Definition:</b> <a href="trace_8h_source.html#l00393">trace.h:393</a></div></div>
 <div class="ttc" id="anamespacecoro_html"><div class="ttname"><a href="namespacecoro.html">coro</a></div><div class="ttdoc">main namespace</div><div class="ttdef"><b>Definition:</b> <a href="aggregator_8h_source.html#l00008">aggregator.h:8</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Jun 30 2024 13:59:21 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+Generated on Fri Aug 2 2024 15:42:38 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
 </small></address>
 </body>
 </html>

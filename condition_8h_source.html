@@ -143,7 +143,7 @@ $(function() {
 <div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160;<span class="keyword">public</span>:</div>
 <div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160; </div>
 <div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;    <span class="keywordtype">bool</span> reg_awaiter(<span class="keyword">const</span> <span class="keywordtype">void</span> *addr, abstract_condition_awaiter *awt) {</div>
-<div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160;        trace::add_link(<span class="keyword">this</span>, awt);</div>
+<div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160;        trace::awaiting_ref(*<span class="keyword">reinterpret_cast&lt;</span><span class="keyword">const </span>std::uintptr_t *<span class="keyword">&gt;</span>(addr), awt);</div>
 <div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;        std::lock_guard _(_mx);</div>
 <div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160;        <span class="keywordflow">if</span> (awt-&gt;test(addr)) <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
 <div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;        insert_item(addr, awt);</div>
@@ -342,7 +342,7 @@ $(function() {
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Jun 30 2024 13:59:21 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
+Generated on Fri Aug 2 2024 15:42:38 for libcoro by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
 </small></address>
 </body>
 </html>
