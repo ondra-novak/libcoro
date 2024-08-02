@@ -414,12 +414,12 @@ namespace coro {
     template<typename ... Args>
     inline void log(const Args & ... ) {}
 
-    inline void awaiting_ref(ident_t source, std::coroutine_handle<> awaiting) {}
-    inline void awaiting_ref(ident_t source, const void *awaiting_obj) {}
+    inline void awaiting_ref(ident_t , std::coroutine_handle<> ) {}
+    inline void awaiting_ref(ident_t , const void *) {}
     template<typename T>
-    inline void awaiting_ref(const T &source, std::coroutine_handle<> awaiting) {}
+    inline void awaiting_ref(const T &, std::coroutine_handle<> ) {}
     template<typename T>
-    inline void awaiting_ref(const T &source, const void *awaiting_obj) {}
+    inline void awaiting_ref(const T &, const void *) {}
 
     inline void section(std::string_view) {}
 
@@ -439,13 +439,14 @@ namespace coro {
 
     inline constexpr ident_awt ident = {};
 
+    template<std::invocable<> Fn, typename Ref>
+    inline void on_block(Fn &&fn, Ref &) {
+        std::forward<Fn>(fn)();
+    }
+
 
 }
 
-template<std::invocable<> Fn, typename Ref>
-inline void on_block(Fn &&fn, Ref &) {
-    std::forward<Fn>(fn)();
-}
 
 
 }
